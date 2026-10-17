@@ -13,6 +13,9 @@ Status: reference implementation, v1.0.0. Demo: 305 s / 1920x1080 / 30 fps / h26
 integrated loudness -15.1 LUFS, true peak -1.8 dBTP, 41 narration lines.
 ```
 
+**Watch it first:** [the demo film](https://github.com/Xian-debu/video-pipeline-blueprint/releases/download/v1.0.0/quicksort_v3.mp4)
+(14.6 MB, release asset) - then read how it is guaranteed to render the same way every time.
+
 ## 中文速览
 
 这是一个**经过实测验证**的代码驱动视频管线部署包：分镜是数据（JSON/TS），画面是代码（Remotion/React），
