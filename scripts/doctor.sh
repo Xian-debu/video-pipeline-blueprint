@@ -22,6 +22,7 @@ need_cmd ffmpeg
 need_cmd ffprobe
 need_cmd python3
 node -e 'const m=process.versions.node.split(".")[0]; process.exit(+m>=20?0:1)' && ok "node >= 20" || bad "node >= 20 required"
+python3 -c 'import numpy' 2>/dev/null && ok "python3 numpy (needed by the flicker gate)" || bad "python3 cannot import numpy (apt install python3-numpy, or set PYTHON=... to a venv that has it)"
 
 echo "== node_modules"
 [ -d node_modules/remotion ] && ok "remotion installed" || bad "remotion not installed (run npm install)"

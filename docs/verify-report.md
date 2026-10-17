@@ -88,3 +88,15 @@ rendered from seed 11. Both are inputs to the render, not outputs of it.
 
 Narration quality (needs the TTS model), the Manim overlay (needs that asset), and 3D on a host
 without working headless WebGL. Those are optional passes described in `docs/deployment.md`.
+
+## Re-verification of the published tree
+
+After the fixes above were committed, the exact tree that is published here was extracted into an
+empty directory, `npm install` was run into a fresh `node_modules` (289 packages), and
+`bash scripts/verify.sh` was executed again - this time with the *system* Python, not a prepared venv.
+Result: `doctor: all checks passed`, then steps 1-6 all PASS with the same numbers as the
+recorded run above (-15.2 LUFS, -1.6 dBTP, max abs delta 6.57).
+
+One prerequisite this exposed: the flicker gate needs `numpy`, and a bare `python3` does not have it.
+`scripts/bootstrap.sh` now installs `python3-numpy`, and `scripts/doctor.sh` checks for it, so the
+missing piece is reported before a render rather than after it.

@@ -121,7 +121,8 @@ Compositions: `Storyboard` (generic, 20 s), `Showreel` (30 s), `Lecture` (305 s 
 ## 5. Quick start
 
 ```bash
-# 0. prerequisites: Debian/Ubuntu, ffmpeg, python3, ~5 GB free disk; sudo for the apt step
+# 0. prerequisites: Debian/Ubuntu, ffmpeg, python3 + numpy, ~5 GB free disk; sudo for the apt step
+#    (bootstrap.sh installs all of these; the QA gate needs numpy)
 git clone <this repo> && cd video-pipeline-blueprint
 bash scripts/bootstrap.sh        # apt libs + CJK fonts + node + npm + headless Chromium
 bash scripts/doctor.sh           # must print "all checks passed"

@@ -18,8 +18,8 @@ esac
 
 say() { printf '\n==> %s\n' "$*"; }
 
-say "1/5 system libraries (headless Chromium + fonts + ffmpeg)"
-APT_PKGS="ffmpeg fonts-noto-cjk libnss3 libnspr4 libxcomposite1 libxdamage1 libxrandr2 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 libgbm1 libasound2t64"
+say "1/5 system libraries (headless Chromium + fonts + ffmpeg + python numpy)"
+APT_PKGS="ffmpeg python3 python3-numpy fonts-noto-cjk libnss3 libnspr4 libxcomposite1 libxdamage1 libxrandr2 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 libgbm1 libasound2t64"
 if [ "${SKIP_APT:-0}" = "1" ]; then
   echo "skipped (SKIP_APT=1)"
 elif command -v apt-get >/dev/null 2>&1; then
