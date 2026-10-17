@@ -1,0 +1,7 @@
+node_modules/
+out/
+.remotion/
+public/music/*.wav
+public/voice/narration.wav
+public/manim/*.mov
+*.log

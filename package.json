@@ -1,0 +1,32 @@
+{
+  "name": "video-pipeline-blueprint",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Reference deployment of a code-driven video pipeline: Remotion scenes, local TTS narration, programmatic score, objective QA gates.",
+  "license": "MIT",
+  "scripts": {
+    "studio": "remotion studio",
+    "still": "remotion still",
+    "render": "remotion render",
+    "typecheck": "tsc --noEmit",
+    "browser": "remotion browser ensure",
+    "score": "node scripts/audio/render_music.mjs",
+    "verify": "bash scripts/verify.sh"
+  },
+  "dependencies": {
+    "@react-three/fiber": "9.8.2",
+    "@remotion/cli": "4.0.536",
+    "@remotion/three": "4.0.536",
+    "@remotion/transitions": "4.0.536",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@types/three": "0.186.0",
+    "katex": "0.16.22",
+    "node-web-audio-api": "^2.2.0",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "remotion": "4.0.536",
+    "three": "0.186.1",
+    "typescript": "7.0.2"
+  }
+}

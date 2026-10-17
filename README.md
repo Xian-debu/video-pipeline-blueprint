@@ -1,0 +1,277 @@
+# video-pipeline-blueprint
+
+A verified, reproducible blueprint for a **code-driven video pipeline**: the storyboard is data,
+the picture is code, the sound is generated, and acceptance is measured instead of argued.
+
+This repository is not a library. It is a **reference deployment + field report**: one production
+(305 s algorithm lecture, Mandarin narration, programmatic score) that was built end to end on a
+single 8 GB laptop GPU, with the exact environment, scripts, failure modes and quality gates that
+made it work. Everything here was executed; numbers below were measured, not estimated.
+
+```
+Status: reference implementation, v1.0.0. Demo: 305 s / 1920x1080 / 30 fps / h264 + aac,
+integrated loudness -15.1 LUFS, true peak -1.8 dBTP, 41 narration lines.
+```
+
+## 中文速览
+
+这是一个**经过实测验证**的代码驱动视频管线部署包：分镜是数据（JSON/TS），画面是代码（Remotion/React），
+声音是本地合成的（IndexTTS-2 旁白 + 种子确定性配乐），验收靠测量而不是靠嘴（EBU R128 响度、逐帧亮度
+闪烁检测、静帧人工复核）。本仓库收录的是一份完整生产案例——一台 8 GB 笔记本显卡机器上产出的 305 秒
+快速排序教学片——以及让它跑起来所需的脚本、环境说明、失败模式和验收关卡。
+
+不是库，不是 SaaS，不是一键安装器。目标是：克隆下来，`bash scripts/bootstrap.sh` +
+`npm run verify` 两分钟内得到 PASS，然后照着 `docs/deployment.md` 换成你自己的内容。
+坑都在 `docs/known-issues.md`（K1–K12），没有一条是假设出来的。
+
+## 1. What this is, and what it is not
+
+| It is | It is not |
+| --- | --- |
+| A deployment guide whose every step has been run on a clean directory | A hosted service, SaaS, or a one-click installer |
+| A working Remotion project (generic storyboard + validated lecture) | A video editing GUI |
+| Objective QA gates: EBU R128 loudness, per-frame luma flicker detection, still-frame review | An "AI makes your video" wrapper |
+| Honest notes on what broke and why (see `docs/known-issues.md`) | A claim that any of this is trivial |
+
+The core idea is simple: **a frame is a pure function of (data, frame index)**. If that holds,
+a video becomes testable — you can render frame 2500 in isolation, diff it, and re-render the whole
+film deterministically. Almost every design decision here follows from that.
+
+## 2. Verified result
+
+The demo is a 5-minute lecture on quicksort (from intuition to optimisation to a full expected-case
+proof), generated from:
+
+- real execution traces: 34 partition steps on an 8-element array, captured from an instrumented
+  Python implementation (no hand-drawn values),
+- measured counters: 5 sort variants x 4 input patterns, n = 1000, on the same machine,
+- 41 narration lines synthesized locally (IndexTTS-2) and re-timed against measured speech lengths,
+- a 306 s score rendered deterministically from a seed (same seed => identical wav bytes).
+
+| Property | Measured |
+| --- | --- |
+| Runtime | 305.100 s, 30 fps, 1920x1080 |
+| Video | h264, yuv420p |
+| Audio | aac 48 kHz, I = -15.1 LUFS, TP = -1.8 dBTP |
+| Full render time | ~5 min on the reference machine (2 concurrent renderers) |
+| Flicker gate | max single-frame luma delta 9.68 (< 12 threshold) |
+| Reproducibility | same seed => same music bytes; stills are frame-exact |
+
+### Stills from the verified run
+
+| | |
+| --- | --- |
+| ![Lecture, trace scene](docs/images/still_lecture_proof.png) | ![Typesetting with KaTeX](docs/images/still_typesetting.png) |
+| Trace scene: real partition steps, live pivot slot, per-step counters | Proof scene: six numbered KaTeX lines, key step, measured check |
+| ![Storyboard template](docs/images/still_storyboard.png) | ![Showreel contact sheet](docs/images/showreel_contact.png) |
+| Generic `Storyboard` composition driven by storyboard JSON | Contact sheet of the 30 s `Showreel` (the verify artefact) |
+
+## 3. Pipeline at a glance
+
+```
+data/*.json  ──►  src/lecture/script.ts  ──►  src/lecture/Lecture.tsx  ──►  Remotion render
+(real traces)      (scene budget, lines)       (scenes + subtitles)         │
+                                                                             ├─► stills (human review)
+IndexTTS-2 ──► public/voice/lNN.wav ──► narration.wav ──────────────────────┤
+node-web-audio-api ──► public/music/score.wav ─────────────────────────────┤
+                                                                            ▼
+                                                              ffmpeg loudnorm (EBU R128)
+                                                                            │
+                                                              luma_blink.py (flicker gate)
+```
+
+Three independent layers, joined only by files:
+
+1. **Content** — storyboard JSON or a typed `script.ts`; scene durations and speech lines are data.
+2. **Rendering** — React/TSX components driven exclusively by `useCurrentFrame()`; no CSS
+   animations, no third-party self-running animation, so any frame can be rendered in isolation.
+3. **Sound** — a deterministic score (seeded PRNG, `node-web-audio-api`) and a locally synthesized
+   narration track, mixed outside the renderer and normalised with ffmpeg.
+
+## 4. What is in the box
+
+```
+.
+├─ src/
+│  ├─ Root.tsx                 registered compositions (7)
+│  ├─ storyboard/              generic template: storyboard JSON -> film
+│  ├─ lecture/                 the validated 305 s lecture (script + scenes)
+│  ├─ design/                  design tokens, scene shell, KaTeX helpers, motion primitives
+│  └─ showcase/                one-file samples: transitions, typesetting, 3D, Manim overlay
+├─ data/                       real traces, counters, source lines, narration timings
+├─ public/voice/sample.wav     one narration line, kept so the audio path can be tested without TTS
+├─ scripts/
+│  ├─ bootstrap.sh             system libraries, node, npm, headless Chromium
+│  ├─ doctor.sh                read-only environment report (PASS/FAIL)
+│  ├─ verify.sh                end-to-end smoke test: typecheck -> stills -> render -> QA
+│  ├─ generate_data.py         regenerates data/*.json from instrumented implementations
+│  ├─ audio/render_music.mjs   deterministic score renderer
+│  ├─ audio/loudnorm.sh        two-pass EBU R128 normalisation (video stream untouched)
+│  ├─ qa/luma_blink.py         per-frame luma jump + dip detector
+│  └─ tts/                     local TTS: batch synthesis, re-timing, torchaudio patch
+└─ docs/                       architecture, deployment, verification, known issues, environments, roadmap
+```
+
+Compositions: `Storyboard` (generic, 20 s), `Showreel` (30 s), `Lecture` (305 s demo),
+`Transitions`, `Typesetting`, `ThreeCube`, `ManimOverlay` (single-capability samples).
+
+## 5. Quick start
+
+```bash
+# 0. prerequisites: Debian/Ubuntu, ffmpeg, python3, ~5 GB free disk; sudo for the apt step
+git clone <this repo> && cd video-pipeline-blueprint
+bash scripts/bootstrap.sh        # apt libs + CJK fonts + node + npm + headless Chromium
+bash scripts/doctor.sh           # must print "all checks passed"
+npm run verify                   # ~2 min: typecheck, 3 stills, 30 s film, loudness + flicker gates
+```
+
+Expected tail of `npm run verify`:
+
+```
+integrated loudness = -15.XX LUFS, true peak = -2.XX dBFS
+PASS loudness
+... flicker: PASS
+verify: PASS — stills in out/verify/, video in out/verify/showreel_norm.mp4
+```
+
+Then:
+
+```bash
+npm run studio                                   # live preview in the browser
+npx remotion still Lecture out/frame_2500.png --frame=2500 --props='{"music":null,"narration":null}'
+npx remotion render Lecture out/lecture.mp4      # needs public/music/score.wav (see docs/deployment.md)
+```
+
+## 6. The environment this was built on
+
+| Item | Value |
+| --- | --- |
+| Host | Windows 11 + WSL2 (Ubuntu 24.04.2 LTS), mirrored network mode |
+| GPU | NVIDIA RTX 5070 Laptop, 8 GB VRAM, driver 591.44 |
+| CPU / RAM | 20 logical cores / 54 GB (WSL limit) |
+| Node | v22.21.1 (tarball, not the distro package) |
+| Remotion | 4.0.536, Chromium renderer `angle` |
+| ffmpeg | 6.1.1 |
+| Python | 3.12.3; a side venv holds Manim 0.22 and the TTS stack |
+
+**How these long jobs are controlled** matters as much as the versions:
+
+- Renders are single-shot CLIs; they are *not* run from an interactive shell that can die.
+  On the reference machine every long job runs under a supervisor:
+  `systemd-run --unit=lecture --collect --property=StandardOutput=file:/tmp/lecture.log ...`
+  and progress is read from the log. Detaching with `nohup`/`setsid` from a session that then
+  exits lost processes in our tests.
+- The pipeline never polls an LLM or a remote API during a render; the render is a pure function,
+  so a retry costs only wall-clock time.
+- Peak VRAM is dominated by the TTS model (~7.9 GB of 8 GB). **Do not run TTS and a 3D render
+  concurrently on an 8 GB card.** Rendering itself is CPU-bound and does not need the GPU.
+- Headless Chromium on WSL2 needs the shared libraries listed in `scripts/bootstrap.sh`; the
+  renderer uses ANGLE for WebGL, which is also what makes 3D scenes work on an 8 GB machine.
+
+## 7. Models, libraries and the relationship to upstream projects
+
+This repository contains **only original code and data**. It does not vendor, mirror, or
+re-license any third-party weights or sources; every dependency is installed by the user from
+its own upstream under its own license.
+
+| Upstream | Role here | License (upstream) | Relation |
+| --- | --- | --- | --- |
+| [Remotion](https://github.com/remotion-dev/remotion) 4.0.536 | React-based video renderer; every composition | Remotion License (free for individuals/small teams; check company terms) | Unmodified dependency; this repo is an application built on its public API |
+| [React](https://github.com/facebook/react) 19 / [three.js](https://github.com/mrdoob/three.js) / [react-three-fiber](https://github.com/pmndrs/react-three-fiber) | scene components, 3D sample | MIT | dependency |
+| [KaTeX](https://github.com/KaTeX/KaTeX) | math typesetting in the proof scene | MIT | dependency |
+| [Manim Community](https://github.com/ManimCommunity/manim) 0.22 | optional: animated formula overlay (alpha) | MIT | external renderer, its output is imported as a video asset |
+| [IndexTTS-2](https://github.com/index-tts/index-tts) | local Mandarin narration | Apache-2.0 (check upstream) | external model runtime; weights are downloaded by the user, never committed here |
+| [torchaudio](https://github.com/pytorch/audio) / [soundfile](https://github.com/bastibe/python-soundfile) | audio IO in the TTS path | BSD-2 / BSD-3 | dependency; one compatibility patch is applied by a script, not vendored |
+| [node-web-audio-api](https://github.com/ircam-ismm/node-web-audio-api) | offline score synthesis | BSD-3 | dependency |
+| [ffmpeg](https://ffmpeg.org) | loudness measurement/normalisation, encoding checks | LGPL/GPL depending on build | external binary |
+| [Noto fonts](https://github.com/notofonts/noto-cjk) | CJK typography | OFL-1.1 | installed as a system font, not bundled |
+| [remotion-skills](https://github.com/buainoai/remotion-skills) | external best-practice rules consulted while building | see upstream | **not** included; referenced as reading material |
+
+Deliberately not used: the official `@remotion/mcp` (it only forwards documentation to
+`mcp.remotion.dev`; it does not render), Tone.js (its `OfflineAudioContext` path is unusable in
+Node — see `docs/known-issues.md` K2), and any cloud TTS.
+
+## 8. Verification: what `npm run verify` actually proves
+
+```
+1/6  typecheck          tsc --noEmit
+2/6  stills             Storyboard f60, Lecture f2500, Typesetting f60  -> human review
+3/6  score              deterministic wav from seed 11 (32 s)
+4/6  render             Showreel 30 s, h264 + aac
+5/6  loudness           two-pass loudnorm; asserts I in [-16,-13] and TP <= -1.5
+6/6  flicker            per-frame luma jumps on the whole frame (threshold 12)
+```
+
+What it does **not** prove: narration quality (needs the TTS model), Manim overlay (needs the asset),
+or 3D on a GPU-less host. Those are separate, optional passes in `docs/deployment.md`.
+
+The stills are not decoration. In this production, two defects that every automated metric passed —
+a subtitle overlapping a title, and four proof panels leaving the frame — were only caught by
+looking at rendered frames. Treat "human reviews stills" as a required stage, not a nice-to-have.
+
+## 9. Known issues
+
+Full detail in `docs/known-issues.md`; the short list:
+
+- **K1 cross-fade flicker**: `TransitionSeries` keeps both scenes visible for the overlap and
+  multiplies two opacities, producing a visible dip. Fixed by hard cuts + per-scene content fades.
+  The luma gate did **not** catch it (it is an area/motion illusion, not a mean-luma jump) — so the
+  gate alone is insufficient; hard cuts are the design rule. Two follow-ups from the same defect:
+  the background is painted by each scene and never fades (only content fades), and consecutive
+  scenes stay in one low-luminance palette family.
+- **K2 Tone.js cannot render offline in Node**: no native `OfflineAudioContext`; shimming
+  `standardized-audio-context` fails parameter validation. Replaced by direct
+  `node-web-audio-api` synthesis.
+- **K3 torchaudio >= 2.9 needs TorchCodec** for WAV IO; `save_pcm_wav()` fails without it.
+  Worked around by a documented patch script with a soundfile fallback.
+- **K4 IndexTTS-2 pins python < 3.12 and torch 2.8**; the reference machine runs 3.12 + torch 2.9.
+  Installing with `--no-deps` and sharing the main venv through a `.pth` file works, with
+  `transformers==4.52.1` pinned in the side venv (4.57 removed `QuantizedCacheConfig`).
+- **K5 downloading IndexTTS-2 weights**: HF direct is unreachable here; a library-internal
+  ModelScope fallback raises 404 mid-download. Use a mirror + `USE_MODELSCOPE=false`.
+- **K6 loudness parser**: ffmpeg's first-pass JSON uses `input_i`/`input_tp` keys; matching
+  `measured_i` silently yields a broken filter chain. `scripts/audio/loudnorm.sh` matches the
+  right keys.
+- **K7 `TransitionSeries` eats frames**: with N scenes and fade length F, total duration is
+  `sum(durations) - (N-1)*F`, otherwise the tail is black. The demo avoids transitions entirely.
+- **K8 KaTeX display mode** fights a left-aligned panel; K9 long jobs die with their shell
+  (use a supervisor); K10 npm scripts need `node` on PATH; K11 WSL2 disks do not shrink without
+  `fstrim` + host-side compaction. Details in `docs/known-issues.md`.
+- **K12 a trace field the renderer assumed**: the recorder emits `p` (final pivot slot) for
+  `place` steps while the renderer read `i`, so one caption said "index undefined" and the pivot
+  highlight vanished — invisible to every other gate, caught on a still. Fixed with accessors that
+  read both spellings.
+
+## 10. Choosing an environment (and lower-tier substitutes)
+
+Difficulty is not uniform. See `docs/environments.md` for the full matrix; in short:
+
+| Target | Feasibility | Notes |
+| --- | --- | --- |
+| Linux + NVIDIA GPU, >= 8 GB | Easy (this repo) | everything works as documented |
+| Linux, no GPU | Easy **without** local TTS | rendering is CPU-only; use a cloud/offline TTS or captions-only |
+| Windows native | Doable | Chromium libs are preinstalled, but the demo was never validated natively; prefer WSL2 |
+| macOS (Apple silicon) | Doable | Remotion is fine; local IndexTTS-2 on MPS is unproven — use another TTS |
+| 8 GB RAM / 2-core VPS | Painful | renders are 10-20x slower; reduce concurrency to 1, 720p, and expect ~1 h for 5 min |
+| GPU-less + 16 GB RAM | Recommended fallback | drop 3D and Manim; TTS off-host; keep the rest |
+
+Lower-tier substitutions (documented in `docs/environments.md`):
+
+- **Narration**: edge-tts (online, free tier, needs network) or Piper (CPU, offline) instead of
+  IndexTTS-2; the pipeline only needs *wav files with measured lengths* — `retime_narration.py`
+  does not care which model produced them.
+- **Music**: skip it, or reuse a fixed track; the score is 60 lines of JS and needs no GPU.
+- **3D**: `@remotion/three` needs WebGL via ANGLE; on a machine where headless WebGL fails,
+  replace the 3D scene with a still or a Manim clip.
+- **Manim**: optional. It buys animated formulas at the cost of a TeX install (~1 GB).
+
+## 11. Roadmap
+
+See `docs/roadmap.md`. Highlights: a single orchestrator (`storyboard.json -> stills -> review
+-> render -> QA`), automated still-frame linting (safe-area and overlap checks) so fewer human
+looks are needed, an index of reusable scene components, and optional GPU-free TTS integration.
+
+## 12. License
+
+Code and data in this repository: MIT (see `LICENSE`). Third-party components keep their own
+licenses; the demo narration and score were generated by this pipeline.

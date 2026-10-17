@@ -1,0 +1,137 @@
+{
+ "n": 1000,
+ "results": {
+  "random": {
+   "lomuto": {
+    "cmp": 10969,
+    "swap": 4712,
+    "ms": 1.09,
+    "sorted": true
+   },
+   "hoare": {
+    "cmp": 16395,
+    "swap": 2341,
+    "ms": 1.23,
+    "sorted": true
+   },
+   "random": {
+    "cmp": 10491,
+    "swap": 4573,
+    "ms": 1.24,
+    "sorted": true
+   },
+   "three_way": {
+    "cmp": 11527,
+    "swap": 10850,
+    "ms": 1.61,
+    "sorted": true
+   },
+   "hybrid_mo3": {
+    "cmp": 11061,
+    "swap": 5886,
+    "ms": 1.06,
+    "sorted": true
+   }
+  },
+  "sorted": {
+   "lomuto": {
+    "cmp": 499500,
+    "swap": 0,
+    "ms": 27.81,
+    "sorted": true
+   },
+   "hoare": {
+    "cmp": 501498,
+    "swap": 0,
+    "ms": 27.36,
+    "sorted": true
+   },
+   "random": {
+    "cmp": 10766,
+    "swap": 503,
+    "ms": 1.38,
+    "sorted": true
+   },
+   "three_way": {
+    "cmp": 36164,
+    "swap": 35456,
+    "ms": 5.34,
+    "sorted": true
+   },
+   "hybrid_mo3": {
+    "cmp": 6879,
+    "swap": 63,
+    "ms": 0.41,
+    "sorted": true
+   }
+  },
+  "reversed": {
+   "lomuto": {
+    "cmp": 499500,
+    "swap": 500,
+    "ms": 25.95,
+    "sorted": true
+   },
+   "hoare": {
+    "cmp": 501998,
+    "swap": 500,
+    "ms": 23.82,
+    "sorted": true
+   },
+   "random": {
+    "cmp": 10678,
+    "swap": 3800,
+    "ms": 1.47,
+    "sorted": true
+   },
+   "three_way": {
+    "cmp": 500499,
+    "swap": 499500,
+    "ms": 60.64,
+    "sorted": true
+   },
+   "hybrid_mo3": {
+    "cmp": 16638,
+    "swap": 8594,
+    "ms": 1.47,
+    "sorted": true
+   }
+  },
+  "all_equal": {
+   "lomuto": {
+    "cmp": 499500,
+    "swap": 0,
+    "ms": 26.01,
+    "sorted": true
+   },
+   "hoare": {
+    "cmp": 11862,
+    "swap": 4932,
+    "ms": 1.01,
+    "sorted": true
+   },
+   "random": {
+    "cmp": 499500,
+    "swap": 0,
+    "ms": 29.1,
+    "sorted": true
+   },
+   "three_way": {
+    "cmp": 1000,
+    "swap": 0,
+    "ms": 0.06,
+    "sorted": true
+   },
+   "hybrid_mo3": {
+    "cmp": 501346,
+    "swap": 0,
+    "ms": 26.03,
+    "sorted": true
+   }
+  }
+ },
+ "theory": {
+  "worst_cmp": 499500,
+  "avg_upper_2nlnn": 13815.5
+ }
+}
