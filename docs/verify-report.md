@@ -84,6 +84,20 @@ The 305 s lecture in the README was rendered with the same code path:
 Narration is 41 synthesized lines re-timed against measured speech durations; the score is 306 s
 rendered from seed 11. Both are inputs to the render, not outputs of it.
 
+## Delivery exports
+
+`npm run publish` produces, from the lecture script alone:
+
+| Artefact | Measured |
+| --- | --- |
+| `lecture.srt` | 41 cues, 00:00:00,550 -> 00:05:04,650, speaking 253.2 s; 16 cues wrapped to 2 lines, longest line 34 characters |
+| `lecture.chapters.txt` | 9 chapters, 00:00:00 -> 00:05:00, sum 305.00 s |
+| `lecture.chapters.ffmeta.txt` | same 9 chapters, ffmpeg sidecar (TIMEBASE 1/1000) |
+| `cover.png` | frame 180 (6.00 s), 1920x1080, 104,308 bytes, sha256 9e323e57... |
+
+The script exits non-zero instead of writing if any cue overlaps its neighbour, runs past the film,
+or exceeds the 34-character caption budget in `data/design.spec.json`.
+
 ## Still lint (measurement of the rendered DOM)
 
 `scripts/qa/still_lint.mjs` renders eleven frames across six compositions and reads the boxes the

@@ -99,6 +99,29 @@ bash scripts/audio/loudnorm.sh out/lecture_mixed.mp4 out/lecture_final.mp4
 Measured: 305.000 s render in ~5 min (2 concurrent renderers), final I = -15.0 LUFS,
 TP = -2.0 dBTP, 14.3 MB.
 
+### 3.5 Delivery exports (subtitles, chapters, cover)
+
+```bash
+npm run publish      # -> out/export/{lecture.srt, lecture.chapters.txt, lecture.chapters.ffmeta.txt, cover.png}
+```
+
+All four are derived, never typed again: the SRT is `LINES`, the chapters are `SCENES`, and the cover
+is a real rendered frame (`--cover-frame=180`, i.e. 6.0 s, the clean stretch of the opening title
+before the first caption). The script refuses to write anything when a cue overlaps the next one,
+runs past the film, or would put more than `text.caption.maxCharsPerLine` characters (34, from
+`data/design.spec.json`) on one subtitle line — so an edit to the narration cannot silently leave a
+stale SRT behind.
+
+Two things worth knowing:
+
+- 16 of the 41 cues run past 34 characters (the longest is 51) and are wrapped onto a second line at
+  a punctuation boundary. The comment in `src/lecture/script.ts` claims every line is <= 34
+  characters; that is true on screen only because the caption box wraps, and it is not true of the
+  text. The SRT honours the contract budget, the film honours the caption box — same words, same
+  times, different wrap points.
+- `lecture.chapters.ffmeta.txt` is the ffmpeg chapter sidecar:
+  `ffmpeg -i in.mp4 -i lecture.chapters.ffmeta.txt -map_metadata 1 -c copy out.mp4`.
+
 ## 4. Optional capability passes
 
 | Capability | Command | Cost |
@@ -106,6 +129,7 @@ TP = -2.0 dBTP, 14.3 MB.
 | Animated formula overlay | Manim: `--transparent --format=mov` (qtrle/argb; `webm` has no alpha) then `<OffthreadVideo transparent>` | ~1 GB apt (TeX) + venv |
 | 3D | `npx remotion still ThreeCube out/cube.png --gl=angle` | none; needs WebGL via ANGLE |
 | Transitions sample | `npx remotion still Transitions out/t.png --frame=90` | none |
+| Delivery exports | `npm run publish` (SRT + chapters + cover; needs headless Chromium for the cover) | none |
 
 ## 5. Failure triage
 

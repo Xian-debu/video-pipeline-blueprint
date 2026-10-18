@@ -115,6 +115,7 @@ Three independent layers, joined only by files:
 │  ├─ qa/luma_blink.py         per-frame luma jump + dip detector
 │  ├─ qa/design_check.py       validates the design contract (contrast, scale, motion budgets)
 │  ├─ qa/still_lint.mjs        renders frames, reads the DOM boxes, fails on off-frame/edge/spill/overlap
+│  ├─ export/publish.mjs       SRT + chapters + cover, all derived from the lecture script
 │  └─ tts/                     local TTS: batch synthesis, re-timing, torchaudio patch
 ├─ docs/                       architecture, engineering standards, design language (provenance of
 │                              the contract), deployment, verification, known issues, roadmap
@@ -126,6 +127,11 @@ Three independent layers, joined only by files:
 
 Compositions: `Storyboard` (generic, 20 s), `Showreel` (30 s), `Lecture` (305 s demo),
 `Transitions`, `Typesetting`, `ThreeCube`, `ManimOverlay` (single-capability samples).
+
+The film's delivery set is `npm run publish`: `out/export/` gets an SRT (41 cues, wrapped to the
+contract's 34-character line budget), human-readable and ffmpeg-sidecar chapter files (9 chapters,
+summing to the film's duration) and a cover rendered from frame 180. Nothing in that folder is
+authored by hand, so it cannot drift from the picture.
 
 ## 5. Quick start
 

@@ -106,7 +106,10 @@ A change is done when all of the following are true and their numbers are writte
 5. A render exists and its duration matches the scene budget.
 6. `scripts/audio/loudnorm.sh` reports I in [-16, -13] LUFS and TP <= -1.5 dBFS.
 7. `scripts/qa/luma_blink.py` reports mean |Δ| <= 12 and no dip, over the full frame.
-8. The diff is committed, and the commit message says what changed and why.
+8. When narration or scene durations changed, `npm run publish` was re-run: the SRT, chapters and
+   cover in `out/export/` must belong to the same script as the render (they are derived, so a stale
+   one is a forgotten command, not a missing edit).
+9. The diff is committed, and the commit message says what changed and why.
 
 "No claim of done without the numbers." A green `verify` alone is necessary and not sufficient —
 see §7.3 and the two v1.0.0 defects.
