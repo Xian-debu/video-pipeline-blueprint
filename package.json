@@ -17,7 +17,9 @@
     "lint:type": "python3 scripts/qa/type_ratchet.py",
     "publish": "node scripts/export/publish.mjs",
     "verify": "bash scripts/verify.sh",
-    "make": "node scripts/make.mjs"
+    "make": "node scripts/make.mjs",
+    "lint:3d": "node scripts/qa/three_frame_lint.mjs --composition=ThreeStage --frames=150,450,750 --repeat",
+    "lint:model": "node scripts/qa/model_lint.mjs \"public/models/*.glb\" --watertight --allow=no-normals"
   },
   "dependencies": {
     "@react-three/fiber": "9.8.2",

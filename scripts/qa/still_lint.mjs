@@ -39,6 +39,8 @@ const DEFAULT_TARGETS = [
   { id: "Transitions", frames: [60, 120], skip: ["overlap"] },
   { id: "Typesetting", frames: [60, 200] },
   { id: "ThreeCube", frames: [30] },
+  // One frame per 3D shot: procedural lattice, imported glTF, transparent composite.
+  { id: "ThreeStage", frames: [150, 450, 750] },
   // One frame per preset: the gallery exists so a look can be checked, and the
   // check that matters most is that text still sits inside the frame in it.
   { id: "Presets", frames: [45, 135, 225] },

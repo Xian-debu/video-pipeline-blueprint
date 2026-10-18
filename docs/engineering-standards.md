@@ -120,6 +120,10 @@ A change is done when all of the following are true and their numbers are writte
    `python3 scripts/qa/type_ratchet.py` reports the exception list unchanged.
 3. `node scripts/qa/still_lint.mjs` passes (no off-frame box, no text in the safe-area margin, no
    spill, no text overlap) and `--fixtures` still passes — the fixture proves the gate itself works.
+   A change that touches 3D also passes `node scripts/qa/model_lint.mjs "public/models/*.glb"
+   --watertight --allow=no-normals` and `node scripts/qa/three_frame_lint.mjs
+   --composition=ThreeStage --frames=150,450,750 --repeat`, and its framing was reviewed on stills
+   (composition is deliberately not machine-judged — see `docs/3d.md`).
 4. Stills regenerated for the changed scenes and **looked at**; the finding is recorded in
    `docs/verify-report.md` (what was checked, what was seen).
 5. A render exists and its duration matches the scene budget.

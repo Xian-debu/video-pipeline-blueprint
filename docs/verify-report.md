@@ -427,10 +427,54 @@ line boxes, so 108 px half-leading produced a phantom overlap that the picture d
 overlap test now intersects the layout box with the text range; real overflow is still the `spills`
 rule's job. `still_lint.mjs --fixtures` still reports 3 issues across 3 rules, so the gate is known
 to fire.
+## The 3D layer (`ThreeStage`, 900 frames)
+
+The 3D composition was added after the recorded run above and verified with the same discipline:
+frames rendered, looked at, then gated. Its gates:
+
+```
+npx tsc --noEmit                                                                    PASS
+node scripts/qa/model_lint.mjs "public/models/*.glb" --watertight --allow=no-normals  PASS
+  nailong_v3_15k.glb  262,396 B · 1 prim / 14,532 tris · extent 112.393×134.073×99.95
+  ~ allowed: 1/1 primitives have no NORMAL — allowed: runtime computeVertexNormals()
+node scripts/qa/three_frame_lint.mjs --composition=ThreeStage --frames=150,450,750 --repeat
+  PASS frame 150  coverage 14.59%  bg 18  mean 37.18  sha256 b8d4e3d3d6cb2a68
+  PASS frame 450  coverage 17.83%  bg 22  mean 38.00  sha256 11668ce1a95690af
+  PASS frame 750  coverage  4.37%  bg 25  mean 27.01  sha256 21cfd6594f98c6b9
+node scripts/qa/still_lint.mjs                                                     PASS (34 frames)
+```
+
+**What was seen, and what changed because of it.** The first frames of shots B and C contained no
+model at all — the ground plane, light and shadow were correct, so the shots read as an empty
+studio. Coverage passed (12.20 %) and determinism passed, because the empty frame is deterministic.
+The cause was `@remotion/three` advancing the canvas once per frame with a `never` frameloop: a
+model that arrives after mount is never drawn (K20). Fix: load outside the canvas, hold the frame
+with `delayRender`, mount the canvas only when the scene graph exists.
+
+With the model visible, three framing iterations followed, each judged on stills — none of them on a
+gate:
+
+1. `Orbit` radius 4.6 put the camera inside the silhouette: the model filled the frame and was cut
+   on every edge.
+2. Radius 7.2 fixed shot B, but the composite shot still pushed the model through the title block;
+   the canvas was restricted to the right 60 % of the frame and its orbit radius grew to 7.6.
+3. The procedural shot's dolly ended too close: the bottom row of cubes ran under the caption. The
+   rig now ends at `[9.6, 6.6, 10.4]` with the look-at at `y = 0.4`, and frame 290 keeps the whole
+   array above the caption band.
+
+**Asset.** The imported `.glb` is a carved voxel mesh with no normals. Ten Taubin iterations
+(`scripts/assets/smooth_glb.mjs`, λ = 0.5 / μ = -0.53) removed the staircase, kept the mesh
+watertight, and left the bounding box unchanged. Deeper smoothing (80, 300 iterations) moved the
+surface by less than 1 % of its extent and did **not** remove the residual banding — that is the
+shading of a low-poly surface, so shot B draws a wireframe overlay instead of pretending the surface
+is polished. This is recorded as an asset limitation, not a render setting.
+
 ## What this report does not prove
 
-Narration quality (needs the TTS model), the Manim overlay (needs that asset), and 3D on a host
-without working headless WebGL. Those are optional passes described in `docs/deployment.md`.
+Narration quality (needs the TTS model), the Manim overlay (needs that asset), and whether the 3D
+frames are *tasteful*: the 3D gates prove a frame was drawn (coverage, not black, deterministic),
+never that the intended object was drawn — an empty studio passed all three (K20). 3D on a host
+without working headless WebGL remains an optional environment note in `docs/deployment.md`.
 
 ## Re-verification of the published tree
 

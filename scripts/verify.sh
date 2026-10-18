@@ -36,6 +36,12 @@ npx remotion still Typesetting "$OUT/still_typesetting.png" --frame=60 --log=err
 step "2.5/6 still lint (DOM boxes: off-frame, edge text, spill, overlap)"
 node scripts/qa/still_lint.mjs
 
+step "2.6/6 3D asset lint (GLB structure, triangle budget, watertight)"
+node scripts/qa/model_lint.mjs "public/models/*.glb" --watertight --allow=no-normals
+
+step "2.7/6 3D frames (coverage, not black, deterministic)"
+node scripts/qa/three_frame_lint.mjs --composition=ThreeStage --frames=150,450,750 --repeat
+
 step "3/6 programmatic score (deterministic)"
 node scripts/audio/render_music.mjs --out=public/music/demo.wav --duration=32 --bpm=92 --seed=11 --energy=0.55
 

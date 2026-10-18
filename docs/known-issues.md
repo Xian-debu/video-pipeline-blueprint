@@ -276,3 +276,35 @@ with `update the targets, do not clamp`. (b) For text boxes the overlap test use
 the layout box and the text range, so half-leading cannot create a phantom overlap; real overflow is
 still caught by the `spills` rule, which measures against the layout box.
 
+## K20 — A 3D canvas renders once per frame, so a late asset is silently absent
+
+**Symptom.** The imported `.glb` never appeared in shots B and C of `ThreeStage`. The frames were
+not broken: the ground plane, the lighting and the shadow were all there, so the scene read as an
+empty studio rather than a failure. The coverage gate passed (12.20 % on frame 450 — the ground
+plane alone exceeds the 1.5 % floor) and the determinism check passed, because the empty frame is
+perfectly deterministic. Copying the model into `public/models/` and reloading changed nothing.
+
+**Mechanism.** Two independent traps sit between "the file exists" and "the frame shows it".
+
+1. `@remotion/three` renders with the R3F frameloop set to `never`. The canvas advances once per
+   frame, from `useCurrentFrame()`, inside `ManualFrameRenderer`'s effect
+   (`advance(performance.now()); onRendered()`). A model that finishes parsing after the canvas has
+   mounted changes the scene graph, but nothing advances the loop afterwards — R3F's own
+   `invalidate()` has no listener in this mode. Deferring `continueRender` with
+   `requestAnimationFrame` does not help either: the capture frame is still empty, and it violates
+   the no-real-clock rule.
+2. `GLTFLoader` given `"models/x.glb"` requests `/models/x.glb` and 404s, because the bundle
+   serves `public/` under `<bundle>/public/` and the page exposes that prefix as
+   `window.remotion_staticBase`. `staticFile()` is not cosmetic.
+
+The same shape of bug appears with any async resource inside a `ThreeCanvas`: textures, environment
+maps, HDRIs, `useLoader` calls made from a component *inside* the canvas.
+
+**Fix here.** Assets load **before** the canvas mounts. `useGltf` runs outside `Canvas3D`, holds
+the frame with `delayRender`, and the shot returns an empty background until the scene graph is
+ready; only then does the canvas appear, and its first advance already contains the model. Paths go
+through `staticFile()`. See `docs/3d.md`.
+
+**Lesson for the gate.** Coverage, mean luma and determinism all passed on a wrong frame: they
+measure "something was drawn", not "the thing we meant was drawn". A gate cannot distinguish an
+empty studio from a studio with a model — the still review does. Keep both.

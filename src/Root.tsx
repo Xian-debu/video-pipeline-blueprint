@@ -9,6 +9,7 @@ import { TOTAL as LECTURE_FRAMES, FPS as LECTURE_FPS } from "./lecture/script";
 import { Transitions } from "./showcase/Transitions";
 import { Typesetting } from "./showcase/Typesetting";
 import { ThreeCube } from "./showcase/ThreeCube";
+import { ThreeStage, THREE_STAGE_FRAMES } from "./showcase/ThreeStage";
 import { ManimOverlay } from "./showcase/ManimOverlay";
 import { PresetGallery, PRESET_GALLERY_FRAMES } from "./showcase/PresetGallery";
 import { Multiplication } from "./mult/Multiplication";
@@ -86,6 +87,8 @@ export const RemotionRoot: React.FC = () => {
       <Composition id="Transitions" component={withLint(Transitions)} durationInFrames={178} fps={30} width={1920} height={1080} />
       <Composition id="Typesetting" component={withLint(Typesetting)} durationInFrames={240} fps={30} width={1920} height={1080} />
       <Composition id="ThreeCube" component={withLint(ThreeCube)} durationInFrames={120} fps={30} width={1280} height={720} />
+      {/* 3D scene layer: procedural lattice -> imported glTF -> transparent composite */}
+      <Composition id="ThreeStage" component={withLint(ThreeStage)} durationInFrames={THREE_STAGE_FRAMES} fps={30} width={1920} height={1080} />
       <Composition
         id="Presets"
         component={withLint(PresetGallery)}

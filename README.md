@@ -125,19 +125,22 @@ Three independent layers, joined only by files:
 ```
 .
 ├─ src/
-│  ├─ Root.tsx                 registered compositions (9)
+│  ├─ Root.tsx                 registered compositions (10)
 │  ├─ storyboard/              generic template: storyboard JSON -> film
 │  ├─ lecture/                 the validated 305 s lecture (script + scenes)
 │  ├─ mult/                    the second film, 591 s: digit-wise multiplication (script + scenes)
 │  ├─ design/                  design contract loader + derived tokens, palette scope (presets),
-│  │                           scene shell, KaTeX helpers, motion primitives, still-lint probe
-│  │                           (inert unless lint props are set)
-│  └─ showcase/                one-file samples: transitions, typesetting, 3D, Manim overlay,
-│                              preset gallery (one look per preset)
+│  │                           scene shell, KaTeX helpers, motion primitives, 3D primitives
+│  │                           (canvas, lights, camera rigs, materials, glTF model), still-lint
+│  │                           probe (inert unless lint props are set)
+│  └─ showcase/                one-file samples: transitions, typesetting, ThreeCube, ThreeStage
+│                              (procedural / imported / composited 3D), Manim overlay, preset
+│                              gallery (one look per preset)
 ├─ data/                       shared contract only: design.spec.json, type-exceptions.json
 │  ├─ lecture/                 the quicksort film's own facts: trace, counters, source, voice timing
 │  └─ mult/                    the multiplication film's own facts: counts, benchmarks, NTT, code, voice
 ├─ public/voice/sample.wav     one narration line, kept so the audio path can be tested without TTS
+├─ public/models/              nailong_v3_15k.glb (262 KB), smoothed, watertight, no normals
 ├─ scripts/
 │  ├─ bootstrap.sh             system libraries, node, npm, headless Chromium
 │  ├─ doctor.sh                read-only environment report (PASS/FAIL)
@@ -154,6 +157,9 @@ Three independent layers, joined only by files:
 │  ├─ qa/design_check.py       validates the design contract (contrast, scale, families, motion)
 │  ├─ qa/type_ratchet.py       no new hard-coded font sizes: the exception list may only shrink
 │  ├─ qa/still_lint.mjs        renders frames, reads the DOM boxes, fails on off-frame/edge/spill/overlap
+│  ├─ qa/model_lint.mjs        parses a GLB without three.js: triangle budget, extent, watertight
+│  ├─ qa/three_frame_lint.mjs  renders 3D frames and measures coverage / black / determinism
+│  ├─ assets/smooth_glb.mjs    dependency-free Taubin smoother for carved/voxel meshes
 │  ├─ qa/film_isolation.mjs    one film may not read another film's data or source (layout rule)
 │  ├─ qa/tree_hash.mjs         one hash for the tree that a run is about to measure
 │  ├─ export/publish.mjs       SRT + chapters + cover, all derived from the lecture script
@@ -168,8 +174,9 @@ Three independent layers, joined only by files:
 
 Compositions: `Storyboard` (generic, 20 s), `Showreel` (30 s), `Lecture` (305 s demo),
 `Multiplication` (591 s demo, the second film), `Transitions`, `Typesetting`, `ThreeCube`,
-`ManimOverlay` (single-capability samples) and `Presets` (9 s: the same title scene in each palette
-preset, for judging a look).
+`ManimOverlay` (single-capability samples), `ThreeStage` (30 s: procedural geometry, an imported
+`.glb`, and a transparent 3D layer over 2D text) and `Presets` (9 s: the same title scene in each
+palette preset, for judging a look).
 
 One command runs the whole delivery. `npm run make` walks the stages in the order that makes a
 failure cheapest to fix — contract, score, score gate, picture-only render, review stills, still
@@ -318,6 +325,8 @@ Node — see `docs/known-issues.md` K2), and any cloud TTS.
 1.3  still lint         still_lint.mjs: 24 frames measured from the DOM (off-frame, edge,
                         spill, overlap) + a fixture that proves the rules still fire
 2/6  stills             Storyboard f60, Lecture f2500, Typesetting f60  -> human review
+2.6  model lint         model_lint.mjs: GLB structure, triangle budget, extent, watertight
+2.7  3D frames          three_frame_lint.mjs: coverage floor/ceiling, not black, sha256 twice
 3/6  score              deterministic wav from seed 11 (32 s)
 3.4  music self-test    music_gate.py --self-test: a sub-only bed must still be rejected
 3.5  music gate         music_gate.py: >= 50% of power in 250-4k Hz, <= 20% in 20-120 Hz
@@ -338,7 +347,9 @@ not try to judge taste, and it cannot be fooled by a frame with no measurement �
 zero boxes is a **failing** gate (exit 2), not a pass.
 
 What it does **not** prove: narration quality (needs the TTS model), Manim overlay (needs the asset),
-or 3D on a GPU-less host. Those are separate, optional passes in `docs/deployment.md`.
+or 3D on a GPU-less host. Those are separate, optional passes in `docs/deployment.md`. The 3D
+gates (`docs/3d.md`) prove that a frame was *drawn*, not that the right object was drawn — an empty
+studio passed every one of them (K20); the still review is what caught it.
 
 The stills are not decoration. In this production, two defects that every automated metric passed —
 a subtitle overlapping a title, and four proof panels leaving the frame — were only caught by
@@ -376,6 +387,11 @@ Full detail in `docs/known-issues.md`; the short list:
   `place` steps while the renderer read `i`, so one caption said "index undefined" and the pivot
   highlight vanished — invisible to every other gate, caught on a still. Fixed with accessors that
   read both spellings.
+- **K20 a 3D canvas renders once per frame**: `@remotion/three` sets the R3F frameloop to `never`
+  and advances once per frame, so a model that finishes loading after the canvas mounts is never
+  drawn — deterministically, and with a ground plane that keeps the coverage gate green. Fix: load
+  outside the canvas, hold the frame with `delayRender`, mount the canvas only when the scene graph
+  is ready; paths must go through `staticFile()`.
 - **K16 an induction that cannot close**: guessing `T(n) ≤ c·nᵖ` at `p = log₂3` leaves a zero
   remainder, so the step is false for every n; it shipped on a still that looked fine. Fixed by
   guessing the strengthened `c·nᵖ − 2dn`. **K17 `--out` became the string `"true"`**: a flag
