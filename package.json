@@ -11,6 +11,8 @@
     "typecheck": "tsc --noEmit",
     "browser": "remotion browser ensure",
     "score": "node scripts/audio/render_music.mjs",
+    "mix": "node scripts/audio/mix.mjs",
+    "gate:music": "python3 scripts/qa/music_gate.py",
     "lint:still": "node scripts/qa/still_lint.mjs",
     "lint:type": "python3 scripts/qa/type_ratchet.py",
     "publish": "node scripts/export/publish.mjs",

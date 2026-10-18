@@ -11,7 +11,7 @@ Read, in this order:
    design rules, definition of done, git discipline).
 2. `docs/architecture.md` — how the three layers fit, and why a render is a pure function of
    committed inputs.
-3. `docs/known-issues.md` — K1–K12, so you do not "fix" something that is a deliberate workaround.
+3. `docs/known-issues.md` — K1–K15, so you do not "fix" something that is a deliberate workaround.
 
 ## Local setup
 
@@ -19,7 +19,7 @@ Read, in this order:
 bash scripts/bootstrap.sh   # apt libs, CJK fonts, node, headless Chromium
 bash scripts/doctor.sh      # must print "all checks passed"
 npm run verify              # typecheck -> design check -> type ratchet -> still lint -> stills ->
-                            # render -> loudness -> flicker
+                            # score + music gate -> render -> loudness -> flicker
 ```
 
 Stills under `out/verify/` are part of the check, not decoration: open them.
@@ -34,6 +34,7 @@ Stills under `out/verify/` are part of the check, not decoration: open them.
 | a scene's composition | the scene component, using tokens and primitives | add a new colour or type size |
 | narration or on-screen text | `src/lecture/script.ts` (`LINES`) | duplicate the string in a component |
 | recorded data a scene shows | `data/` via `scripts/generate_data.py` | hand-edit the JSON |
+| the score (levels, bands, arrangement) | `scripts/audio/engine.mjs` — then re-run `npm run gate:music` | raise the level to make it audible: put the energy in 250-4k |
 | a third-party asset | `public/` **and** a row in `THIRD_PARTY_NOTICES.md` | drop a binary without provenance |
 | a new dependency | say why in the commit body | add one for something 30 lines of code can do |
 
@@ -55,6 +56,8 @@ One stage, one commit — no mixed refactor + behaviour changes, no "and also" c
       `npm run lint:still` pass.
 - [ ] Changed stills were rendered and looked at; findings recorded in `docs/verify-report.md`.
 - [ ] `npm run verify` passes end to end (loudness and flicker numbers included in the report).
+- [ ] If the score or the mix changed: `python3 scripts/qa/music_gate.py --self-test` passes and the
+      stem's audible-band share is reported; a delivery mix was gated with `--mix ... --narration ...`.
 - [ ] No new literal colour/size/timing outside the design contract. If a pre-existing literal went
       away, `data/type-exceptions.json` was regenerated with `npm run lint:type -- --write` in the
       same commit.

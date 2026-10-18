@@ -86,11 +86,14 @@ export async function renderMusic(opts = {}) {
     const notes = chords[b % chords.length];
     const lp = ctx.createBiquadFilter();
     lp.type = "lowpass";
-    lp.frequency.setValueAtTime(900 + energy * 700, t0);
+    lp.frequency.setValueAtTime(1200 + energy * 900, t0);
     lp.Q.value = 0.6;
     const g = ctx.createGain();
     g.gain.value = 0.0;
-    const p = 0.055 / notes.length;
+    // Speech sits near -16 dBFS RMS; a bed whose audible band lands 19 dB below that reads as
+    // "no music" on a laptop speaker. The sub layers are depth, the mid layers are the music:
+    // see docs/known-issues.md K14 and the music gate in scripts/qa/music_gate.py.
+    const p = 0.13 / notes.length;
     g.gain.setValueAtTime(0.0001, t0);
     g.gain.linearRampToValueAtTime(p, t0 + bar * 0.35);
     g.gain.linearRampToValueAtTime(0.0001, t0 + bar * 1.02);
@@ -115,7 +118,7 @@ export async function renderMusic(opts = {}) {
     o.type = "sine";
     o.frequency.value = mtof(rootNote);
     const g = ctx.createGain();
-    env(ctx, g.gain, t0, 0.16, 0.04, bar * 0.9);
+    env(ctx, g.gain, t0, 0.045, 0.04, bar * 0.9);
     o.connect(g); g.connect(master);
     o.start(t0); o.stop(t0 + bar);
   }
@@ -132,7 +135,7 @@ export async function renderMusic(opts = {}) {
     o.type = "triangle";
     o.frequency.value = mtof(n);
     const g = ctx.createGain();
-    env(ctx, g.gain, t0, 0.035 + energy * 0.02, 0.008, 0.22);
+    env(ctx, g.gain, t0, 0.13 + energy * 0.04, 0.008, 0.22);
     o.connect(g); g.connect(master); g.connect(verb);
     o.start(t0); o.stop(t0 + 0.3);
   }
@@ -146,7 +149,7 @@ export async function renderMusic(opts = {}) {
     o.frequency.setValueAtTime(120, t0);
     o.frequency.exponentialRampToValueAtTime(46, t0 + 0.14);
     const g = ctx.createGain();
-    env(ctx, g.gain, t0, 0.5 * energy, 0.005, 0.16);
+    env(ctx, g.gain, t0, 0.10 * energy, 0.005, 0.16);
     o.connect(g); g.connect(master);
     o.start(t0); o.stop(t0 + 0.25);
   }
@@ -159,7 +162,7 @@ export async function renderMusic(opts = {}) {
     const hp = ctx.createBiquadFilter();
     hp.type = "highpass"; hp.frequency.value = 7800;
     const g = ctx.createGain();
-    env(ctx, g.gain, t0, 0.05 * energy, 0.002, 0.05);
+    env(ctx, g.gain, t0, 0.06 * energy, 0.002, 0.05);
     src.connect(hp); hp.connect(g); g.connect(master);
     src.start(t0); src.stop(t0 + 0.08);
   }

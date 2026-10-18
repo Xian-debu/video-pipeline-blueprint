@@ -80,7 +80,7 @@ data/*.json  ──►  src/lecture/script.ts  ──►  src/lecture/Lecture.ts
 (real traces)      (scene budget, lines)       (scenes + subtitles)         │
                                                                              ├─► stills (human review)
 IndexTTS-2 ──► public/voice/lNN.wav ──► narration.wav ──────────────────────┤
-node-web-audio-api ──► public/music/score.wav ─────────────────────────────┤
+node-web-audio-api ──► public/music/score.wav ──► mix.mjs (duck, fades) ──────┤
                                                                             ▼
                                                               ffmpeg loudnorm (EBU R128)
                                                                             │
@@ -93,7 +93,9 @@ Three independent layers, joined only by files:
 2. **Rendering** — React/TSX components driven exclusively by `useCurrentFrame()`; no CSS
    animations, no third-party self-running animation, so any frame can be rendered in isolation.
 3. **Sound** — a deterministic score (seeded PRNG, `node-web-audio-api`) and a locally synthesized
-   narration track, mixed outside the renderer and normalised with ffmpeg.
+   narration track, mixed outside the renderer (`scripts/audio/mix.mjs`: ducking, fades, peak guard)
+   and normalised with ffmpeg. A score is only "there" if it survives a 300 Hz high-pass, so
+   `scripts/qa/music_gate.py` measures the band that actually reaches a laptop speaker.
 
 ## 4. What is in the box
 
@@ -117,7 +119,9 @@ Three independent layers, joined only by files:
 │  ├─ verify.sh                end-to-end smoke test: typecheck -> stills -> render -> QA
 │  ├─ generate_data.py         regenerates data/*.json from instrumented implementations
 │  ├─ audio/render_music.mjs   deterministic score renderer
+│  ├─ audio/mix.mjs            narration + score mix: ducking, fades, peak guard (no re-render)
 │  ├─ audio/loudnorm.sh        two-pass EBU R128 normalisation (video stream untouched)
+│  ├─ qa/music_gate.py         score audibility: power in 250-4k Hz, and the bed level in pauses
 │  ├─ qa/luma_blink.py         per-frame luma jump + dip detector
 │  ├─ qa/design_check.py       validates the design contract (contrast, scale, families, motion)
 │  ├─ qa/type_ratchet.py       no new hard-coded font sizes: the exception list may only shrink
@@ -248,6 +252,8 @@ Node — see `docs/known-issues.md` K2), and any cloud TTS.
                         spill, overlap) + a fixture that proves the rules still fire
 2/6  stills             Storyboard f60, Lecture f2500, Typesetting f60  -> human review
 3/6  score              deterministic wav from seed 11 (32 s)
+3.4  music self-test    music_gate.py --self-test: a sub-only bed must still be rejected
+3.5  music gate         music_gate.py: >= 50% of power in 250-4k Hz, <= 20% in 20-120 Hz
 4/6  render             Showreel 30 s, h264 + aac
 5/6  loudness           two-pass loudnorm; asserts I in [-16,-13] and TP <= -1.5
 6/6  flicker            per-frame luma jumps on the whole frame (threshold 12)

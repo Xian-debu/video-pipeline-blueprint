@@ -165,3 +165,39 @@ measure the hidden mount and never run again.
 the frame blocked) until a `#remotion-canvas` exists that *contains the probe and has children*,
 then measure relative to its rect. Keep the "exactly one report per frame" assertion in the
 script — a silent probe is a broken gate, not a pass.
+
+## K14 — A score that is present, mixed, correlated, and inaudible
+
+**Symptom.** The delivered lecture "has no BGM". The mix disagrees: in every pause the final
+programme correlates with the score stem at r = 0.9999, so the music was rendered, mixed at a sane
+level and normalised — it is simply not hearable on a phone or a laptop speaker.
+
+**Mechanism.** The score's energy lived where small speakers cannot go. The old stem measured
+-24.65 dBFS full band but **-34.56 dBFS after a 300 Hz high-pass** (a 9.9 dB loss), with 36% of its
+power between 20 and 120 Hz (kick 0.5 and a bass sine 0.16) while the pad sat at 0.055/3 ≈ 0.018 per
+voice and the arpeggio at 0.035. In a pause the bed's audible residue was about -36 dB against a
+-16 dB narration: 20 dB down, i.e. silence to the ear. Loudness normalisation cannot repair this —
+it raises the whole spectrum, and the missing band stays missing. Measured through a 300 Hz
+high-pass, the delivered mix's gaps read -41.95 dBFS; a bed needs roughly -34..-20 dBFS *there*.
+
+**Fix here.** Three things, in this order: (1) put the score's power in 250-4k — pad low-pass up to
+1200-2100 Hz, pad 0.13/voice, arp 0.13+0.04·energy, bass 0.045, kick 0.10·energy; (2) mix outside the
+renderer with `scripts/audio/mix.mjs` (ducking -4.5 dB, fades, peak guard) so levels can be changed
+without re-rendering 305 s of frames; (3) gate it with `scripts/qa/music_gate.py` in two modes —
+`--music` on the stem (>= 50% of power in 250-4k, <= 20% in 20-120 Hz, high-pass loss <= 7 dB) and
+`--mix/--narration` on the programme (bed 5-18 dB under speech in gaps, gap audible band
+-34..-20 dBFS). The gate ships with `--self-test` fixtures so it cannot quietly stop firing.
+
+## K15 — A "share of energy" gate that summed magnitudes
+
+**Symptom.** `music_gate.py --self-test` rejected its own good fixture: three pure tones (440/660/880
+Hz) reported an "audible band share" of 21%.
+
+**Mechanism.** The share was computed on `|rfft()|` summed bin by bin. A windowed noise floor — even at
+1% of the signal's power — contributes ~100k small magnitudes, and their sum swamps three sine peaks.
+Magnitude-sum is not energy. With the same fix, the real stems also changed verdict: the old one went
+from "39% audible / 36% sub" to **11% / 76%**, i.e. the gate had been under-reporting the defect it
+was written to catch.
+
+**Fix here.** Weight by power (`|X|**2`) whenever a share of energy is meant, and keep the fixture:
+a gate whose fixture passes for the wrong reason will pass the real input for the wrong reason too.

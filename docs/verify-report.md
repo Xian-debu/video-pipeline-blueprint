@@ -195,6 +195,29 @@ Two refinements came out of the first run, and both are deliberate:
 - `Transitions` skips `overlap`. It exists to show a cross-fade, which by definition puts the
   outgoing and incoming scene's text in the same place for its duration.
 
+## Sound: the bed that existed and could not be heard
+
+The delivered v1 film appeared to have no background music. It had one: in every pause the programme
+correlated with the score stem at r = 0.9999. The energy was simply outside what a laptop or phone
+speaker can reproduce.
+
+| Measurement | Old score/mix | New score/mix |
+| --- | --- | --- |
+| Stem, full-band median | -25.91 dBFS | -25.09 dBFS |
+| Stem, 300 Hz high-pass median | -35.30 dBFS | -27.86 dBFS |
+| Stem high-pass loss | 9.4 dB | 2.8 dB |
+| Stem power 250-4k Hz | 11% | 63% |
+| Stem power 20-120 Hz | 76% | 7% |
+| Programme gaps, audible band | -41.95 dBFS | -28.50 dBFS |
+| Bed vs speech in gaps | -22.9 dB | -12.3 dB |
+
+The deliverable is gated by `scripts/qa/music_gate.py` in two modes: `--music` on the rendered
+stem and `--mix/--narration` on the finished programme. `--self-test` synthesises a good and a
+sub-only bed and requires the first to pass and the second to be rejected, so the gate cannot silently
+stop firing. Fixing the gate changed its verdict on the *old* stem from "39% audible / 36% sub" to
+"11% / 76%": it had been under-reporting the very defect it was written for, because it summed FFT
+magnitudes instead of power (docs/known-issues.md K15).
+
 ## What this report does not prove
 
 Narration quality (needs the TTS model), the Manim overlay (needs that asset), and 3D on a host

@@ -88,16 +88,39 @@ PYTHON=env/tts/bin/python python3 scripts/tts/retime_narration.py \
 41 lines took ~9 minutes (RTF ~1.75, GPU saturated). `retime_narration.py` rewrites the scene
 durations in `src/lecture/script.ts` when speech does not fit — commit that diff, it is content.
 
-### 3.4 Render and normalise
+### 3.4 Score, mix, render, normalise
+
+The mix is deliberately outside the renderer: the stems can be re-levelled, re-gated and re-muxed
+without rendering 305 s of frames again.
 
 ```bash
-npx remotion render Lecture out/lecture_raw.mp4
-ffmpeg -i out/lecture_raw.mp4 -i public/voice/narration.wav ...   # mix: narration 1.0, music 0.48
+# 1. score: deterministic, seeded, same bytes for the same arguments
+node scripts/audio/render_music.mjs --out=public/music/score.wav --duration=305 --seed=11 --energy=0.8
+
+# 2. gate the stem: the energy has to be in a band a phone speaker can reproduce
+python3 scripts/qa/music_gate.py --music public/music/score.wav
+
+# 3. picture only — music and narration muted, they are mixed afterwards
+npx remotion render Lecture out/lecture_raw.mp4 --props='{"music":null,"narration":null}'
+
+# 4. mix narration + score (ducking, fades, peak guard), then gate the programme
+node scripts/audio/mix.mjs --narration public/voice/narration.wav \
+  --music public/music/score.wav --out out/lecture_mix.wav
+python3 scripts/qa/music_gate.py --mix out/lecture_mix.wav --narration public/voice/narration.wav
+
+# 5. mux, then normalise the finished programme
+ffmpeg -i out/lecture_raw.mp4 -i out/lecture_mix.wav -c:v copy -c:a aac -b:a 192k \
+  -shortest out/lecture_mixed.mp4
 bash scripts/audio/loudnorm.sh out/lecture_mixed.mp4 out/lecture_final.mp4
 ```
 
-Measured: 305.000 s render in ~5 min (2 concurrent renderers), final I = -15.0 LUFS,
-TP = -2.0 dBTP, 14.3 MB.
+Measured on the 305 s film: render ~5 min (2 concurrent renderers); score stem -25.1 dBFS full band,
+**-27.9 dBFS through a 300 Hz high-pass** (a 2.8 dB loss), 63% of its power in 250-4k, 7% in 20-120 Hz;
+mix speech -16.2 dBFS, gap bed -28.5 dBFS audible band (-12.3 dB under speech), peak -2.83 dBFS before
+normalisation; final I = -15.0 LUFS, TP = -2.0 dBTP, 14.3 MB.
+
+Why the gate exists: the first delivered score was -34.6 dBFS after the same high-pass and sounded
+like no music at all, even though it was mixed and correlated (docs/known-issues.md K14).
 
 ### 3.5 Delivery exports (subtitles, chapters, cover)
 

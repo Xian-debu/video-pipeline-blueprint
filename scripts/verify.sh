@@ -36,6 +36,12 @@ node scripts/qa/still_lint.mjs
 step "3/6 programmatic score (deterministic)"
 node scripts/audio/render_music.mjs --out=public/music/demo.wav --duration=32 --bpm=92 --seed=11 --energy=0.55
 
+step "3.4/6 music gate self-test (the gate must still fire on a sub-only bed)"
+"$PYTHON" scripts/qa/music_gate.py --self-test
+
+step "3.5/6 score a small speaker can hear (power in 250-4k, not in 20-120 Hz)"
+"$PYTHON" scripts/qa/music_gate.py --music public/music/demo.wav
+
 step "4/6 render 30 s showreel with audio"
 npx remotion render Showreel "$OUT/showreel.mp4" --log=error
 
