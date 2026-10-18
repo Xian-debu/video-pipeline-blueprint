@@ -508,7 +508,7 @@
         ],
         "tracking": {
           "title": 4,
-          "subtitle": 6,
+          "subtitle": 2,
           "overline": 8,
           "ordinal": 2,
           "caption": 1
@@ -521,12 +521,9 @@
           "subtitle",
           "placeholder"
         ],
-        "trackingDeviations": {
-          "subtitle": "6 px at 44 px = 13.6%: kept from the frozen storyboard look, so D3 stays open (alignment deferred, not forgotten)"
-        },
         "trackingRules": [
-          "CJK-bearing roles stay at or below 5% of the size; subtitle is 6/44 = 13.6% and is a known deviation, not a precedent",
-          "Latin-only overline and ordinal may run wider (22.2% and 6.7%); design_check reports their ratio but does not fail on it"
+          "CJK-bearing roles stay at or below 5% of the size; the subtitle was 6/44 = 13.6% until D3 was paid, and is now 2/44 = 4.5%",
+          "Latin-only overline may run wider (8/36 = 22.2%); design_check reports the ratio but does not fail on it. The ordinal is 2/30 = 6.7% and is not CJK-bearing"
         ]
       },
       "film": {

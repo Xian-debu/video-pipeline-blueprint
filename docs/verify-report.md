@@ -142,13 +142,35 @@ Tracking ratios, printed by `design_check.py` on every run:
 | Role | Tracking / size | Ratio | Status |
 | --- | --- | --- | --- |
 | title | 4 / 128 | 3.1 % | ok |
-| subtitle | 6 / 44 | 13.6 % | **declared deviation** (`trackingDeviations`) |
+| subtitle | 2 / 44 | 4.5 % | ok (was 6 / 44 = 13.6 %; D3 paid, see below) |
 | overline | 8 / 36 | 22.2 % | Latin-only label, reported not enforced |
 | ordinal | 2 / 30 | 6.7 % | Latin digits, reported not enforced |
 | caption | 1 / 52 | 1.9 % | ok |
 
-`design_check.py` now fails when a *new* CJK role crosses 5 % or when a declared deviation is stale
-(ratio back under the limit), so D3 cannot grow quietly while its look-changing part stays open.
+### D3 paid: the subtitle's tracking
+
+The one CJK role over the limit was the title subtitle. Tracking on Chinese is not neutral: it opens
+gaps between glyphs that a reader parses as word breaks, and at 44 px a 6 px step is visible. The
+contract's own rule (CJK roles <= 5 %) said so; the deviation existed only because the value was
+frozen before anyone looked at it. It is now 2 px (4.5 %), the deviation entry is gone, and
+`design_check.py` still fails when a *new* CJK role crosses 5 % or keeps a stale deviation — so the
+rule is enforced both ways.
+
+| Frame | Before (6 px) | After (2 px) |
+| --- | --- | --- |
+| Storyboard f60 | ![before](images/still_typo_before.png) | ![after](images/still_typo_after.png) |
+
+| Check | Result |
+| --- | --- |
+| `python3 scripts/qa/design_check.py` | PASS — 4 colour families, 3 presets, 7 roles, 3 nested families, 30 contrast targets |
+| `node scripts/qa/still_lint.mjs` | PASS — 31 frames (the tighter subtitle cannot collide) |
+| Storyboard f60 sha256 | `01ecdc89…` -> `af00254…` (the subtitle line changes, nothing else) |
+| `bash scripts/verify.sh` | exit 0 — flicker `mean|d|=0.0459`, `max=6.56` (was 0.0461 / 6.57: the subtitle occupies fewer pixels) |
+
+The lecture's chapter bar (3 px at 21 px = 14.3 %) is a different case and stays a ratcheted literal:
+it is the accepted 305 s film's chrome, the film is released, and changing it would edit a master for
+a typographic point nobody raised. It is recorded in `data/type-exceptions.json`, printed on every
+`design_check` run, and cannot grow.
 
 The lecture's own literals were not promoted into the contract: `src/lecture/Lecture.tsx` alone uses
 **24 distinct font sizes** (15-108 px), which is the debt, not a scale. They are grandfathered in
