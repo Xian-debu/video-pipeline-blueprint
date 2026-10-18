@@ -1,14 +1,12 @@
-export const FONT_SANS =
-  '"Noto Sans CJK SC", "Noto Sans SC", system-ui, sans-serif';
-export const FONT_SERIF =
-  '"Noto Serif CJK SC", "Noto Serif SC", serif';
+/**
+ * 通用分镜模板（src/storyboard）的历史令牌入口。
+ * 值现在统一来自 data/design.spec.json 的 storyboard 色族，这里只做重导出，
+ * 因此不再存在第二份可以漂移的色值。合并进 lecture 色族见 docs/roadmap.md。
+ */
+import { PALETTE_FAMILIES } from "./design/contract";
+import { FONT } from "./design/tokens";
 
-export const PALETTE = {
-  ink: "#0B0E14",
-  ink2: "#121826",
-  paper: "#F5F1E8",
-  accent: "#FF5A3C",
-  accent2: "#57C8B5",
-  muted: "#8A93A6",
-  white: "#FFFFFF",
-};
+export const FONT_SANS = FONT.sans;
+export const FONT_SERIF = FONT.serif;
+
+export const PALETTE = PALETTE_FAMILIES.storyboard.colors;

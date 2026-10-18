@@ -34,6 +34,21 @@ Ordered by value per unit of work, based on what actually slowed the reference p
 12. **Acceptance as code**: encode the E1-E8 style checklist (resolution, loudness, no-overflow,
     determinism, still review) as machine-checkable rules where possible.
 
+## Design contract debts
+
+Recorded when `data/design.spec.json` landed; the full reasoning is in
+[`docs/design-language.md`](design-language.md) §4. Each one is a separate, verifiable commit — none
+of them is "fix the look".
+
+| # | Debt | Paid by |
+|---|---|---|
+| D1 | Two frozen colour families (`lecture`, `storyboard`) with different values | a palette merge commit that re-verifies every still |
+| D2 | Storyboard scenes hard-code type sizes instead of `TYPE_SCALE` | scene-by-scene refactor |
+| D3 | Letter-spacing violates the CJK tracking rule (chapter bar 11 %, `OVERVIEW` 22 %, subtitle 14 %) | a typography commit with before/after stills |
+| D4 | `ImageScene` ignores `motion.ambient`; short scenes push in faster than the 8 s floor | storyboard commit |
+| D5 | Caption scrim is an inline `rgba` rather than a contract `scrim` role | contract v2 |
+| D6 | `design_check` validates the contract only; components can still contain literal colours/sizes | automated still lint (near-term item 2) |
+
 ## Known non-goals
 
 - A GUI editor. The point of the pipeline is that content is data and diffs are reviewable.

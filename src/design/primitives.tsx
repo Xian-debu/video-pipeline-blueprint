@@ -1,6 +1,7 @@
 import React from "react";
 import { interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { C, FONT } from "./tokens";
+import { dutyFrames } from "./contract";
 
 const clamp = { extrapolateLeft: "clamp", extrapolateRight: "clamp" } as const;
 
@@ -11,7 +12,7 @@ export const Build: React.FC<{
   dy?: number;
   dur?: number;
   style?: React.CSSProperties;
-}> = ({ at, children, dy = 18, dur = 12, style }) => {
+}> = ({ at, children, dy = 18, dur = dutyFrames("enter"), style }) => {
   const f = useCurrentFrame();
   const p = interpolate(f, [at, at + dur], [0, 1], clamp);
   return (

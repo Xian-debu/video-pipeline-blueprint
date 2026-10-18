@@ -99,9 +99,11 @@ Three independent layers, joined only by files:
 │  ├─ Root.tsx                 registered compositions (7)
 │  ├─ storyboard/              generic template: storyboard JSON -> film
 │  ├─ lecture/                 the validated 305 s lecture (script + scenes)
-│  ├─ design/                  design tokens, scene shell, KaTeX helpers, motion primitives
+│  ├─ design/                  design contract loader + derived tokens, scene shell, KaTeX helpers,
+│  │                           motion primitives
 │  └─ showcase/                one-file samples: transitions, typesetting, 3D, Manim overlay
-├─ data/                       real traces, counters, source lines, narration timings
+├─ data/                       design contract (design.spec.json), real traces, counters, source
+│                              lines, narration timings
 ├─ public/voice/sample.wav     one narration line, kept so the audio path can be tested without TTS
 ├─ scripts/
 │  ├─ bootstrap.sh             system libraries, node, npm, headless Chromium
@@ -111,9 +113,10 @@ Three independent layers, joined only by files:
 │  ├─ audio/render_music.mjs   deterministic score renderer
 │  ├─ audio/loudnorm.sh        two-pass EBU R128 normalisation (video stream untouched)
 │  ├─ qa/luma_blink.py         per-frame luma jump + dip detector
+│  ├─ qa/design_check.py       validates the design contract (contrast, scale, motion budgets)
 │  └─ tts/                     local TTS: batch synthesis, re-timing, torchaudio patch
-├─ docs/                       architecture, engineering standards, deployment, verification,
-│                              known issues, environments, roadmap
+├─ docs/                       architecture, engineering standards, design language (provenance of
+│                              the contract), deployment, verification, known issues, roadmap
 ├─ AGENTS.md                   rules for AI agents working in this repo
 └─ CONTRIBUTING.md             how to change things, and what "done" means here
 ```
@@ -202,12 +205,18 @@ Node — see `docs/known-issues.md` K2), and any cloud TTS.
 
 ```
 1/6  typecheck          tsc --noEmit
+1.2  design contract    design_check.py: contrast ratios, type ladder, motion budgets
 2/6  stills             Storyboard f60, Lecture f2500, Typesetting f60  -> human review
 3/6  score              deterministic wav from seed 11 (32 s)
 4/6  render             Showreel 30 s, h264 + aac
 5/6  loudness           two-pass loudnorm; asserts I in [-16,-13] and TP <= -1.5
 6/6  flicker            per-frame luma jumps on the whole frame (threshold 12)
 ```
+
+The design-contract step is cheap and catches the class of defect that is cheapest to fix before a
+render: a role that fails contrast on one of its real backgrounds, a type size that is not on the
+ladder, a motion duty whose budget exceeds its cap. It prints every measured ratio, so a reviewer can
+see the margin rather than the verdict.
 
 What it does **not** prove: narration quality (needs the TTS model), Manim overlay (needs the asset),
 or 3D on a GPU-less host. Those are separate, optional passes in `docs/deployment.md`.
@@ -274,14 +283,18 @@ Lower-tier substitutions (documented in `docs/environments.md`):
 
 ## 11. Roadmap
 
-See `docs/roadmap.md`. Highlights: a single orchestrator (`storyboard.json -> stills -> review
+See `docs/roadmap.md` (it also lists the open design-contract debts). Highlights: a single orchestrator (`storyboard.json -> stills -> review
 -> render -> QA`), automated still-frame linting (safe-area and overlap checks) so fewer human
 looks are needed, an index of reusable scene components, and optional GPU-free TTS integration.
 
 ## 12. Contributing
 
-The pipeline is a production, and contributions are held to the same bar as the film. Read
-[`docs/engineering-standards.md`](docs/engineering-standards.md) before changing anything: it fixes
+The pipeline is a production, and contributions are held to the same bar as the film.
+
+The design contract (`data/design.spec.json`) is the Rank-1 source of truth;
+[`docs/design-language.md`](docs/design-language.md) explains where each of its rules came from
+(including what was deliberately refused from the ppt-master reference) and lists the open debts.
+Read [`docs/engineering-standards.md`](docs/engineering-standards.md) before changing anything: it fixes
 the source-of-truth hierarchy (design contract -> tokens -> components), the determinism invariants,
 the design and content rules, the definition of done, and the git discipline. `CONTRIBUTING.md`
 has the short version and the review checklist; `AGENTS.md` is the same for coding agents.

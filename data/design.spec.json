@@ -1,0 +1,300 @@
+{
+  "version": 1,
+  "meta": {
+    "name": "video-pipeline-blueprint design contract",
+    "purpose": "One machine-checked home for colour roles, type scale, spacing anchors, motion duties and text budgets.",
+    "authority": "Rank 1 source of truth. Components read src/design/tokens.ts, which is derived from this file.",
+    "provenance": "Rules distilled from ppt-master (hugohe3/ppt-master, MIT) design references - see docs/design-language.md for the item-by-item mapping.",
+    "updated": "2026-10"
+  },
+  "canvas": {
+    "width": 1920,
+    "height": 1080,
+    "fps": 30
+  },
+  "palette": {
+    "families": {
+      "lecture": {
+        "note": "The 305 s lecture and every showcase composition. Dark, low-luminance family; consecutive scenes stay inside it (K1).",
+        "colors": {
+          "bg": "#0B0F14",
+          "bgSoft": "#111823",
+          "panel": "#151E2B",
+          "panelLine": "#22303F",
+          "ink": "#E8EEF5",
+          "inkDim": "#9AA7B6",
+          "inkFaint": "#66758A",
+          "cyan": "#5EEAD4",
+          "cyanDeep": "#0F766E",
+          "coral": "#FB7185",
+          "coralDeep": "#7F1D1D",
+          "amber": "#FBBF24",
+          "violet": "#A78BFA",
+          "paper": "#F3EEE3",
+          "paperInk": "#1A1A17"
+        },
+        "roles": {
+          "background": {
+            "colors": [
+              "bg"
+            ]
+          },
+          "surface": {
+            "colors": [
+              "bgSoft",
+              "panel"
+            ]
+          },
+          "surface.line": {
+            "colors": [
+              "panelLine"
+            ]
+          },
+          "text.primary": {
+            "color": "ink",
+            "minContrast": 7,
+            "on": [
+              "bg",
+              "bgSoft",
+              "panel"
+            ]
+          },
+          "text.secondary": {
+            "color": "inkDim",
+            "minContrast": 4.5,
+            "on": [
+              "bg",
+              "bgSoft",
+              "panel"
+            ]
+          },
+          "text.tertiary": {
+            "color": "inkFaint",
+            "minContrast": 3,
+            "minSize": 24,
+            "on": [
+              "bg",
+              "bgSoft",
+              "panel"
+            ]
+          },
+          "accent.primary": {
+            "color": "cyan",
+            "minContrast": 4.5,
+            "on": [
+              "bg",
+              "bgSoft",
+              "panel"
+            ]
+          },
+          "accent.primary.deep": {
+            "color": "cyanDeep",
+            "usage": "fill"
+          },
+          "accent.warn": {
+            "color": "coral",
+            "minContrast": 4.5,
+            "on": [
+              "bg",
+              "bgSoft",
+              "panel"
+            ]
+          },
+          "accent.warn.deep": {
+            "color": "coralDeep",
+            "usage": "fill"
+          },
+          "accent.note": {
+            "color": "amber",
+            "minContrast": 4.5,
+            "on": [
+              "bg",
+              "bgSoft",
+              "panel"
+            ]
+          },
+          "accent.alt": {
+            "color": "violet",
+            "minContrast": 4.5,
+            "on": [
+              "bg",
+              "bgSoft",
+              "panel"
+            ]
+          },
+          "surface.paper": {
+            "color": "paper",
+            "usage": "fill"
+          },
+          "text.onPaper": {
+            "color": "paperInk",
+            "minContrast": 7,
+            "on": [
+              "paper"
+            ]
+          }
+        }
+      },
+      "storyboard": {
+        "note": "The generic storyboard template (src/storyboard). Deliberately a second, warmer family; values are frozen as shipped so existing template renders do not change. Merging it into one family is roadmap work, not a drive-by edit.",
+        "colors": {
+          "ink": "#0B0E14",
+          "ink2": "#121826",
+          "paper": "#F5F1E8",
+          "accent": "#FF5A3C",
+          "accent2": "#57C8B5",
+          "muted": "#8A93A6",
+          "white": "#FFFFFF"
+        },
+        "roles": {
+          "background": {
+            "colors": [
+              "ink",
+              "ink2"
+            ]
+          },
+          "text.primary": {
+            "color": "paper",
+            "minContrast": 7,
+            "on": [
+              "ink",
+              "ink2"
+            ]
+          },
+          "text.caption": {
+            "color": "white",
+            "minContrast": 7,
+            "on": [
+              "ink",
+              "ink2"
+            ]
+          },
+          "text.secondary": {
+            "color": "muted",
+            "minContrast": 4.5,
+            "on": [
+              "ink",
+              "ink2"
+            ]
+          },
+          "accent.primary": {
+            "color": "accent",
+            "minContrast": 4.5,
+            "on": [
+              "ink",
+              "ink2"
+            ]
+          },
+          "accent.secondary": {
+            "color": "accent2",
+            "minContrast": 4.5,
+            "on": [
+              "ink",
+              "ink2"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "type": {
+    "note": "An ordered scale, not per-scene sizes. Roles pick a token; a new size is a contract change.",
+    "scale": {
+      "display": 96,
+      "h1": 64,
+      "h2": 42,
+      "body": 30,
+      "caption": 24,
+      "mono": 26,
+      "math": 32
+    },
+    "order": [
+      "display",
+      "h1",
+      "h2",
+      "body",
+      "caption"
+    ],
+    "roles": {
+      "cover.title": "display",
+      "scene.title": "h1",
+      "section.title": "h2",
+      "body.copy": "body",
+      "caption.line": "caption",
+      "code.line": "mono",
+      "formula.inline": "math"
+    },
+    "minReadable": 24,
+    "leading": 1.55
+  },
+  "spacing": {
+    "note": "Layouts snap to these anchors so neighbouring scenes share rhythm. grid is the divisor everything else must be a multiple of.",
+    "anchors": {
+      "grid": 4,
+      "gutter": 24,
+      "pageMargin": 72,
+      "safeArea": 64,
+      "blockGap": 32,
+      "cornerRadius": 6
+    },
+    "rules": [
+      "pageMargin > safeArea >= gutter",
+      "every anchor except cornerRadius is a multiple of grid"
+    ]
+  },
+  "motion": {
+    "note": "Every animation declares a duty and takes its duration from that duty's budget. One dominant rhythm per scene; chrome never animates.",
+    "transition": {
+      "kind": "hard-cut",
+      "fadeFrames": 0,
+      "why": "cross-fades multiply two opacities and produce a dip no luma gate can see (K1)"
+    },
+    "duties": {
+      "static": {
+        "frames": 0,
+        "maxFrames": 0,
+        "meaning": "no animation; the referent is already on screen"
+      },
+      "enter": {
+        "frames": 12,
+        "maxFrames": 24,
+        "easing": "ease-out",
+        "meaning": "element arrives after the scene is on screen"
+      },
+      "emphasize": {
+        "frames": 40,
+        "maxFrames": 60,
+        "easing": "count/spring",
+        "meaning": "a number or a block grows in importance"
+      },
+      "move": {
+        "frames": 12,
+        "maxFrames": 30,
+        "easing": "linear-ish",
+        "meaning": "the same object changes place, not identity"
+      },
+      "exit": {
+        "frames": 12,
+        "maxFrames": 24,
+        "easing": "ease-in",
+        "meaning": "element leaves before the cut"
+      }
+    },
+    "staggerFrames": 8,
+    "ambient": {
+      "minSeconds": 8,
+      "maxSeconds": 24,
+      "meaning": "slow drift that makes a static page breathe; must be slower than any duty above"
+    }
+  },
+  "text": {
+    "note": "Captions are derived from LINES, so these budgets are timing, not style.",
+    "caption": {
+      "maxCharsPerLine": 34,
+      "charsPerSecondMin": 4.2,
+      "charsPerSecondMax": 4.8,
+      "minOnScreenSeconds": 1.2
+    },
+    "rule": "A sentence that needs more than maxCharsPerLine at the fast end of the range is two sentences, not a faster read."
+  }
+}

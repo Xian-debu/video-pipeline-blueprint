@@ -15,6 +15,9 @@ step() { printf '\n== %s\n' "$*"; }
 step "1/6 typecheck"
 npx tsc --noEmit
 
+step "1.2/6 design contract (data/design.spec.json)"
+"$PYTHON" scripts/qa/design_check.py
+
 step "1.5/6 headless browser (downloads on first run, ~99 MB)"
 npx remotion browser ensure --log=error || true
 

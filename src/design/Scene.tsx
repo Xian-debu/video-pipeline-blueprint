@@ -1,6 +1,6 @@
 import React from "react";
 import { AbsoluteFill, interpolate, useCurrentFrame, useVideoConfig } from "remotion";
-import { C, FONT } from "./tokens";
+import { C, FONT, G } from "./tokens";
 
 /**
  * 场景外壳：统一底色 + 入场/出场淡变。
@@ -13,7 +13,7 @@ export const SceneShell: React.FC<{
   fadeOut?: number;
   bg?: string;
   pad?: number;
-}> = ({ children, fadeIn = 0, fadeOut = 0, bg = C.bg, pad = 72 }) => {
+}> = ({ children, fadeIn = 0, fadeOut = 0, bg = C.bg, pad = G.pad }) => {
   const f = useCurrentFrame();
   const { durationInFrames } = useVideoConfig();
   // fadeIn/fadeOut 允许为 0（硬切）：interpolate 的 inputRange 必须严格递增，为 0 时直接跳过。
@@ -57,7 +57,7 @@ export const ChapterBar: React.FC<{ chapter: string; index: number; total: numbe
       style={{
         position: "absolute",
         top: 26,
-        right: 72,
+        right: G.pad,
         fontFamily: FONT.mono,
         fontSize: 18,
         letterSpacing: 2,
