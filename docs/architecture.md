@@ -79,10 +79,21 @@ so the picture is never re-encoded. Target: I = -15 LUFS, TP = -2 dBTP for web d
   `overlap`), and fails when a frame reports nothing at all. The probe costs one `div` when the props
   are absent, and `src/qa/LintFixtures.tsx` keeps the rules honest.
 
-## 5. Why not a single orchestrator?
+## 5. One orchestrator, not one monolith
 
-The demo was produced as a sequence of documented commands (`docs/deployment.md`) rather than a
-monolithic pipeline binary. Reason: every stage has a different failure mode and a different
-debugging surface (Chromium, Node audio, Python TTS, ffmpeg). A single script that hides them makes
-the first failure hard to localise. A thin orchestrator is on the roadmap
-(`docs/roadmap.md`) once the stages are stable — which they now are.
+Every stage has a different failure mode and a different debugging surface (Chromium, Node audio,
+Python TTS, ffmpeg), so the stages stay separate scripts that can each be run alone
+(`docs/deployment.md` §1-§3.5). `scripts/make.mjs` is glue, not a reimplementation: it spawns those
+same scripts in dependency order, prints their output verbatim, keeps each exit code, and writes
+`report.json`.
+
+Three properties matter more than the convenience:
+
+- **Order encodes an argument.** The score is rendered and gated *before* the picture, because a bed
+  that cannot be heard must not be able to reach a render. The stills come *before* the mix, because
+  a layout defect is cheapest to fix before 305 s of frames exist.
+- **A failure is a file.** The run stops at the first failing stage and still writes the report, so
+  what ran, what passed and which number failed survive the terminal scrollback.
+- **The stages remain runnable alone.** `--skip-static` skips the contract checks, `--seconds`
+  skips duration probing, `--cut-frames` acknowledges intentional hard cuts. Anything the
+  orchestrator does can be reproduced by hand from the deployment doc — that is how it was debugged.

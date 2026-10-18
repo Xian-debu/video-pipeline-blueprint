@@ -125,7 +125,10 @@ A change is done when all of the following are true and their numbers are writte
 9. When narration or scene durations changed, `npm run publish` was re-run: the SRT, chapters and
    cover in `out/export/` must belong to the same script as the render (they are derived, so a stale
    one is a forgotten command, not a missing edit).
-10. The diff is committed, and the commit message says what changed and why.
+10. A delivery was produced by `npm run make`, not by hand-run stages, and `report.json` is quoted
+    in `docs/verify-report.md`: the stage table is the evidence that each gate actually ran. A
+    delivery assembled from shell history is a delivery whose gates nobody can prove.
+11. The diff is committed, and the commit message says what changed and why.
 
 "No claim of done without the numbers." A green `verify` alone is necessary and not sufficient —
 see §7.3 and the two v1.0.0 defects.
@@ -156,6 +159,7 @@ Author self-review before every commit:
 - [ ] Does the caption timing fit 4.2–4.8 chars/s, and the scene budget still sum to the runtime?
 - [ ] Are new binaries recorded in `THIRD_PARTY_NOTICES.md`?
 - [ ] Is the evidence (numbers, what was looked at) in `docs/verify-report.md`?
+- [ ] If a film was delivered: did `npm run make` produce it, and is `report.json` quoted?
 
 ## 10. Decisions log
 
@@ -168,5 +172,8 @@ Append one line per irreversible decision, newest last: date, decision, why, and
   score is arithmetic over an oscillator bank, not a DAW-style graph.
 - 2026-10: **one token source, derived from a checked contract** — the project had two palette
   modules that could disagree. Cost: editing a colour now touches the spec file first.
+- 2026-10: **the score is rendered before the picture** — `make.mjs` gates the stem first, so a bed
+  that cannot be heard never reaches a render. Cost: a score-only rerun takes ~40 s before any frame
+  is drawn; a picture-only iteration must use `remotion render` directly.
 - 2026-10: **local TTS (IndexTTS-2) with measured re-timing** — cloud TTS breaks determinism and
   offline rendering. Cost: a 13 GB model and a python <3.12 side venv.

@@ -16,7 +16,8 @@
     "lint:still": "node scripts/qa/still_lint.mjs",
     "lint:type": "python3 scripts/qa/type_ratchet.py",
     "publish": "node scripts/export/publish.mjs",
-    "verify": "bash scripts/verify.sh"
+    "verify": "bash scripts/verify.sh",
+    "make": "node scripts/make.mjs"
   },
   "dependencies": {
     "@react-three/fiber": "9.8.2",

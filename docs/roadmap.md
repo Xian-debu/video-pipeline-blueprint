@@ -4,9 +4,11 @@ Ordered by value per unit of work, based on what actually slowed the reference p
 
 ## Near term
 
-1. **One orchestrator** — `storyboard.json | script.ts -> stills -> (human review) -> render ->
-   mix -> loudnorm -> QA`, with a manifest of artefacts and per-stage logs. The stages already exist
-   as separate scripts; this is glue plus bookkeeping, not new capability.
+1. ~~**One orchestrator**~~ — **Done** (`scripts/make.mjs`, `npm run make`). `contract -> score ->
+   score gate -> picture-only render -> stills -> still lint -> mix -> mix gate -> mux -> loudnorm ->
+   flicker -> delivery exports`, with a `report.json` manifest carrying every measured number and the
+   exit code of every stage. A failed stage stops the pipeline and still writes the report. The score
+   is produced *before* the picture, so a bed that fails the gate never reaches a render.
 2. ~~**Automated still linting**~~ — **Done** (`scripts/qa/still_lint.mjs`). Rather than pixel
    heuristics (which cannot tell a title from a caption), the component under test prints the DOM
    boxes it laid out; the script renders a frame per target and fails on an off-frame box, text

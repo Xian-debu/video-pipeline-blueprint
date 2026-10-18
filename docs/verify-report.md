@@ -218,6 +218,50 @@ stop firing. Fixing the gate changed its verdict on the *old* stem from "39% aud
 "11% / 76%": it had been under-reporting the very defect it was written for, because it summed FFT
 magnitudes instead of power (docs/known-issues.md K15).
 
+## One command: `npm run make` (P5)
+
+A delivery is now one command. The run below is the 305 s lecture, produced from the committed tree
+with `node scripts/make.mjs --composition Lecture --out out/pkg_lecture --skip-static` — fifteen
+stages, all exit 0, recorded in `out/pkg_lecture/report.json` (the file, not this table, is the
+evidence; the table is a transcript of it).
+
+| Stage | Result |
+| --- | --- |
+| probe composition | 305 s / 9150 frames declared |
+| score | `render_music --duration=305 --seed=11 --energy=0.8` |
+| music gate (stem) | full -25.09 dBFS, audible band -27.86 dBFS, 63.1 % in 250-4k, 6.8 % in 20-120 |
+| render (picture only) | `--props '{"music":null,"narration":null}'` |
+| probe duration | 305.000 s, 0.000 s from the declared duration |
+| stills | frames 915 / 4118 / 7320 written for review |
+| still lint | PASS, 14 target frames |
+| mix | 306.2 s, duck 4.5 dB over 70.1 % of the film, peak -2.83 dBFS |
+| music gate (mix) | speech -16.15, gap full-band -25.89, **gap audible-band -28.50** (-12.3 under speech) |
+| mux | `-map 0:v:0 -map 1:a:0` — the picture's own track is dropped |
+| loudnorm | I = -15.0 LUFS, TP = -2.0 dBTP |
+| flicker gate | mean \|Δ\| 0.0121, p99 0.1095, **max 9.68** (threshold 12) |
+| publish | 41 cues, 9 chapters summing to 305.00 s, cover frame 180 |
+
+Film: 14,497,344 bytes, 305.000 s, sha256 `3b1fc7e37b90607a8e80ca1806594d8584940a68b369cc75b5390be824167b31`.
+It is **not** byte-identical to the v1.0.0 release asset (14,618,563 bytes): that master was mixed
+with the old, bass-heavy stem. Same picture, same narration, a score that survives a 300 Hz high-pass.
+
+Two defects this orchestrator surfaced, both fixed in the same commit:
+
+- The flicker gate prints the frame-luma range and then the diff statistics; both lines contain
+  `max=`. The report quoted 25.17 (a legitimate luma *range*) as a flicker value. It now parses the
+  `mean|d|` line only, and the report agrees with the gate: 9.68.
+- A hard cut is a 100-level luma jump, so `Storyboard` (three scenes, hard cuts at 120/240) cannot
+  pass a strict gate. `luma_blink.py` gained `--cut-frames`, which masks the cut ±2 frames and drops
+  dips that span a cut; the default stays strict and the lecture's budget is unchanged at 12.
+
+```
+$ node scripts/make.mjs --composition Storyboard --out out/pkg_test --skip-static --cut-frames 120,240,270
+...
+mean|d|=0.3789 p99=0.9605 max=107.59 jump_thresh=12.0 cuts=3
+PASS no luma jump and no blink dip
+make: PASS — out/pkg_test/Storyboard.mp4 (12 s, -15 LUFS, TP -2 dBFS) + report.json
+```
+
 ## What this report does not prove
 
 Narration quality (needs the TTS model), the Manim overlay (needs that asset), and 3D on a host

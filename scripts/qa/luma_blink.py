@@ -35,17 +35,30 @@ ap.add_argument("--thresh", type=float, default=12.0, help="single-frame jump th
 ap.add_argument("--region", default="full", choices=["bg","full"])
 ap.add_argument("--blink-depth", type=float, default=4.0)
 ap.add_argument("--blink-span", type=int, default=40)
+ap.add_argument("--cut-frames", default="",
+                help="comma-separated frame indices where the film intentionally hard-cuts; "
+                     "a jump or dip at such a frame is a cut, not a flicker, and is ignored")
 a=ap.parse_args()
+cuts=sorted({int(c) for c in a.cut_frames.split(",") if c.strip()})
 fr=frames(a.video)
 sig = fr[:, :20, :40].mean(axis=(1,2)) if a.region=="bg" else fr.mean(axis=(1,2))
 d=np.abs(np.diff(sig))
-bad=np.where(d>a.thresh)[0]
+mask=np.zeros(len(d), dtype=bool)
+for c in cuts:
+    for k in (c-2,c-1,c,c+1,c+2):
+        if 0 <= k < len(d):
+            mask[k]=True
+bad=np.where((d>a.thresh) & ~mask)[0]
 print(f"frames={len(fr)} mean={sig.mean():.2f} min={sig.min():.2f} max={sig.max():.2f}")
-print(f"mean|d|={d.mean():.4f} p99={np.percentile(d,99):.4f} max={d.max():.2f} jump_thresh={a.thresh}")
+print(f"mean|d|={d.mean():.4f} p99={np.percentile(d,99):.4f} max={d.max():.2f} jump_thresh={a.thresh}"
+      + (f" cuts={len(cuts)}" if cuts else ""))
 rc=0
 if len(bad):
     print("FAIL luma jumps:", [(int(i)+1, round(float(d[i]),1)) for i in bad][:20]); rc=1
 blinks=dip_scan(sig, a.blink_span, a.blink_depth)
+if cuts:
+    # a dip that recovers across an intentional cut is the cut, not a blink
+    blinks=[b for b in blinks if all(abs(b[0]-c) > a.blink_span for c in cuts)]
 if blinks:
     print(f"FAIL blink dips (depth>={a.blink_depth} recovered within {a.blink_span}f):")
     for i,dep,val,l,r in blinks[:12]:

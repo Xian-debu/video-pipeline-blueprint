@@ -117,6 +117,7 @@ Three independent layers, joined only by files:
 │  ├─ bootstrap.sh             system libraries, node, npm, headless Chromium
 │  ├─ doctor.sh                read-only environment report (PASS/FAIL)
 │  ├─ verify.sh                end-to-end smoke test: typecheck -> stills -> render -> QA
+│  ├─ make.mjs                 one command for one delivery: every gate, in order, into report.json
 │  ├─ generate_data.py         regenerates data/*.json from instrumented implementations
 │  ├─ audio/render_music.mjs   deterministic score renderer
 │  ├─ audio/mix.mjs            narration + score mix: ducking, fades, peak guard (no re-render)
@@ -139,6 +140,19 @@ Three independent layers, joined only by files:
 Compositions: `Storyboard` (generic, 20 s), `Showreel` (30 s), `Lecture` (305 s demo),
 `Transitions`, `Typesetting`, `ThreeCube`, `ManimOverlay` (single-capability samples) and
 `Presets` (9 s: the same title scene in each palette preset, for judging a look).
+
+One command runs the whole delivery. `npm run make` walks the stages in the order that makes a
+failure cheapest to fix — contract, score, score gate, picture-only render, review stills, still
+lint, mix, mix gate, mux, loudnorm, flicker, exports — and writes `out/<name>/report.json` with the
+exit code of every stage and every measured number (loudness, true peak, flicker max, still box
+counts). A failing stage stops the run and still writes the report, so a failure is a file, not a
+scrollback. The score is generated *before* the picture on purpose: a bed that fails the audibility
+gate must not be able to reach a render.
+
+```bash
+npm run make -- --composition Lecture --narration public/voice/narration.wav --skip-static
+npm run make -- --composition Storyboard --cut-frames 120,240,270   # a template with hard cuts
+```
 
 The film's delivery set is `npm run publish`: `out/export/` gets an SRT (41 cues, wrapped to the
 contract's 34-character line budget), human-readable and ffmpeg-sidecar chapter files (9 chapters,

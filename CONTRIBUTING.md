@@ -24,6 +24,14 @@ npm run verify              # typecheck -> design check -> type ratchet -> still
 
 Stills under `out/verify/` are part of the check, not decoration: open them.
 
+To produce a delivery (rather than to check the repo), run the orchestrator instead of the stages by
+hand — same scripts, same order, plus the gates people skip:
+
+```bash
+npm run make -- --composition Lecture --narration public/voice/narration.wav
+# -> out/Lecture/Lecture.mp4, out/Lecture/report.json (every stage's exit code and every number)
+```
+
 ## What a change should look like
 
 | You want to change | Edit | Do not |
@@ -36,6 +44,7 @@ Stills under `out/verify/` are part of the check, not decoration: open them.
 | recorded data a scene shows | `data/` via `scripts/generate_data.py` | hand-edit the JSON |
 | the score (levels, bands, arrangement) | `scripts/audio/engine.mjs` — then re-run `npm run gate:music` | raise the level to make it audible: put the energy in 250-4k |
 | a third-party asset | `public/` **and** a row in `THIRD_PARTY_NOTICES.md` | drop a binary without provenance |
+| the pipeline's stage order or a gate | `scripts/make.mjs` + `scripts/verify.sh` | add a stage that only runs when someone remembers it |
 | a new dependency | say why in the commit body | add one for something 30 lines of code can do |
 
 ## Commit format
@@ -56,6 +65,8 @@ One stage, one commit — no mixed refactor + behaviour changes, no "and also" c
       `npm run lint:still` pass.
 - [ ] Changed stills were rendered and looked at; findings recorded in `docs/verify-report.md`.
 - [ ] `npm run verify` passes end to end (loudness and flicker numbers included in the report).
+- [ ] If a film was delivered: it came from `npm run make`, and `report.json` is quoted in
+      `docs/verify-report.md`.
 - [ ] If the score or the mix changed: `python3 scripts/qa/music_gate.py --self-test` passes and the
       stem's audible-band share is reported; a delivery mix was gated with `--mix ... --narration ...`.
 - [ ] No new literal colour/size/timing outside the design contract. If a pre-existing literal went
