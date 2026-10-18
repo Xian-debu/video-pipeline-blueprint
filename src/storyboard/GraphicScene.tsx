@@ -1,6 +1,7 @@
 import React from "react";
 import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { FONT_SANS, PALETTE } from "../theme";
+import { SB, SB_T } from "../design/tokens";
 import type { Scene } from "../schema";
 
 export const GraphicScene: React.FC<{ scene: Scene }> = ({ scene }) => {
@@ -10,8 +11,8 @@ export const GraphicScene: React.FC<{ scene: Scene }> = ({ scene }) => {
   const bars = [0.62, 0.86, 0.47];
   return (
     <AbsoluteFill style={{ background: scene.bg ?? PALETTE.ink2, padding: "100px 120px", fontFamily: FONT_SANS }}>
-      <div style={{ fontSize: 36, color: PALETTE.muted, letterSpacing: 8 }}>OVERVIEW</div>
-      <div style={{ fontSize: 92, color: fg, marginTop: 12, fontWeight: 700 }}>{scene.title}</div>
+      <div style={{ fontSize: SB.overline, color: PALETTE.muted, letterSpacing: SB_T.overline }}>OVERVIEW</div>
+      <div style={{ fontSize: SB.headline, color: fg, marginTop: 12, fontWeight: 700 }}>{scene.title}</div>
       <div style={{ display: "flex", gap: 40, marginTop: 80 }}>
         {(scene.bullets ?? []).map((b, i) => {
           const s = spring({ frame: frame - 10 - i * 8, fps, config: { damping: 200 } });
@@ -28,8 +29,8 @@ export const GraphicScene: React.FC<{ scene: Scene }> = ({ scene }) => {
                 opacity: s,
               }}
             >
-              <div style={{ fontSize: 30, color: PALETTE.accent2, letterSpacing: 2 }}>0{i + 1}</div>
-              <div style={{ fontSize: 46, color: fg, marginTop: 14 }}>{b}</div>
+              <div style={{ fontSize: SB.ordinal, color: PALETTE.accent2, letterSpacing: SB_T.ordinal }}>0{i + 1}</div>
+              <div style={{ fontSize: SB.card, color: fg, marginTop: 14 }}>{b}</div>
               <div style={{ height: 12, marginTop: 28, borderRadius: 6, background: "rgba(255,255,255,0.10)", overflow: "hidden" }}>
                 <div
                   style={{

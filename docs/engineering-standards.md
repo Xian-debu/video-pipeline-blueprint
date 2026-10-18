@@ -60,7 +60,11 @@ The contract is data, so these are checks, not opinions:
   minimum font size — small and faint is the failure mode, not faint alone.
 - **Type:** a short, ordered scale (display > h1 > h2 > body > caption, plus mono and math). New
   sizes are a contract change, not a one-off. Body copy must stay legible at the intended viewing
-  distance, which is why the scale is fixed rather than fitted per scene.
+  distance, which is why the scale is fixed rather than fitted per scene. A surface that needs its
+  own ladder gets a *family* (`type.families.storyboard`) rather than a private set of numbers, and
+  its tracking is declared next to the sizes: CJK tracking above 5 % of the size is a recorded
+  deviation, not a tool for emphasis. Literals that predate the rule are listed in
+  `data/type-exceptions.json`; `type_ratchet.py` fails when that list grows.
 - **Spacing:** layouts snap to the declared anchors (page margin, safe area, gutter, grid) so two
   neighbouring scenes share rhythm. Content stays inside the safe area unless the overflow is the
   point and is reviewed as such on a still.
@@ -98,7 +102,8 @@ The contract is data, so these are checks, not opinions:
 A change is done when all of the following are true and their numbers are written down:
 
 1. `npx tsc --noEmit` passes.
-2. `python3 scripts/qa/design_check.py` passes (contract integrity).
+2. `python3 scripts/qa/design_check.py` passes (contract integrity) and
+   `python3 scripts/qa/type_ratchet.py` reports the exception list unchanged.
 3. `node scripts/qa/still_lint.mjs` passes (no off-frame box, no text in the safe-area margin, no
    spill, no text overlap) and `--fixtures` still passes — the fixture proves the gate itself works.
 4. Stills regenerated for the changed scenes and **looked at**; the finding is recorded in

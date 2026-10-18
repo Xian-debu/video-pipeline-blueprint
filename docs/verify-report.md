@@ -84,6 +84,48 @@ The 305 s lecture in the README was rendered with the same code path:
 Narration is 41 synthesized lines re-timed against measured speech durations; the score is 306 s
 rendered from seed 11. Both are inputs to the render, not outputs of it.
 
+## Type: the template family and the ratchet (D2 / D3)
+
+The storyboard template's eight sizes and five tracking values now live in
+`data/design.spec.json` under `type.families.storyboard` and reach the components as `SB.*` /
+`SB_T.*`; the four scene files no longer name a pixel value. The point of the change was to move
+work, not to move pixels, so it was verified by re-rendering the same frames before and after:
+
+| Frame | Before | After |
+| --- | --- | --- |
+| Storyboard f60 / f300 | `01ecdc89…` / `4f4563a6…` | identical |
+| Showreel f90 / f400 | `487d9aee…` / `5a8c6591…` | identical |
+| Lecture f1200 / f2500 / f4100 | `3cd2f4c2…` / `e5dd114b…` / `914eade0…` | identical |
+| Transitions f90, Typesetting f90, ThreeCube f30 | `a59a274e…`, `3b963bf4…`, `af76635c…` | identical |
+| Lecture f300 | `f9af751d…` (123,153 B) | `dc082e57…` (123,018 B) |
+
+Ten of eleven frames are byte-identical. Lecture f300 differs in **19 pixels by at most 1/255**,
+inside a 3 x 20 px strip at the page margin (rows 466-485, columns 72-74) — one antialiasing step on
+one glyph edge, not a layout change. Three re-renders of the same tree produce the same
+`dc082e57…`, so the difference is reproducible and belongs to the render (font/DOM ordering changed
+with the bundle), not to a flaky capture. Recorded rather than rounded away: stills are content-
+deterministic here, not byte-deterministic across bundle revisions, and a review that demands
+byte-equality would fail on noise.
+
+Tracking ratios, printed by `design_check.py` on every run:
+
+| Role | Tracking / size | Ratio | Status |
+| --- | --- | --- | --- |
+| title | 4 / 128 | 3.1 % | ok |
+| subtitle | 6 / 44 | 13.6 % | **declared deviation** (`trackingDeviations`) |
+| overline | 8 / 36 | 22.2 % | Latin-only label, reported not enforced |
+| ordinal | 2 / 30 | 6.7 % | Latin digits, reported not enforced |
+| caption | 1 / 52 | 1.9 % | ok |
+
+`design_check.py` now fails when a *new* CJK role crosses 5 % or when a declared deviation is stale
+(ratio back under the limit), so D3 cannot grow quietly while its look-changing part stays open.
+
+The lecture's own literals were not promoted into the contract: `src/lecture/Lecture.tsx` alone uses
+**24 distinct font sizes** (15-108 px), which is the debt, not a scale. They are grandfathered in
+`data/type-exceptions.json` — 52 literals across 9 files — and `scripts/qa/type_ratchet.py` fails
+when the list gains an entry, duplicates a use, or keeps a stale one. Only storyboard/ reads tokens
+today; the exception list is the measure of what is left.
+
 ## Delivery exports
 
 `npm run publish` produces, from the lecture script alone:

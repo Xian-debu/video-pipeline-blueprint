@@ -19,6 +19,9 @@ npx tsc --noEmit
 step "1.2/6 design contract (data/design.spec.json)"
 "$PYTHON" scripts/qa/design_check.py
 
+step "1.3/6 type literal ratchet (no new hard-coded font sizes)"
+"$PYTHON" scripts/qa/type_ratchet.py
+
 step "1.5/6 headless browser (downloads on first run, ~99 MB)"
 npx remotion browser ensure --log=error || true
 

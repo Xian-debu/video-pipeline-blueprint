@@ -167,7 +167,7 @@ can prove* from *what a human must look at*. Mapping:
 | H7 declared chrome displaced | `ChapterBar` is the declared chrome; it is outside every scene's content flow |
 | H9 missing key element | still review of every scene at one representative frame |
 | S1/S4/S5 rhythm, alignment, grid uniformity | grid anchors in the contract; still review |
-| S6 CJK letter-spacing ≤ 2–5 % | **violated today** — see debt §4 |
+| S6 CJK letter-spacing ≤ 2–5 % | **partly mechanised.** The storyboard family declares its tracking in the contract; `design_check.py` prints every ratio and fails when a *new* CJK role crosses 5 %, with the recorded exceptions in `trackingDeviations`. The lecture chrome's own tracking is still a literal — see debt §4 (D3) |
 | S7 decorative accents compete | standards §4 "emphasis cannot rely on colour alone"; still review |
 | S9 caption distance / text on busy image | caption scrim; still review |
 
@@ -276,8 +276,8 @@ CJK renders tofu, which is why `doctor.sh` checks the fonts before rendering.
 | # | Debt | Why it is not fixed here | Where it will be paid |
 |---|---|---|---|
 | D1 | Two colour families (`lecture` and `storyboard`) with different values, both frozen | merging changes existing renders and needs a full re-verification, which this contract-only change is not allowed to do | `docs/roadmap.md`, palette merge commit |
-| D2 | Hard-coded type sizes in storyboard scenes (128/92/46/44/40/36/30/52) instead of `TYPE_SCALE` | changing them changes the template's look; the check cannot see inside components anyway | scene refactor, one scene per commit |
-| D3 | CJK/label letter-spacing violates ppt-master's S6 (chapter bar 2 px at 18 px = 11 %; `OVERVIEW` 8 px at 36 px = 22 %; subtitle 6 px at 44 px = 14 %) | tracking changes are visual changes; bundled here as a measured finding, not a silent edit | typography commit with stills before/after |
+| ~~D2~~ | **Paid for the template, ratcheted for the film.** The storyboard's eight sizes are now `type.families.storyboard.sizes` and the scenes read `SB.*`; the 305 s film keeps its own sizes as a *grandfathered* list (`data/type-exceptions.json`, 52 entries / 9 files) enforced by `type_ratchet.py`, which fails when a literal is added, duplicated or left stale. Freezing the film's 24 distinct sizes into the contract would have presented forty arbitrary numbers as a scale | the film's sizes drain when scenes are rewritten, one literal at a time | ratchet + storyboard tokenisation + identical stills |
+| D3 | **Measured and locked, not yet paid.** `OVERVIEW` runs 8 px at 36 px = 22.2 % and the title subtitle 6 px at 44 px = 13.6 %; neither is changed here because tracking is a visual change. Both are now declared in the contract, printed by `design_check.py` on every run, and the subtitle is a recorded `trackingDeviations` entry — a new CJK violation fails the gate instead of joining silently | the ratio needs a look-before/after decision, and the lecture chrome's chapter bar (3 px at 21 px = 14 %) is still a ratcheted literal | a typography commit with stills before/after |
 | ~~D4~~ | **Paid.** `ImageScene` reads `motion.ambient` through `ambientScale()`; a 3 s scene now travels 1.0225 instead of 1.06 | — | this commit |
 | ~~D5~~ | **Paid.** Caption scrim is the `surface.scrim` fill role, read via `fillColor()`; `design_check.py` validates alpha and the fill/text split | — | this commit |
 | ~~D6~~ | **Paid, partly.** The contract check still cannot see inside a component — but it no longer has to: `still_lint.mjs` renders a frame, reads the boxes the DOM actually produced, and fails on an off-frame box, text in the safe-area margin, a range wider than its box, or two text boxes overlapping. A literal colour is still invisible to it; a literal *size* usually is not | near-term item 2 |
@@ -287,16 +287,18 @@ CJK renders tofu, which is why `doctor.sh` checks the fonts before rendering.
 Read this before adding a scene; the machine checks (`design_check.py` on the contract,
 `still_lint.mjs` on rendered boxes) catch geometry and contrast, not intent.
 
-1. Colours and sizes come from `PALETTE` / `TYPE_SCALE`; if you need a new one, the commit is a
-   contract commit, not a scene commit.
+1. Colours and sizes come from `PALETTE` / `TYPE_SCALE`, or from a family — the storyboard template
+   reads `SB.*` / `SB_T.*` (sizes and tracking) out of `type.families.storyboard`. A new size is a
+   contract commit, never a scene commit: `type_ratchet.py` fails the build if a component gains a
+   literal that is not already grandfathered.
 2. Text over an image gets a scrim; text over a plate image is otherwise a review failure (H4/S9).
 3. The caption goes where it does not collide with the title (the `center` position was moved to 62 %
    height for exactly this reason — see `Caption.tsx`).
 4. Every frame must be renderable alone: no CSS animation, no `Math.random`, no timer.
 5. A new visual idea names its catalog option (`#P1-02`, `#P3-04`, …) in the commit body, so the next
    author can find the precedent.
-6. Run `python3 scripts/qa/design_check.py` and `npx tsc --noEmit` before asking for a review; paste
-   the numbers, not the words.
+6. Run `python3 scripts/qa/design_check.py`, `python3 scripts/qa/type_ratchet.py` and
+   `npx tsc --noEmit` before asking for a review; paste the numbers, not the words.
 
 ## 6. Licence note
 

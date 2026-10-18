@@ -231,6 +231,60 @@
       "code.line": "mono",
       "formula.inline": "math"
     },
+    "families": {
+      "note": "Named size sets for surfaces that are not the lecture's main ladder. Every value here is frozen from a render that was accepted, so an entry records what is on screen; it is not a recommendation for new work - new sizes come from 'scale'.",
+      "storyboard": {
+        "note": "The reusable template (Storyboard / Showreel). Freezing it turns D2 into a contract question: a scene names a role, not a pixel value.",
+        "sizes": {
+          "title": 128,
+          "headline": 92,
+          "caption": 52,
+          "card": 46,
+          "subtitle": 44,
+          "placeholder": 40,
+          "overline": 36,
+          "ordinal": 30
+        },
+        "order": [
+          "title",
+          "headline",
+          "caption",
+          "card",
+          "subtitle",
+          "placeholder",
+          "overline",
+          "ordinal"
+        ],
+        "tracking": {
+          "title": 4,
+          "subtitle": 6,
+          "overline": 8,
+          "ordinal": 2,
+          "caption": 1
+        },
+        "trackingCjkRoles": [
+          "title",
+          "headline",
+          "caption",
+          "card",
+          "subtitle",
+          "placeholder"
+        ],
+        "trackingDeviations": {
+          "subtitle": "6 px at 44 px = 13.6%: kept from the frozen storyboard look, so D3 stays open (alignment deferred, not forgotten)"
+        },
+        "trackingRules": [
+          "CJK-bearing roles stay at or below 5% of the size; subtitle is 6/44 = 13.6% and is a known deviation, not a precedent",
+          "Latin-only overline and ordinal may run wider (22.2% and 6.7%); design_check reports their ratio but does not fail on it"
+        ]
+      }
+    },
+    "ratchet": {
+      "note": "The 305 s lecture and the showcase samples keep their shipped sizes as an audited exception list, instead of growing this contract by forty ad-hoc tokens - freezing those would legitimise them as a scale.",
+      "exceptions": "data/type-exceptions.json",
+      "checker": "scripts/qa/type_ratchet.py",
+      "rule": "A committed fontSize/letterSpacing literal is grandfathered. The only legal move is fewer literals: a new size means a token in 'scale' (or in a family) first, and a removed one must be deleted from the exception list in the same commit."
+    },
     "minReadable": 24,
     "leading": 1.55
   },

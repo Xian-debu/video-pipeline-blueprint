@@ -35,6 +35,15 @@ export const SPACING = raw.spacing.anchors;
 /** 字号层级：语义角色 -> 像素。 */
 export const TYPE_SCALE = raw.type.scale;
 
+/** 字号族：非主阶梯的表面（storyboard 模板）自己的角色 -> 像素，值冻结自已验收的渲染。 */
+export const TYPE_FAMILIES = raw.type.families as unknown as Record<
+  string,
+  { sizes: Record<string, number>; order: string[]; tracking?: Record<string, number>; trackingRules?: string[] }
+>;
+
+/** 未入契约的字面量：白名单 + 只能减少的棘轮。 */
+export const TYPE_RATCHET = raw.type.ratchet;
+
 /** 动效预算：每个 duty 的帧数上限。 */
 export const MOTION = {
   transition: raw.motion.transition,

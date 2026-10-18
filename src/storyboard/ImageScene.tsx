@@ -2,6 +2,7 @@ import React from "react";
 import { AbsoluteFill, Img, interpolate, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
 import { FONT_SANS, PALETTE } from "../theme";
 import { ambientScale } from "../design/contract";
+import { SB } from "../design/tokens";
 import type { Scene } from "../schema";
 
 export const ImageScene: React.FC<{ scene: Scene }> = ({ scene }) => {
@@ -21,7 +22,7 @@ export const ImageScene: React.FC<{ scene: Scene }> = ({ scene }) => {
           style={{ width: "100%", height: "100%", objectFit: "cover", transform: `scale(${scale})` }}
         />
       ) : (
-        <AbsoluteFill style={{ justifyContent: "center", alignItems: "center", color: PALETTE.muted, fontFamily: FONT_SANS, fontSize: 40 }}>
+        <AbsoluteFill style={{ justifyContent: "center", alignItems: "center", color: PALETTE.muted, fontFamily: FONT_SANS, fontSize: SB.placeholder }}>
           [image scene without plate]
         </AbsoluteFill>
       )}

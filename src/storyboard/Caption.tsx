@@ -2,6 +2,7 @@ import React from "react";
 import { AbsoluteFill, interpolate } from "remotion";
 import { FONT_SANS, PALETTE } from "../theme";
 import { fillColor } from "../design/contract";
+import { SB, SB_T } from "../design/tokens";
 import type { CaptionItem } from "../schema";
 
 /**
@@ -30,7 +31,7 @@ export const Caption: React.FC<{ item: CaptionItem; localFrame: number }> = ({ i
         style={{
           opacity,
           fontFamily: FONT_SANS,
-          fontSize: 52,
+          fontSize: SB.caption,
           lineHeight: 1.35,
           color: PALETTE.white,
           background: fillColor("storyboard", "surface.scrim"),
@@ -38,7 +39,7 @@ export const Caption: React.FC<{ item: CaptionItem; localFrame: number }> = ({ i
           borderRadius: 10,
           maxWidth: 1500,
           textAlign: "center",
-          letterSpacing: 1,
+          letterSpacing: SB_T.caption,
         }}
       >
         {item.text}

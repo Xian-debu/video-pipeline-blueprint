@@ -18,7 +18,8 @@ Read, in this order:
 ```bash
 bash scripts/bootstrap.sh   # apt libs, CJK fonts, node, headless Chromium
 bash scripts/doctor.sh      # must print "all checks passed"
-npm run verify              # typecheck -> design check -> still lint -> stills -> render -> loudness -> flicker
+npm run verify              # typecheck -> design check -> type ratchet -> still lint -> stills ->
+                            # render -> loudness -> flicker
 ```
 
 Stills under `out/verify/` are part of the check, not decoration: open them.
@@ -28,6 +29,7 @@ Stills under `out/verify/` are part of the check, not decoration: open them.
 | You want to change | Edit | Do not |
 | --- | --- | --- |
 | a colour, size, spacing anchor, or motion timing | `data/design.spec.json` (+ derived `src/design/tokens.ts` if the shape changes) | hard-code a literal in a scene |
+| the storyboard template's type | `type.families.storyboard` in the contract (sizes **and** tracking) | edit the numbers in `TitleScene`/`GraphicScene` |
 | a scene's composition | the scene component, using tokens and primitives | add a new colour or type size |
 | narration or on-screen text | `src/lecture/script.ts` (`LINES`) | duplicate the string in a component |
 | recorded data a scene shows | `data/` via `scripts/generate_data.py` | hand-edit the JSON |
@@ -48,10 +50,13 @@ One stage, one commit — no mixed refactor + behaviour changes, no "and also" c
 
 ## Pull / review checklist
 
-- [ ] `npx tsc --noEmit`, `python3 scripts/qa/design_check.py` and `npm run lint:still` pass.
+- [ ] `npx tsc --noEmit`, `python3 scripts/qa/design_check.py`, `npm run lint:type` and
+      `npm run lint:still` pass.
 - [ ] Changed stills were rendered and looked at; findings recorded in `docs/verify-report.md`.
 - [ ] `npm run verify` passes end to end (loudness and flicker numbers included in the report).
-- [ ] No new literal colour/size/timing outside the design contract.
+- [ ] No new literal colour/size/timing outside the design contract. If a pre-existing literal went
+      away, `data/type-exceptions.json` was regenerated with `npm run lint:type -- --write` in the
+      same commit.
 - [ ] New binaries listed in `THIRD_PARTY_NOTICES.md` with licence, source, size, sha256.
 - [ ] `git status` clean apart from the intended change.
 

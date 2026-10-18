@@ -1,9 +1,15 @@
 /** 设计令牌：由 data/design.spec.json 派生，组件只从这里取值（新值先改契约）。 */
-import { PALETTE_FAMILIES, SPACING, TYPE_SCALE } from "./contract";
+import { PALETTE_FAMILIES, SPACING, TYPE_FAMILIES, TYPE_SCALE } from "./contract";
 
 export const C = PALETTE_FAMILIES.lecture.colors;
 
 export const T = TYPE_SCALE;
+
+/** storyboard 模板的字号族（契约里的第二套阶梯，值冻结自 D2 之前的那一版渲染）。 */
+export const SB = TYPE_FAMILIES.storyboard.sizes;
+
+/** 同一族排的字距（px）。CJK 超过 5% 的项在契约里标为已知偏差。 */
+export const SB_T = TYPE_FAMILIES.storyboard.tracking as Record<string, number>;
 
 export const G = {
   grid: SPACING.grid,

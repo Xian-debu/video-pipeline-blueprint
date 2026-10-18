@@ -1,6 +1,7 @@
 import React from "react";
 import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { FONT_SANS, FONT_SERIF, PALETTE } from "../theme";
+import { SB, SB_T } from "../design/tokens";
 import type { Scene } from "../schema";
 
 export const TitleScene: React.FC<{ scene: Scene }> = ({ scene }) => {
@@ -17,9 +18,9 @@ export const TitleScene: React.FC<{ scene: Scene }> = ({ scene }) => {
       <div
         style={{
           fontFamily: FONT_SERIF,
-          fontSize: 128,
+          fontSize: SB.title,
           color: fg,
-          letterSpacing: 4,
+          letterSpacing: SB_T.title,
           transform: `translateY(${rise}px)`,
           opacity: s,
           textAlign: "center",
@@ -32,10 +33,10 @@ export const TitleScene: React.FC<{ scene: Scene }> = ({ scene }) => {
         <div
           style={{
             fontFamily: FONT_SANS,
-            fontSize: 44,
+            fontSize: SB.subtitle,
             color: fg,
             opacity: interpolate(frame, [20, 45], [0, 0.75], { extrapolateRight: "clamp" }),
-            letterSpacing: 6,
+            letterSpacing: SB_T.subtitle,
           }}
         >
           {scene.subtitle}

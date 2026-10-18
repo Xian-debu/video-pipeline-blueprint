@@ -113,7 +113,8 @@ Three independent layers, joined only by files:
 │  ├─ audio/render_music.mjs   deterministic score renderer
 │  ├─ audio/loudnorm.sh        two-pass EBU R128 normalisation (video stream untouched)
 │  ├─ qa/luma_blink.py         per-frame luma jump + dip detector
-│  ├─ qa/design_check.py       validates the design contract (contrast, scale, motion budgets)
+│  ├─ qa/design_check.py       validates the design contract (contrast, scale, families, motion)
+│  ├─ qa/type_ratchet.py       no new hard-coded font sizes: the exception list may only shrink
 │  ├─ qa/still_lint.mjs        renders frames, reads the DOM boxes, fails on off-frame/edge/spill/overlap
 │  ├─ export/publish.mjs       SRT + chapters + cover, all derived from the lecture script
 │  └─ tts/                     local TTS: batch synthesis, re-timing, torchaudio patch
@@ -132,6 +133,13 @@ The film's delivery set is `npm run publish`: `out/export/` gets an SRT (41 cues
 contract's 34-character line budget), human-readable and ffmpeg-sidecar chapter files (9 chapters,
 summing to the film's duration) and a cover rendered from frame 180. Nothing in that folder is
 authored by hand, so it cannot drift from the picture.
+
+Type is a contract question, not a scene one. The storyboard template reads `SB.*` and `SB_T.*`
+(sizes, tracking) from `type.families.storyboard`, so changing the template's type means editing one
+JSON file. The validated film's own sizes are *grandfathered* in `data/type-exceptions.json` (52
+literals across 9 files, mostly the lecture's chrome) rather than promoted into the contract, and
+`scripts/qa/type_ratchet.py` fails the build when a literal is added, duplicated or left stale — the
+list can only shrink.
 
 ## 5. Quick start
 
@@ -214,7 +222,9 @@ Node — see `docs/known-issues.md` K2), and any cloud TTS.
 
 ```
 1/6  typecheck          tsc --noEmit
-1.2  design contract    design_check.py: contrast ratios, type ladder, motion budgets
+1.2  design contract    design_check.py: contrast ratios, type ladder + families, tracking
+                        ratios, motion budgets
+1.25 type ratchet       type_ratchet.py: no new hard-coded fontSize/letterSpacing literals
 1.3  still lint         still_lint.mjs: 11 frames measured from the DOM (off-frame, edge,
                         spill, overlap) + a fixture that proves the rules still fire
 2/6  stills             Storyboard f60, Lecture f2500, Typesetting f60  -> human review

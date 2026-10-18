@@ -163,6 +163,52 @@ def check_type(spec):
     leading = t.get("leading")
     if not isinstance(leading, (int, float)) or not (1.2 <= leading <= 2.0):
         fail("type.leading must be within [1.2, 2.0] (got %r)" % (leading,))
+    for family in (t.get("families") or {}).values():
+        if isinstance(family, dict) and "sizes" in family:
+            check_type_family(family)
+    if not isinstance(t.get("ratchet"), dict) or not t["ratchet"].get("exceptions"):
+        fail("type.ratchet must name the exception list that type_ratchet.py reads")
+
+
+def check_type_family(family):
+    """A frozen family: an ordered set of sizes plus the tracking each one carries.
+
+    Tracking is where D3 lives. A CJK line with more than 5% tracking reads as gaps between
+    characters rather than a word, so every CJK role above that is a recorded deviation: the
+    ratio is printed, and a *new* violation fails the check instead of joining the club silently.
+    """
+    sizes = family.get("sizes") or {}
+    order = family.get("order") or []
+    tracking = family.get("tracking") or {}
+    cjk = family.get("trackingCjkRoles") or []
+    deviations = family.get("trackingDeviations") or {}
+    if not sizes:
+        fail("type.families.*.sizes is empty")
+        return
+    for name, size in sizes.items():
+        if not isinstance(size, int) or size <= 0:
+            fail("type.families.*.sizes.%s must be a positive integer" % name)
+    if sorted(order) != sorted(sizes):
+        fail("type.families.*.order must list every size exactly once (got %s)" % ", ".join(order))
+    ordered = [sizes[n] for n in order if n in sizes]
+    if any(a <= b for a, b in zip(ordered, ordered[1:])):
+        fail("type.families.*.order must be strictly decreasing, got %s" % ordered)
+    for name, px in tracking.items():
+        if name not in sizes:
+            fail("type.families.*.tracking.%s has no size" % name)
+            continue
+        if not isinstance(px, (int, float)) or px < 0:
+            fail("type.families.*.tracking.%s must be a non-negative number" % name)
+            continue
+        ratio = 100.0 * px / sizes[name]
+        note("  tracking %-11s %4.1f px / %3d px = %4.1f%%" % (name, px, sizes[name], ratio))
+        if name in cjk and ratio > 5.0 and name not in deviations:
+            fail(
+                "type.families.*.tracking.%s is %.1f%% of its size on a CJK role (limit 5%%); "
+                "record it in trackingDeviations or reduce it" % (name, ratio)
+            )
+        if name in deviations and (name not in cjk or ratio <= 5.0):
+            fail("type.families.*.trackingDeviations.%s is stale (ratio %.1f%%)" % (name, ratio))
 
 
 def check_spacing(spec):
@@ -268,9 +314,11 @@ def main():
         print("design check: FAIL (%d violation(s))" % len(errors), file=sys.stderr)
         return 1
     families = spec["palette"]["families"]
-    print("design check: PASS - %d colour families, %d type roles, %d contrast targets, hard-cut motion"
+    print("design check: PASS - %d colour families, %d type roles, %d nested type families, "
+          "%d contrast targets, hard-cut motion"
           % (len(families),
              len(type_spec.get("roles") or {}),
+             len(type_spec.get("families") or {}),
              len(lines)))
     return 0
 

@@ -46,8 +46,8 @@ of them is "fix the look".
 | # | Debt | Paid by |
 |---|---|---|
 | D1 | Two frozen colour families (`lecture`, `storyboard`) with different values | a palette merge commit that re-verifies every still |
-| D2 | Storyboard scenes hard-code type sizes instead of `TYPE_SCALE` | scene-by-scene refactor |
-| D3 | Letter-spacing violates the CJK tracking rule (chapter bar 11 %, `OVERVIEW` 22 %, subtitle 14 %) | a typography commit with before/after stills |
+| ~~D2~~ | **Paid for the template, ratcheted for the film** — storyboard scenes read `SB.*` / `SB_T.*` from `type.families.storyboard` (11 stills byte-identical before/after); the lecture's own literals are grandfathered in `data/type-exceptions.json` and can only shrink | this commit |
+| D3 | **Measured, not paid** — `OVERVIEW` 22.2 %, title subtitle 13.6 %, lecture chapter bar 14 %; the ratios are now printed by `design_check.py` and the subtitle is a declared deviation, so a new CJK violation fails the gate | a typography commit with before/after stills |
 | ~~D4~~ | **Paid** — `ImageScene` reads `motion.ambient` via `ambientScale()`; a 3 s scene travels 1.0225, not 1.06 | this roadmap's contract commit |
 | ~~D5~~ | **Paid** — caption scrim is the `surface.scrim` fill role (`usage: fill`, `alpha: 0.62`), read via `fillColor()` | this roadmap's contract commit |
 | ~~D6~~ | **Paid** — `design_check` still validates the contract only, but `still_lint.mjs` renders frames and fails on off-frame boxes, edge text, spill and overlap; it cannot see a literal colour, it sees the consequence | near-term item 2 |
