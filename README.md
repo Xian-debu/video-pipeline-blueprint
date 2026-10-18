@@ -143,6 +143,7 @@ Three independent layers, joined only by files:
 │  ├─ doctor.sh                read-only environment report (PASS/FAIL)
 │  ├─ verify.sh                end-to-end smoke test: typecheck -> stills -> render -> QA
 │  ├─ make.mjs                 one command for one delivery: every gate, in order, into report.json
+│  ├─ render_scenes.mjs        scene-by-scene picture render: hash the inputs, reuse, concat
 │  ├─ generate_data.py         regenerates data/lecture/*.json from instrumented implementations
 │  ├─ generate_mult_data.py    the same for the multiplication film: counts, benchmarks, trace
 │  ├─ audio/render_music.mjs   deterministic score renderer
@@ -154,6 +155,7 @@ Three independent layers, joined only by files:
 │  ├─ qa/type_ratchet.py       no new hard-coded font sizes: the exception list may only shrink
 │  ├─ qa/still_lint.mjs        renders frames, reads the DOM boxes, fails on off-frame/edge/spill/overlap
 │  ├─ qa/film_isolation.mjs    one film may not read another film's data or source (layout rule)
+│  ├─ qa/tree_hash.mjs         one hash for the tree that a run is about to measure
 │  ├─ export/publish.mjs       SRT + chapters + cover, all derived from the lecture script
 │  └─ tts/                     local TTS: batch synthesis, re-timing, torchaudio patch
 ├─ docs/                       architecture, engineering standards, design language (provenance of
@@ -181,6 +183,29 @@ gate must not be able to reach a render.
 npm run make -- --composition Lecture --narration public/voice/narration.wav --skip-static
 npm run make -- --composition Storyboard --cut-frames 120,240,270   # a template with hard cuts
 ```
+
+**Editing one paragraph re-renders one scene.** A film's picture is rendered scene by scene
+(`scripts/render_scenes.mjs`): each scene's inputs are hashed (its own lines, its index and the scene
+count, the film's components, the film's data JSON, the shared design system) and a segment whose
+hash still matches is reused. Segments are concatenated with `-c copy`, so untouched scenes cost
+nothing but a file read:
+
+```bash
+node scripts/render_scenes.mjs --composition=Multiplication --script=src/mult/script.ts \
+  --out=out/package/scenes --output=out/package/raw_video.mp4
+# first run:             RENDER reused=0 rendered=10 scenes=10 frames=17636
+# after nothing changed: RENDER reused=10 rendered=0 scenes=10 frames=17636
+```
+
+`npm run make` uses it for every film in its `EXPORTS` table and records the counts in
+`report.json` (`numbers.segments`). The score is reused the same way, keyed on its generation
+parameters in `score.meta.json`, because a 10-minute bed costs 19 minutes to synthesize. Only
+`--force-render` ignores the segment cache.
+
+**The report says which tree it measured.** `node scripts/qa/tree_hash.mjs` prints one hash over
+everything that can change rendered bytes (`src/`, `data/`, `scripts/`, render config). When the
+gates run on a copy of the repo somewhere else, pass the original's hash: `--expect-tree <hash>`
+makes the run fail in the first second instead of after a stale long render.
 
 The film's delivery set is `npm run publish`: `out/export/` gets an SRT (41 cues, wrapped to the
 contract's 34-character line budget), human-readable and ffmpeg-sidecar chapter files (9 chapters,

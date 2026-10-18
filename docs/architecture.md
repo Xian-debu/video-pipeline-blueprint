@@ -99,3 +99,27 @@ Three properties matter more than the convenience:
 - **The stages remain runnable alone.** `--skip-static` skips the contract checks, `--seconds`
   skips duration probing, `--cut-frames` acknowledges intentional hard cuts. Anything the
   orchestrator does can be reproduced by hand from the deployment doc — that is how it was debugged.
+
+## 6. The expensive stage is resumable
+
+Rendering is the only stage that costs minutes, so it is the only one built to be skipped
+selectively. `scripts/render_scenes.mjs` renders a film scene by scene (`renderMedia`'s
+`frameRange`) and keys each segment on a hash of exactly what that scene reads: its own lines, its
+index and the scene count, the film's components, the film's data JSON, and the shared design
+system. Segments are concatenated with `-c copy`, so a segment whose hash still matches costs a
+file read and nothing else.
+
+This is possible only because of the invariant in §2: a frame is a pure function of
+`useCurrentFrame()`, so any frame can be rendered in isolation and two renders of the same inputs
+are byte-identical. The cache inherits that determinism — a hash is a complete description of a
+segment, not a hint. Scene timing is deliberately left out of the hash; a segment is reused only
+when its frame count is unchanged, so a re-timed scene re-renders itself and its neighbours keep
+their files.
+
+The same reasoning applies to the score, which is keyed on its generation parameters rather than
+content: `score.meta.json` records `seed`, `energy`, `bpm`, `prog` and the rendered length, and
+`make` reuses the bed when those still describe the programme. Both caches are keyed by *declared
+inputs*, which is why `report.json` also records `numbers.inputs` (per-directory content hashes) and
+`numbers.tree` — a cached run has to be able to say which tree it measured and which inputs it
+assumed.
+

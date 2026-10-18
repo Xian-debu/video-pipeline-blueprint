@@ -136,7 +136,12 @@ A change is done when all of the following are true and their numbers are writte
 10. A delivery was produced by `npm run make`, not by hand-run stages, and `report.json` is quoted
     in `docs/verify-report.md`: the stage table is the evidence that each gate actually ran. A
     delivery assembled from shell history is a delivery whose gates nobody can prove.
-11. The diff is committed, and the commit message says what changed and why.
+11. `report.json` names the tree it measured: `numbers.tree` matches `node scripts/qa/tree_hash.mjs`
+    on the authoring checkout, and `numbers.segments` shows how much of the picture was reused. A run
+    on a copy of the repo passes `--expect-tree <hash>`; if the hashes disagree, the run never starts.
+    A delivery whose report cannot say which tree it measured is a delivery of unknown provenance —
+    see `docs/known-issues.md` K18.
+12. The diff is committed, and the commit message says what changed and why.
 
 "No claim of done without the numbers." A green `verify` alone is necessary and not sufficient —
 see §7.3 and the two v1.0.0 defects.

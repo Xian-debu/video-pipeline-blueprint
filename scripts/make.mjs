@@ -16,6 +16,8 @@ import path from "node:path";
 import crypto from "node:crypto";
 import { spawnSync } from "node:child_process";
 
+import { treeHashName } from "./qa/tree_hash.mjs";
+
 const argv = process.argv.slice(2);
 const args = {};
 for (let i = 0; i < argv.length; i++) {
@@ -51,13 +53,23 @@ if (NARRATION_EXPLICIT && !fs.existsSync(path.resolve(ROOT, NARRATION))) {
   process.exit(2);
 }
 
+// Which tree is this run about to measure? A copy in another distro cannot see this disk, so the
+// expected hash is passed on the command line and checked before anything expensive starts.
+const TREE = treeHashName(ROOT);
+const EXPECT_TREE = args["expect-tree"];
+if (EXPECT_TREE && EXPECT_TREE !== "true" && EXPECT_TREE !== TREE.tree) {
+  console.error("make: FAIL — this tree is " + TREE.tree + " but the caller expected " + EXPECT_TREE
+    + " (stale copy? re-sync src/ data/ scripts/ before rendering)");
+  process.exit(2);
+}
+
 fs.mkdirSync(path.join(OUT, "stills"), { recursive: true });
 const report = {
   generatedAt: new Date().toISOString(),
   composition: COMP,
   out: path.relative(ROOT, OUT),
   stages: [],
-  numbers: {},
+  numbers: { tree: TREE.tree },
   pass: false,
 };
 
@@ -127,6 +139,14 @@ const probeComposition = (id) => {
   return { frames: Number(m[1]), seconds: Number(m[2]) };
 };
 
+// For values that are bookkeeping rather than measurements: no stage row, no gate.
+const probeQuiet = (file) => {
+  const res = spawnSync("ffprobe", ["-v", "error", "-show_entries", "format=duration",
+    "-of", "default=noprint_wrappers=1:nokey=1", file], { encoding: "utf8" });
+  const v = Number((res.stdout ?? "").trim().split("\n").filter(Boolean).pop());
+  return Number.isFinite(v) && v > 0 ? v : null;
+};
+
 const ffprobeDuration = (file) => {
   const t = run("probe duration", "ffprobe", ["-v", "error", "-show_entries", "format=duration",
     "-of", "default=noprint_wrappers=1:nokey=1", file]);
@@ -151,17 +171,46 @@ try {
   report.numbers.seconds = Number(seconds.toFixed(3));
   log("duration " + report.numbers.seconds + " s (" + (probed.frames ?? "?") + " frames)");
 
+  // A 10-minute bed costs ~19 minutes to synthesize and does not depend on the picture, so a
+  // picture-only iteration must not rebuild it. Reuse is keyed on the generation parameters
+  // (in a sidecar), never on "a score.wav exists": the same seed and energy must produce the same
+  // bytes, and a bed shorter than the programme is not a bed.
   const score = path.join(OUT, "score.wav");
+  const scoreMeta = path.join(OUT, "score.meta.json");
+  const scoreParams = {
+    durationSec: Math.ceil(seconds),
+    seed: Number(args.seed ?? 11),
+    energy: Number(args.energy ?? 0.8),
+    bpm: Number(args.bpm ?? 84),
+    prog: args.prog ?? "minor",
+  };
+  const scoreReusable = (() => {
+    if (args.score || args["regen-score"] || !fs.existsSync(score) || !fs.existsSync(scoreMeta)) return false;
+    try {
+      const old = JSON.parse(fs.readFileSync(scoreMeta, "utf8"));
+      return ["seed", "energy", "bpm", "prog"].every((k) => old[k] === scoreParams[k])
+        && old.durationSec >= scoreParams.durationSec;
+    } catch {
+      return false;
+    }
+  })();
   if (args.score) {
-    // A 10-minute bed costs ~19 minutes to synthesize and does not depend on the picture,
-    // so a picture-only iteration reuses it — and still has to pass the gate below.
     fs.mkdirSync(path.dirname(score), { recursive: true });
     fs.copyFileSync(path.resolve(args.score), score);
-    log("\n== score (reused " + args.score + ")");
+    // Record what the bed is worth knowing: its real length decides whether the next run may
+    // reuse it, and the generation parameters are the ones this run would have used.
+    const bedSeconds = probeQuiet(score);
+    fs.writeFileSync(scoreMeta, JSON.stringify({ ...scoreParams, durationSec: bedSeconds ?? 0, source: args.score }, null, 2));
+    log("\n== score (reused " + args.score + ", " + (bedSeconds ?? "?") + " s)");
+  } else if (scoreReusable) {
+    log("\n== score (reused: same seed/energy/bpm/prog, bed >= " + scoreParams.durationSec + " s)");
   } else {
     run("score", "node", ["scripts/audio/render_music.mjs", "--out=" + score,
-      "--duration=" + Math.ceil(seconds), "--seed=" + (args.seed ?? "11"), "--energy=" + (args.energy ?? "0.8")]);
+      "--duration=" + scoreParams.durationSec, "--seed=" + scoreParams.seed, "--energy=" + scoreParams.energy,
+      "--bpm=" + scoreParams.bpm, "--prog=" + scoreParams.prog]);
+    fs.writeFileSync(scoreMeta, JSON.stringify(scoreParams, null, 2));
   }
+  report.numbers.scoreReused = scoreReusable;
   const stemGate = run("music gate (stem)", PYTHON, ["scripts/qa/music_gate.py", "--music", score]);
   report.numbers.stem = JSON.parse(stemGate.trim().split("\n").filter((l) => l.startsWith("{")).pop());
 
@@ -181,6 +230,18 @@ try {
     // another 25-minute render. The duration check below still guards the reuse.
     fs.copyFileSync(path.resolve(args.raw), rawMp4);
     log("\n== render (reused " + args.raw + ")");
+  } else if (EXPORTS[COMP]) {
+    // A film made of scenes is rendered scene by scene: an edit to one paragraph re-renders that
+    // scene and concatenates the rest untouched (scripts/render_scenes.mjs). The duration check
+    // below still guards the result.
+    const summary = run("render (picture only, scene segments)", "node", ["scripts/render_scenes.mjs",
+      "--composition=" + COMP, "--script=" + EXPORTS[COMP].script,
+      "--out=" + path.join(OUT, "scenes"), "--output=" + rawMp4,
+      ...(args["force-render"] ? ["--force"] : [])]);
+    const m = summary.match(/RENDER reused=(\d+) rendered=(\d+) scenes=(\d+) frames=(\d+)/);
+    if (!m) throw new Error("could not read the segment summary from render_scenes.mjs");
+    report.numbers.segments = { reused: Number(m[1]), rendered: Number(m[2]), scenes: Number(m[3]), frames: Number(m[4]) };
+    log("segments: reused " + m[1] + ", rendered " + m[2] + " of " + m[3]);
   } else {
     run("render (picture only)", "npx", ["remotion", "render", COMP, rawMp4,
       "--props={\"music\":null,\"narration\":null}", "--log=error"]);

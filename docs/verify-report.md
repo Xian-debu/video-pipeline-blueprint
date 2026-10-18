@@ -359,6 +359,52 @@ Two related hardenings landed in the same commit:
 3. **Still-lint frames are never clamped.** A target frame past the composition's end means the
    target list is stale; it now fails (`exit 2`) instead of silently linting the last frame.
 
+## Incremental render, and a fingerprint for the tree (P9)
+
+The expensive stage is now resumable scene by scene (`scripts/render_scenes.mjs`): each scene is
+rendered to its own file with `renderMedia({frameRange})` and keyed on a hash of the inputs that
+scene actually reads — its lines, its position and the scene count, the film's components, the
+film's data JSON, the shared design system. Segments are concatenated with `-c copy`. Measured on
+this tree (gen24, Node v22.21.1, `tree 3d6e50078500b4a1`):
+
+| Run | Segments | Wall clock |
+| --- | --- | --- |
+| first full render, cold cache | `reused=0 rendered=10 scenes=10 frames=17636` | 176 s of rendering (8.2/16.2/20.8/17.1/17.7/28.9/20.7/18.7/7.8 s per scene) |
+| nothing changed | `reused=10 rendered=0` | seconds: hashing and concatenating |
+| one subtitle line edited | `reused=9 rendered=1` — whole `make`, every gate | **126 s** |
+
+The one-line edit changed the delivery by exactly its own scene: `Multiplication.mp4` went from
+27,601,805 B (`823d9fd0…`) to 27,596,347 B (`a4140127…`), with loudness (-15 LUFS / -2 dBTP) and
+flicker (`mean|d|=0.0147`, `max=8.75`, 9 declared hard cuts) unchanged.
+
+Two caches, both keyed by *declared* inputs: the score is reused when `score.meta.json` still
+matches its generation parameters (`seed`, `energy`, `bpm`, `prog`, length), and the picture is
+reused when a segment's hash and frame count still match. `report.json` records both
+(`numbers.scoreReused`, `numbers.segments`) plus `numbers.tree`.
+
+**A stale copy fails in the first second.** `scripts/qa/tree_hash.mjs` prints one hash over `src/`,
+`data/`, `scripts/` and the render config; `make --expect-tree` refuses to start when the working
+copy disagrees:
+
+```
+$ node scripts/make.mjs ... --expect-tree=0000000000000000
+make: FAIL — this tree is 3d6e50078500b4a1 but the caller expected 0000000000000000
+             (stale copy? re-sync src/ data/ scripts/ before rendering)
+exit 2  (no gate ran)
+```
+
+Still review frames are derived rather than listed: `still_lint.mjs` reads each film's `script.ts`
+and takes the midpoint of every scene (accumulating `dur`, since the lecture's `SCENES` carry no
+`start`), so 31 frames are linted — Storyboard 2, Showreel 2, Transitions 2, Typesetting 2,
+ThreeCube 1, Presets 3, Lecture 9, Multiplication 10 — and a frame past the composition's end is an
+error, never a clamp.
+
+Two gate rules were fixed while doing this, both found by the new frames (`docs/known-issues.md`
+K19): an out-of-range target used to be clamped to the last frame, and the overlap test used text
+line boxes, so 108 px half-leading produced a phantom overlap that the picture does not have. The
+overlap test now intersects the layout box with the text range; real overflow is still the `spills`
+rule's job. `still_lint.mjs --fixtures` still reports 3 issues across 3 rules, so the gate is known
+to fire.
 ## What this report does not prove
 
 Narration quality (needs the TTS model), the Manim overlay (needs that asset), and 3D on a host

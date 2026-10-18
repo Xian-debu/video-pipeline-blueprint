@@ -232,3 +232,47 @@ already learned to accept both forms; this one had not.
 **Fix here.** One parser for both forms (`--k=v` and `--k v`), plus an explicit refusal:
 `if (args.out === "true") throw`. When an option takes a path, "present but empty" has to be an error,
 not a default.
+
+## K18 — A gate that measured a different tree
+
+**Symptom.** Two 20-minute renders were thrown away because the working copy in the WSL distro
+(`/tmp/bp`) was a synced snapshot from before the edit. Every gate passed — on the old tree. Nothing
+in the output said which tree it had measured, so the mistake only surfaced when the frames were
+looked at.
+
+**Mechanism.** Gates assert properties of whatever files are on disk. A copy in another filesystem
+(WSL `/tmp`, a container, a scratch clone) has no link back to the authoring tree, and the sync step
+is a shell pipeline whose failure is easy to miss: the copy looks present and complete, it is just
+old. Cost rises with the expensive stage — the further into the run the mismatch is discovered, the
+more of it is wasted, and the failure is silent because a stale tree is a *valid* tree.
+
+**Fix here.** `scripts/qa/tree_hash.mjs` prints one hash over `src/`, `data/`, `scripts/` and the
+render config (per-part hashes plus a combined tree hash, 16 hex chars each). `make` writes it to
+`report.json` as `numbers.tree` and refuses to start when `--expect-tree` disagrees:
+`make: FAIL — this tree is 3f2a... but the caller expected 5b91...`. The check runs before any gate,
+so the cost of a stale copy is one second instead of one render.
+
+## K19 — Hard-coded review frames, and a line box that is not the glyph
+
+**Symptom (a).** After the still-lint gate was written, every later change to a scene's duration
+silently moved what the listed frames showed. The gate kept passing: it was still rendering *some*
+frame, just not the one a human had reviewed. The clamp made it worse —
+`Math.min(wanted, durationInFrames - 1)` turned an out-of-range target into the last frame instead of
+an error.
+
+**Symptom (b).** With frames derived from the script, one frame reported an overlap between a kicker
+(`ALGORITHM / MULTIPLICATION`) and the 108 px title below it, though the picture shows clear space.
+Both boxes were correct: the title's *layout box* starts at y=169, but its text range starts at
+y=147 — a 108 px line box carries ~22 px of half-leading above the glyphs.
+
+**Mechanism.** (a) Frame numbers are derived data: they depend on scene durations, which live in the
+script. Anything that stores them by hand rots. A clamp converts a rotten target into a plausible
+wrong answer, which is worse than a crash. (b) `getClientRects()` describes line boxes, not ink. An
+overlap test on line boxes reports overlaps that no reader can see.
+
+**Fix here.** (a) `still_lint.mjs` derives frames per film from `SCENES` (midpoint of each scene,
+accumulated — the lecture's `SCENES` carry `dur`, not `start`) and exits 2 on an out-of-range frame
+with `update the targets, do not clamp`. (b) For text boxes the overlap test uses the intersection of
+the layout box and the text range, so half-leading cannot create a phantom overlap; real overflow is
+still caught by the `spills` rule, which measures against the layout box.
+

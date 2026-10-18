@@ -216,6 +216,52 @@ Two things that surprise people:
   100-level luma jump. Name the cuts (`--cut-frames 120,240,270`); never raise `--thresh` — the
   lecture's real flicker budget is 12 and its measured maximum is 6.6.
 
+### 3.7 Iterating on one scene, and refusing a stale copy
+
+A 588 s film is rendered scene by scene, so an edit to one paragraph costs that scene, not the
+film. Each scene's segment is keyed by a hash of everything that scene reads:
+
+| Part of the hash | Why it is in it |
+|---|---|
+| the scene's own lines, its index, the scene count | the subtitles are drawn from the lines, and a scene's position changes its chapter bar |
+| `src/<film>/**` except `script.ts` | the components that draw the scene |
+| `data/<film>/*.json` | the numbers a scene quotes |
+| `src/design/`, `src/storyboard/`, `data/design.spec.json` | the shared visual language |
+
+Scene timing is deliberately *not* in the hash: a segment is reused only when its frame count is
+unchanged, so an edited line that changes the duration re-renders its own scene and nothing else.
+
+```bash
+node scripts/render_scenes.mjs --composition=Multiplication --script=src/mult/script.ts \
+  --out=out/package/scenes --output=out/package/raw_video.mp4   # add --force to ignore the cache
+node scripts/render_scenes.mjs ... --only=magic                  # smoke test one scene, no concat
+```
+
+`npm run make` uses this path for every film in its `EXPORTS` table and records `numbers.segments`
+(`reused`, `rendered`, `scenes`, `frames`) in `report.json`. The score is reused when its sidecar
+`score.meta.json` has the same `seed`/`energy`/`bpm`/`prog` and a bed at least as long as the
+programme; regenerate it with `--regen-score`. Measured cost, same machine: ten segments in 176 s
+for the first run, 0 renders on the second, and a one-scene edit re-renders in 8-30 s.
+
+**A stale copy is now a first-second failure.** `node scripts/qa/tree_hash.mjs` prints one hash over
+`src/`, `data/`, `scripts/` and the render config. When the gates run on a copy in another
+WSL distro, `/tmp/bp` or a container, pass the authoring tree's hash:
+
+```bash
+# on the authoring machine
+HASH=$(node scripts/qa/tree_hash.mjs | awk '{print $2}')
+# on the copy
+npm run make -- --composition Multiplication --expect-tree=$HASH ...
+```
+
+A mismatch exits 2 before any gate runs: `make: FAIL — this tree is 3f2a... but the caller expected
+5b91... (stale copy? re-sync src/ data/ scripts/ before rendering)`. The same hash is written to
+`report.json` as `numbers.tree`, so a delivery always names the tree it measured.
+
+`.gitignore` keeps `out/` out of the repository, which means segments, `report.json` and
+`score.meta.json` live only in the working copy. Copy `out/package/scenes/` with the delivery if a
+later session has to iterate on the same film on another machine.
+
 ## 4. Optional capability passes
 
 | Capability | Command | Cost |
