@@ -69,6 +69,10 @@ proof), generated from:
 | ![Storyboard template](docs/images/still_storyboard.png) | ![Showreel contact sheet](docs/images/showreel_contact.png) |
 | Generic `Storyboard` composition driven by storyboard JSON | Contact sheet of the 30 s `Showreel` (the verify artefact) |
 
+The same template in two other presets — [paper](docs/images/still_preset_paper.png) (dark on light)
+and [slate](docs/images/still_preset_slate.png) (cool dark) — is how a look gets reviewed: one still
+per preset, rendered by the same code path, checked by the same DOM rules.
+
 ## 3. Pipeline at a glance
 
 ```
@@ -96,12 +100,14 @@ Three independent layers, joined only by files:
 ```
 .
 ├─ src/
-│  ├─ Root.tsx                 registered compositions (7)
+│  ├─ Root.tsx                 registered compositions (8)
 │  ├─ storyboard/              generic template: storyboard JSON -> film
 │  ├─ lecture/                 the validated 305 s lecture (script + scenes)
-│  ├─ design/                  design contract loader + derived tokens, scene shell, KaTeX helpers,
-│  │                           motion primitives, still-lint probe (inert unless lint props are set)
-│  └─ showcase/                one-file samples: transitions, typesetting, 3D, Manim overlay
+│  ├─ design/                  design contract loader + derived tokens, palette scope (presets),
+│  │                           scene shell, KaTeX helpers, motion primitives, still-lint probe
+│  │                           (inert unless lint props are set)
+│  └─ showcase/                one-file samples: transitions, typesetting, 3D, Manim overlay,
+│                              preset gallery (one look per preset)
 ├─ data/                       design contract (design.spec.json), real traces, counters, source
 │                              lines, narration timings
 ├─ public/voice/sample.wav     one narration line, kept so the audio path can be tested without TTS
@@ -127,7 +133,8 @@ Three independent layers, joined only by files:
 ```
 
 Compositions: `Storyboard` (generic, 20 s), `Showreel` (30 s), `Lecture` (305 s demo),
-`Transitions`, `Typesetting`, `ThreeCube`, `ManimOverlay` (single-capability samples).
+`Transitions`, `Typesetting`, `ThreeCube`, `ManimOverlay` (single-capability samples) and
+`Presets` (9 s: the same title scene in each palette preset, for judging a look).
 
 The film's delivery set is `npm run publish`: `out/export/` gets an SRT (41 cues, wrapped to the
 contract's 34-character line budget), human-readable and ffmpeg-sidecar chapter files (9 chapters,
@@ -140,6 +147,18 @@ JSON file. The validated film's own sizes are *grandfathered* in `data/type-exce
 literals across 9 files, mostly the lecture's chrome) rather than promoted into the contract, and
 `scripts/qa/type_ratchet.py` fails the build when a literal is added, duplicated or left stale — the
 list can only shrink.
+
+Colour is a preset of the same role contract. A scene names a role (`text.primary`,
+`accent.primary`, `surface.scrim`) and never a hex value; `PaletteScope` decides which family
+answers those roles. `palette.presets` in the contract names the looks — `midnight` (the shipped
+film's family, and the pinned default), `paper` (light, warm) and `slate` (cool) — and
+`design_check.py` runs every preset family through the same contrast rules, then refuses a default
+that is not the family the released film was reviewed in. Switching a look is one prop:
+
+```bash
+node scripts/qa/still_lint.mjs --compositions Presets --frames 135   # the paper look, DOM-checked
+npx remotion render Storyboard out/paper.mp4 --props='{"preset":"paper"}'
+```
 
 ## 5. Quick start
 

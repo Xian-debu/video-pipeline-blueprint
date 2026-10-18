@@ -5,7 +5,7 @@
  */
 import raw from "../../data/design.spec.json";
 
-export type PaletteFamily = "lecture" | "storyboard";
+export type PaletteFamily = "lecture" | "storyboard" | "paper" | "slate";
 export type Duty = "static" | "enter" | "emphasize" | "move" | "exit";
 
 type ColorMap = Record<string, string>;
@@ -20,7 +20,9 @@ export type RoleDef = {
   meaning?: string;
 };
 type RoleMap = Record<string, RoleDef>;
-type FamilySpec = { colors: ColorMap; roles: RoleMap };
+export type FamilySpec = { colors: ColorMap; roles: RoleMap };
+/** 任意一族（或一个预设解析出的族）——组件只认角色名，不认族名。 */
+export type PaletteLike = FamilySpec;
 
 export const spec = raw;
 
@@ -64,27 +66,50 @@ export const roleSpec = (family: PaletteFamily, role: string): RoleDef => {
   return def;
 };
 
-/** family 内某个语义角色对应的色值。 */
-export const roleColor = (family: PaletteFamily, role: string): string => {
-  const fam = PALETTE_FAMILIES[family];
-  const def = roleSpec(family, role);
+/** 一族内某个语义角色对应的色值。组件通过 PaletteScope 拿到族，不写族名，因此同一份版式可以在任意预设下渲染。 */
+export const colorOf = (palette: PaletteLike, role: string): string => {
+  const def = palette.roles[role];
+  if (!def) throw new Error("design contract: unknown role " + role);
   const name = def.color ?? def.colors?.[0];
-  if (!name) throw new Error("design contract: role " + family + "/" + role + " has no color");
-  const hex = fam.colors[name];
-  if (!hex) throw new Error("design contract: unknown color " + family + "/" + name);
+  if (!name) throw new Error("design contract: role " + role + " has no color");
+  const hex = palette.colors[name];
+  if (!hex) throw new Error("design contract: unknown color " + name);
   return hex;
 };
 
 /** 填充角色 -> rgba()：alpha 只在契约里声明，组件不再内联 rgba。 */
-export const fillColor = (family: PaletteFamily, role: string): string => {
-  const def = roleSpec(family, role);
-  if (def.usage !== "fill") throw new Error("design contract: " + family + "/" + role + " is not a fill role");
-  if (typeof def.alpha !== "number") throw new Error("design contract: " + family + "/" + role + " has no alpha");
-  const hex = roleColor(family, role).replace("#", "");
+export const fillOf = (palette: PaletteLike, role: string): string => {
+  const def = palette.roles[role];
+  if (!def) throw new Error("design contract: unknown role " + role);
+  if (def.usage !== "fill") throw new Error("design contract: " + role + " is not a fill role");
+  if (typeof def.alpha !== "number") throw new Error("design contract: " + role + " has no alpha");
+  const hex = colorOf(palette, role).replace("#", "");
   const r = parseInt(hex.slice(0, 2), 16);
   const g = parseInt(hex.slice(2, 4), 16);
   const b = parseInt(hex.slice(4, 6), 16);
   return "rgba(" + r + "," + g + "," + b + "," + def.alpha + ")";
+};
+
+/** family 内某个语义角色对应的色值。 */
+export const roleColor = (family: PaletteFamily, role: string): string => colorOf(PALETTE_FAMILIES[family], role);
+
+/** family + 角色的填充色。 */
+export const fillColor = (family: PaletteFamily, role: string): string => fillOf(PALETTE_FAMILIES[family], role);
+
+export type Preset = { id: string; label: string; family: PaletteFamily; note: string };
+
+/** 命名外观：预设只是"指向一个族"的指针，所以换外观不需要场景里有任何条件分支。 */
+export const PRESETS = raw.palette.presets as unknown as { default: string; items: Preset[] };
+
+export const paletteOfPreset = (id?: string | null): PaletteLike => {
+  const wanted = id ?? PRESETS.default;
+  const item = PRESETS.items.find((p) => p.id === wanted);
+  if (!item) {
+    throw new Error(
+      "design contract: unknown preset " + wanted + " (known: " + PRESETS.items.map((p) => p.id).join(", ") + ")"
+    );
+  }
+  return PALETTE_FAMILIES[item.family];
 };
 
 /**

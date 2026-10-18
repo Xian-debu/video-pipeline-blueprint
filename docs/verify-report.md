@@ -84,6 +84,36 @@ The 305 s lecture in the README was rendered with the same code path:
 Narration is 41 synthesized lines re-timed against measured speech durations; the score is 306 s
 rendered from seed 11. Both are inputs to the render, not outputs of it.
 
+## Presets: three looks, one role contract (D7)
+
+Colour used to arrive through a single `PALETTE` object, so a second look meant a forked component.
+Scenes now name a role and read it from a `PaletteScope`; a preset is a pointer to a family that
+answers the same role names. Two preset families were added next to the shipped one, and the
+gallery composition renders the same title scene in all three.
+
+| Preset | Family | Polarity | Tightest contrast (needs 4.5 unless noted) |
+| --- | --- | --- | --- |
+| `midnight` (default) | `storyboard` | light on dark | accent.primary 5.72 on the raised surface |
+| `paper` | `paper` | **dark on light** | accent.primary 4.83; text.primary 14.84 (needs 7) |
+| `slate` | `slate` | light on dark | text.secondary 6.49 |
+
+![Paper preset: dark ink on a warm ground, caption inverted onto a light scrim](images/still_preset_paper.png)
+
+![Slate preset: the same layout, cool blue-black with a pale blue rule](images/still_preset_slate.png)
+
+`paper` is the useful one to argue about: it flips the caption polarity, and it only works because
+the caption reads `text.caption` / `surface.scrim` as roles instead of "white on black". The check
+that a preset cannot cheat is structural — `design_check.py` runs each preset's family through the
+same contrast rules, prints the tightest pair (`preset paper -> paper tightest: accent.primary 4.83`),
+and fails a default that is not the `storyboard` family, so promoting a look to default has to be
+admitted as a re-release.
+
+Default-path evidence: with no `preset` prop, the eleven stills compared in the type section above
+re-render **byte-identical** (`01ecdc89…`, `4f4563a6…`, `487d9aee…`, `5a8c6591…`, `dc082e57…`,
+`3cd2f4c2…`, `e5dd114b…`, `914eade0…`, `a59a274e…`, `3b963bf4…`, `af76635c…`), including the
+lecture frame whose AA state was already pinned in this tree. The refactor moved where colour is
+looked up, not what is painted.
+
 ## Type: the template family and the ratchet (D2 / D3)
 
 The storyboard template's eight sizes and five tracking values now live in

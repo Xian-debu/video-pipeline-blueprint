@@ -29,6 +29,7 @@ Stills under `out/verify/` are part of the check, not decoration: open them.
 | You want to change | Edit | Do not |
 | --- | --- | --- |
 | a colour, size, spacing anchor, or motion timing | `data/design.spec.json` (+ derived `src/design/tokens.ts` if the shape changes) | hard-code a literal in a scene |
+| a new palette look (preset) | `palette.families` + a `palette.presets` row in the contract | hard-code hex in a scene or fork a component per look |
 | the storyboard template's type | `type.families.storyboard` in the contract (sizes **and** tracking) | edit the numbers in `TitleScene`/`GraphicScene` |
 | a scene's composition | the scene component, using tokens and primitives | add a new colour or type size |
 | narration or on-screen text | `src/lecture/script.ts` (`LINES`) | duplicate the string in a component |

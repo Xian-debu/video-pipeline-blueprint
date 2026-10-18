@@ -1,7 +1,7 @@
 import React from "react";
 import { AbsoluteFill, interpolate } from "remotion";
-import { FONT_SANS, PALETTE } from "../theme";
-import { fillColor } from "../design/contract";
+import { FONT_SANS } from "../theme";
+import { useFill, useRole } from "../design/palette";
 import { SB, SB_T } from "../design/tokens";
 import type { CaptionItem } from "../schema";
 
@@ -10,8 +10,13 @@ import type { CaptionItem } from "../schema";
  * - bottom：贴底 9%（最常见）
  * - center：放在画面 62% 高度（**不压标题**，QA 实测居中会盖住大标题）
  * - top：贴顶
+ *
+ * 文字颜色与底色都来自角色（text.caption / surface.scrim），所以浅色预设可以把字幕反过来：
+ * 同一个组件、同一个角色名，明暗极性由预设决定。
  */
 export const Caption: React.FC<{ item: CaptionItem; localFrame: number }> = ({ item, localFrame }) => {
+  const captionColor = useRole("text.caption");
+  const scrim = useFill("surface.scrim");
   if (localFrame < item.from || localFrame > item.to) return null;
   const fade = 6;
   const opacity = Math.min(
@@ -33,8 +38,8 @@ export const Caption: React.FC<{ item: CaptionItem; localFrame: number }> = ({ i
           fontFamily: FONT_SANS,
           fontSize: SB.caption,
           lineHeight: 1.35,
-          color: PALETTE.white,
-          background: fillColor("storyboard", "surface.scrim"),
+          color: captionColor,
+          background: scrim,
           padding: "14px 28px",
           borderRadius: 10,
           maxWidth: 1500,

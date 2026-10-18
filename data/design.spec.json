@@ -13,6 +13,31 @@
     "fps": 30
   },
   "palette": {
+    "note": "Colour is chosen by role, never by hex, and a preset is nothing more than a family that answers the same role names. That is why the gallery can render one layout in several looks without a single conditional in a scene: swap the family, keep the roles.",
+    "presets": {
+      "note": "Named looks. The default MUST stay the storyboard family: the 305 s film and the released stills were reviewed in it, so changing the default is a release, not a tweak. design_check.py validates every preset's contrasts with the same rules as any other family.",
+      "default": "midnight",
+      "items": [
+        {
+          "id": "midnight",
+          "label": "Midnight",
+          "family": "storyboard",
+          "note": "The shipped look: near-black ground, warm paper text, coral accent. Frozen - this is what the reviewed film looks like."
+        },
+        {
+          "id": "paper",
+          "label": "Paper",
+          "family": "paper",
+          "note": "Light, warm editorial page. Captions invert to dark text on a light scrim, so text.caption is a dark ink here rather than white."
+        },
+        {
+          "id": "slate",
+          "label": "Slate",
+          "family": "slate",
+          "note": "Cool blue-black, colder than midnight, with a pale blue accent and an amber counter-accent. Same roles, different temperature."
+        }
+      ]
+    },
     "families": {
       "lecture": {
         "note": "The 305 s lecture and every showcase composition. Dark, low-luminance family; consecutive scenes stay inside it (K1).",
@@ -145,7 +170,8 @@
           "accent2": "#57C8B5",
           "muted": "#8A93A6",
           "white": "#FFFFFF",
-          "scrim": "#080A10"
+          "scrim": "#080A10",
+          "overlay": "#FFFFFF"
         },
         "roles": {
           "background": {
@@ -153,6 +179,12 @@
               "ink",
               "ink2"
             ]
+          },
+          "surface": {
+            "colors": [
+              "ink2"
+            ],
+            "meaning": "raised background a scene can use instead of the frame colour; never text"
           },
           "text.primary": {
             "color": "paper",
@@ -199,6 +231,225 @@
               "ink",
               "ink2"
             ]
+          },
+          "surface.tint": {
+            "color": "overlay",
+            "usage": "fill",
+            "alpha": 0.05,
+            "meaning": "card fill on a dark ground; a fill, never text"
+          },
+          "surface.tintStrong": {
+            "color": "overlay",
+            "usage": "fill",
+            "alpha": 0.1,
+            "meaning": "progress track / inset fill; a fill, never text"
+          },
+          "surface.hairline": {
+            "color": "overlay",
+            "usage": "fill",
+            "alpha": 0.12,
+            "meaning": "card border; a fill, never text"
+          },
+          "surface.rule": {
+            "color": "overlay",
+            "usage": "fill",
+            "alpha": 0.18,
+            "meaning": "divider rule; a fill, never text"
+          }
+        }
+      },
+      "paper": {
+        "note": "Preset family (not used by the shipped film). A warm editorial page: light ground, dark ink, ochre-red accent. Captions sit on a light scrim, so text.caption is dark ink here - the role name is the contract, the polarity is the preset's business.",
+        "colors": {
+          "bg": "#F7F2E7",
+          "bg2": "#EFE7D6",
+          "ink": "#17150F",
+          "muted": "#57503F",
+          "accent": "#B8340F",
+          "accent2": "#0E6A63",
+          "scrim": "#FFFDF7",
+          "overlay": "#17150F"
+        },
+        "roles": {
+          "background": {
+            "colors": [
+              "bg",
+              "bg2"
+            ]
+          },
+          "surface": {
+            "colors": [
+              "bg2"
+            ],
+            "meaning": "raised background a scene can use instead of the frame colour; never text"
+          },
+          "text.primary": {
+            "color": "ink",
+            "minContrast": 7,
+            "on": [
+              "bg",
+              "bg2"
+            ]
+          },
+          "text.caption": {
+            "color": "ink",
+            "minContrast": 7,
+            "on": [
+              "bg",
+              "bg2"
+            ]
+          },
+          "text.secondary": {
+            "color": "muted",
+            "minContrast": 4.5,
+            "on": [
+              "bg",
+              "bg2"
+            ]
+          },
+          "accent.primary": {
+            "color": "accent",
+            "minContrast": 4.5,
+            "on": [
+              "bg",
+              "bg2"
+            ]
+          },
+          "accent.secondary": {
+            "color": "accent2",
+            "minContrast": 4.5,
+            "on": [
+              "bg",
+              "bg2"
+            ]
+          },
+          "surface.scrim": {
+            "color": "scrim",
+            "usage": "fill",
+            "alpha": 0.86,
+            "meaning": "full-frame scrim behind a caption that sits over imagery; a fill, never text"
+          },
+          "surface.tint": {
+            "color": "overlay",
+            "usage": "fill",
+            "alpha": 0.05,
+            "meaning": "card fill on a dark ground; a fill, never text"
+          },
+          "surface.tintStrong": {
+            "color": "overlay",
+            "usage": "fill",
+            "alpha": 0.1,
+            "meaning": "progress track / inset fill; a fill, never text"
+          },
+          "surface.hairline": {
+            "color": "overlay",
+            "usage": "fill",
+            "alpha": 0.12,
+            "meaning": "card border; a fill, never text"
+          },
+          "surface.rule": {
+            "color": "overlay",
+            "usage": "fill",
+            "alpha": 0.18,
+            "meaning": "divider rule; a fill, never text"
+          }
+        }
+      },
+      "slate": {
+        "note": "Preset family (not used by the shipped film). Cooler and bluer than midnight, with a pale blue accent and an amber counter-accent; same polarity as midnight, so it is the safer of the two alternatives for footage.",
+        "colors": {
+          "bg": "#0D1220",
+          "bg2": "#141B2C",
+          "ink": "#E6ECF7",
+          "muted": "#93A0B5",
+          "accent": "#8AB4F8",
+          "accent2": "#F2A65A",
+          "white": "#FFFFFF",
+          "scrim": "#060913",
+          "overlay": "#FFFFFF"
+        },
+        "roles": {
+          "background": {
+            "colors": [
+              "bg",
+              "bg2"
+            ]
+          },
+          "surface": {
+            "colors": [
+              "bg2"
+            ],
+            "meaning": "raised background a scene can use instead of the frame colour; never text"
+          },
+          "text.primary": {
+            "color": "ink",
+            "minContrast": 7,
+            "on": [
+              "bg",
+              "bg2"
+            ]
+          },
+          "text.caption": {
+            "color": "white",
+            "minContrast": 7,
+            "on": [
+              "bg",
+              "bg2"
+            ]
+          },
+          "text.secondary": {
+            "color": "muted",
+            "minContrast": 4.5,
+            "on": [
+              "bg",
+              "bg2"
+            ]
+          },
+          "accent.primary": {
+            "color": "accent",
+            "minContrast": 4.5,
+            "on": [
+              "bg",
+              "bg2"
+            ]
+          },
+          "accent.secondary": {
+            "color": "accent2",
+            "minContrast": 4.5,
+            "on": [
+              "bg",
+              "bg2"
+            ]
+          },
+          "surface.scrim": {
+            "color": "scrim",
+            "usage": "fill",
+            "alpha": 0.62,
+            "meaning": "full-frame scrim behind a caption that sits over imagery; a fill, never text"
+          },
+          "surface.tint": {
+            "color": "overlay",
+            "usage": "fill",
+            "alpha": 0.05,
+            "meaning": "card fill on a dark ground; a fill, never text"
+          },
+          "surface.tintStrong": {
+            "color": "overlay",
+            "usage": "fill",
+            "alpha": 0.1,
+            "meaning": "progress track / inset fill; a fill, never text"
+          },
+          "surface.hairline": {
+            "color": "overlay",
+            "usage": "fill",
+            "alpha": 0.12,
+            "meaning": "card border; a fill, never text"
+          },
+          "surface.rule": {
+            "color": "overlay",
+            "usage": "fill",
+            "alpha": 0.18,
+            "meaning": "divider rule; a fill, never text"
           }
         }
       }

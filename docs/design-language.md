@@ -280,6 +280,7 @@ CJK renders tofu, which is why `doctor.sh` checks the fonts before rendering.
 | D3 | **Measured and locked, not yet paid.** `OVERVIEW` runs 8 px at 36 px = 22.2 % and the title subtitle 6 px at 44 px = 13.6 %; neither is changed here because tracking is a visual change. Both are now declared in the contract, printed by `design_check.py` on every run, and the subtitle is a recorded `trackingDeviations` entry — a new CJK violation fails the gate instead of joining silently | the ratio needs a look-before/after decision, and the lecture chrome's chapter bar (3 px at 21 px = 14 %) is still a ratcheted literal | a typography commit with stills before/after |
 | ~~D4~~ | **Paid.** `ImageScene` reads `motion.ambient` through `ambientScale()`; a 3 s scene now travels 1.0225 instead of 1.06 | — | this commit |
 | ~~D5~~ | **Paid.** Caption scrim is the `surface.scrim` fill role, read via `fillColor()`; `design_check.py` validates alpha and the fill/text split | — | this commit |
+| ~~D7~~ | **Paid.** Colour used to be reachable only through `PALETTE` (one family, one look), so "another palette" meant a fork. Roles now travel through a `PaletteScope`; `paper` and `slate` are preset families validated by the same contrast rules, and the `Presets` composition renders one layout in all three | — | this commit |
 | ~~D6~~ | **Paid, partly.** The contract check still cannot see inside a component — but it no longer has to: `still_lint.mjs` renders a frame, reads the boxes the DOM actually produced, and fails on an off-frame box, text in the safe-area margin, a range wider than its box, or two text boxes overlapping. A literal colour is still invisible to it; a literal *size* usually is not | near-term item 2 |
 
 ## 5. Author checklist for a storyboard scene
@@ -287,7 +288,7 @@ CJK renders tofu, which is why `doctor.sh` checks the fonts before rendering.
 Read this before adding a scene; the machine checks (`design_check.py` on the contract,
 `still_lint.mjs` on rendered boxes) catch geometry and contrast, not intent.
 
-1. Colours and sizes come from `PALETTE` / `TYPE_SCALE`, or from a family — the storyboard template
+1. Colours come from a role (`useRole("text.primary")`), sizes from `TYPE_SCALE` or a family — the storyboard template
    reads `SB.*` / `SB_T.*` (sizes and tracking) out of `type.families.storyboard`. A new size is a
    contract commit, never a scene commit: `type_ratchet.py` fails the build if a component gains a
    literal that is not already grandfathered.

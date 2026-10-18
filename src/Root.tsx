@@ -10,6 +10,7 @@ import { Transitions } from "./showcase/Transitions";
 import { Typesetting } from "./showcase/Typesetting";
 import { ThreeCube } from "./showcase/ThreeCube";
 import { ManimOverlay } from "./showcase/ManimOverlay";
+import { PresetGallery, PRESET_GALLERY_FRAMES } from "./showcase/PresetGallery";
 import { LintAudit } from "./design/lint";
 import { LintFixtures } from "./qa/LintFixtures";
 
@@ -33,6 +34,7 @@ const withLint = (C: React.ComponentType<any>): React.FC<any> => {
  *   1) Storyboard / Showreel —— 通用分镜模板，输入 Storyboard JSON 即可出片
  *   2) Lecture               —— 本次验证过的 305 s 教学片（quicksort），数据来自真实执行
  *   3) Transitions / Typesetting / ThreeCube / ManimOverlay —— 单项能力的最小样张
+ *   4) Presets               —— 同一份版式在 data/design.spec.json 的每个配色预设下各演一遍
  *
  * Lecture 的默认配乐指向 public/music/score.wav（由 scripts/audio/render_music.mjs 生成）。
  * 旁白默认关闭：先跑 scripts/tts/synthesize.py 产出 public/voice/narration.wav，
@@ -71,6 +73,14 @@ export const RemotionRoot: React.FC = () => {
       <Composition id="Transitions" component={withLint(Transitions)} durationInFrames={178} fps={30} width={1920} height={1080} />
       <Composition id="Typesetting" component={withLint(Typesetting)} durationInFrames={240} fps={30} width={1920} height={1080} />
       <Composition id="ThreeCube" component={withLint(ThreeCube)} durationInFrames={120} fps={30} width={1280} height={720} />
+      <Composition
+        id="Presets"
+        component={withLint(PresetGallery)}
+        durationInFrames={PRESET_GALLERY_FRAMES}
+        fps={30}
+        width={1920}
+        height={1080}
+      />
       <Composition id="ManimOverlay" component={withLint(ManimOverlay)} durationInFrames={60} fps={30} width={1920} height={1080} />
       {/* QA only: deliberately broken layout, never part of a film. */}
       <Composition id="LintFixtures" component={withLint(LintFixtures)} durationInFrames={30} fps={30} width={1920} height={1080} />

@@ -36,6 +36,9 @@ const DEFAULT_TARGETS = [
   { id: "Transitions", frames: [60, 120], skip: ["overlap"] },
   { id: "Typesetting", frames: [60, 200] },
   { id: "ThreeCube", frames: [30] },
+  // One frame per preset: the gallery exists so a look can be checked, and the
+  // check that matters most is that text still sits inside the frame in it.
+  { id: "Presets", frames: [45, 135, 225] },
   // ManimOverlay is not in the default set: it needs public/manim/Formula.mov,
   // which is a locally rendered artefact and not committed. Render it first and
   // run `--compositions ManimOverlay --frames 30`.

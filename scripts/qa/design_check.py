@@ -21,6 +21,7 @@ USAGES = ("fill", "line")
 
 errors = []
 lines = []
+preset_lines = []
 
 
 def fail(msg):
@@ -127,6 +128,64 @@ def check_palette(spec, type_spec):
         missing = sorted(set(colors) - used)
         if missing:
             fail("%s: colours declared but unused by any role: %s" % (family_name, ", ".join(missing)))
+
+
+def check_presets(spec):
+    """Named looks: a preset is a pointer to a family, nothing more.
+
+    The point of the check is that a preset cannot buy itself softer rules. Its family goes through
+    check_palette like any other, and the default is pinned to the family the shipped film was
+    reviewed in - promoting another look to default is a re-release, and this is where that has to
+    be admitted.
+    """
+    palette = spec.get("palette") or {}
+    presets = palette.get("presets") or {}
+    families = palette.get("families") or {}
+    items = presets.get("items") or []
+    if not isinstance(items, list) or not items:
+        fail("palette.presets.items must name at least the shipped look")
+        return
+    seen = {}
+    for item in items:
+        pid = item.get("id")
+        family = item.get("family")
+        if not isinstance(pid, str) or not pid:
+            fail("palette.presets: every item needs a string id")
+            continue
+        if pid in seen:
+            fail("palette.presets: duplicate id %r" % pid)
+            continue
+        seen[pid] = item
+        if not item.get("label"):
+            fail("palette.presets.%s: missing label" % pid)
+        if not item.get("note"):
+            fail("palette.presets.%s: missing note (say what the look is for)" % pid)
+        if family not in families:
+            fail("palette.presets.%s: unknown family %r" % (pid, family))
+            continue
+        colors = (families[family] or {}).get("colors") or {}
+        worst = None
+        for role_name, role in ((families[family] or {}).get("roles") or {}).items():
+            if not role.get("color") or not role.get("on"):
+                continue
+            need = role.get("minContrast")
+            if not isinstance(need, (int, float)):
+                continue
+            try:
+                ratio = min(contrast(colors[role["color"]], colors[t]) for t in role["on"])
+            except (KeyError, ValueError):
+                continue
+            if worst is None or ratio - need < worst[0] - worst[1]:
+                worst = (ratio, need, role_name)
+        if worst:
+            preset_lines.append("  preset %-9s -> %-10s tightest: %-17s %5.2f (need %.1f)"
+                                % (pid, family, worst[2], worst[0], worst[1]))
+    default = presets.get("default")
+    if default not in seen:
+        fail("palette.presets.default %r is not one of the declared presets" % (default,))
+    elif seen[default].get("family") != "storyboard":
+        fail("palette.presets.default must resolve to the storyboard family - it is the look the "
+             "released film and stills were reviewed in; changing it needs a re-release")
 
 
 def check_type(spec):
@@ -300,12 +359,15 @@ def main():
     type_spec = spec.get("type") or {}
     check_canvas(spec)
     check_palette(spec, type_spec)
+    check_presets(spec)
     check_type(spec)
     check_spacing(spec)
     check_motion(spec)
     check_text(spec)
 
     for line in lines:
+        print(line)
+    for line in preset_lines:
         print(line)
     if errors:
         print("")
@@ -314,9 +376,11 @@ def main():
         print("design check: FAIL (%d violation(s))" % len(errors), file=sys.stderr)
         return 1
     families = spec["palette"]["families"]
-    print("design check: PASS - %d colour families, %d type roles, %d nested type families, "
+    presets = spec["palette"].get("presets") or {}
+    print("design check: PASS - %d colour families, %d presets, %d type roles, %d nested type families, "
           "%d contrast targets, hard-cut motion"
           % (len(families),
+             len(presets.get("items") or []),
              len(type_spec.get("roles") or {}),
              len(type_spec.get("families") or {}),
              len(lines)))

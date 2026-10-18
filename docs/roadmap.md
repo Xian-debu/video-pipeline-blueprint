@@ -50,6 +50,7 @@ of them is "fix the look".
 | D3 | **Measured, not paid** — `OVERVIEW` 22.2 %, title subtitle 13.6 %, lecture chapter bar 14 %; the ratios are now printed by `design_check.py` and the subtitle is a declared deviation, so a new CJK violation fails the gate | a typography commit with before/after stills |
 | ~~D4~~ | **Paid** — `ImageScene` reads `motion.ambient` via `ambientScale()`; a 3 s scene travels 1.0225, not 1.06 | this roadmap's contract commit |
 | ~~D5~~ | **Paid** — caption scrim is the `surface.scrim` fill role (`usage: fill`, `alpha: 0.62`), read via `fillColor()` | this roadmap's contract commit |
+| ~~D7~~ | **Paid** — scenes read colour roles through `PaletteScope` instead of the single `PALETTE` map; presets `midnight` / `paper` / `slate` are families checked by the same contrast rules, `Presets` renders the same title in each | this commit |
 | ~~D6~~ | **Paid** — `design_check` still validates the contract only, but `still_lint.mjs` renders frames and fails on off-frame boxes, edge text, spill and overlap; it cannot see a literal colour, it sees the consequence | near-term item 2 |
 
 ## Known non-goals

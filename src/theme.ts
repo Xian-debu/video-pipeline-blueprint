@@ -1,12 +1,9 @@
 /**
  * 通用分镜模板（src/storyboard）的历史令牌入口。
- * 值现在统一来自 data/design.spec.json 的 storyboard 色族，这里只做重导出，
- * 因此不再存在第二份可以漂移的色值。合并进 lecture 色族见 docs/roadmap.md。
+ * 字体值来自 data/design.spec.json；颜色不再从这里取 —— 场景用 usePalette() 的角色名，
+ * 因为颜色现在取决于当前预设（见 src/design/palette.tsx）。
  */
-import { PALETTE_FAMILIES } from "./design/contract";
 import { FONT } from "./design/tokens";
 
 export const FONT_SANS = FONT.sans;
 export const FONT_SERIF = FONT.serif;
-
-export const PALETTE = PALETTE_FAMILIES.storyboard.colors;

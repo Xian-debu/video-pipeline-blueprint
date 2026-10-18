@@ -73,6 +73,12 @@ The contract is data, so these are checks, not opinions:
   Chrome (background grid, frame furniture) does not animate. Ambient drift, when used, is slow
   enough to read as "alive" rather than "moving".
 - **Emphasis:** never colour alone. Weight, position, or a bracket does the work; colour supports it.
+- **Colour is a role, never a hex.** A scene names `text.primary`, `accent.primary`,
+  `surface.scrim` and reads it through `useRole()` / `useFill()`; a family answers those names. A
+  new *look* is therefore a new preset family in `palette.families` plus a row in
+  `palette.presets` — never a hex edit in a component, and never a second render path. Every
+  preset passes the same contrast rules, and the default preset is pinned to the family the
+  released film was reviewed in: promoting another look to default is a re-release.
 
 ## 5. Content rules
 
