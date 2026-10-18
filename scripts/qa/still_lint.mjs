@@ -125,7 +125,14 @@ const main = async () => {
   for (const { id, frames, skip } of targets) {
     const composition = await selectComposition({ serveUrl, id });
     for (const wanted of frames) {
-      const frame = Math.min(wanted, composition.durationInFrames - 1);
+      // Never clamp: a frame past the end means the target list is stale after a timeline edit,
+      // and clamping would quietly lint the last frame instead of the one that was meant.
+      if (!Number.isInteger(wanted) || wanted < 0 || wanted >= composition.durationInFrames) {
+        console.error("still lint: " + id + " frame " + wanted + " is outside the composition ("
+          + composition.durationInFrames + " frames) — update the targets, do not clamp");
+        process.exit(2);
+      }
+      const frame = wanted;
       const lines = [];
       await renderStill({
         composition,

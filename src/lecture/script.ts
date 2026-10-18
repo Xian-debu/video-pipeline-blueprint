@@ -1,6 +1,6 @@
-import traceJson from "../../data/trace.json";
-import statsJson from "../../data/stats.json";
-import codeJson from "../../data/code_lomuto.json";
+import traceJson from "../../data/lecture/trace.json";
+import statsJson from "../../data/lecture/stats.json";
+import codeJson from "../../data/lecture/code_lomuto.json";
 
 export type TraceStep = {
   type: string;

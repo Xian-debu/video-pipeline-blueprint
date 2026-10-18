@@ -13,6 +13,7 @@
 // and what did not, so the failure is inspectable rather than inferred from a truncated log.
 import fs from "node:fs";
 import path from "node:path";
+import crypto from "node:crypto";
 import { spawnSync } from "node:child_process";
 
 const argv = process.argv.slice(2);
@@ -35,9 +36,20 @@ const EXPORTS = {
 };
 const OUT = path.resolve(ROOT, args.out ?? "out/package");
 const NARRATION = args.narration ?? "public/voice/narration.wav";
+// If a person asked for a narration, an absent file is an error, not a quieter film. The default
+// path may legitimately be absent in a fresh clone (verify.sh needs no narration), but an explicit
+// --narration that does not exist is a typo the pipeline must not swallow.
+const NARRATION_EXPLICIT = args.narration != null;
 const STILL_FRAMES = (args["still-frames"] ?? "").split(",").filter(Boolean);
 const PYTHON = process.env.PYTHON ?? "python3";
 const SKIP_STATIC = args["skip-static"] != null && args["skip-static"] !== "false";
+
+// Fail in the first second, not after the render: a narration that was asked for and does not
+// exist is a typo, and the old behaviour delivered a silent film instead of reporting it.
+if (NARRATION_EXPLICIT && !fs.existsSync(path.resolve(ROOT, NARRATION))) {
+  console.error("make: FAIL — --narration " + NARRATION + " does not exist (cwd " + ROOT + ")");
+  process.exit(2);
+}
 
 fs.mkdirSync(path.join(OUT, "stills"), { recursive: true });
 const report = {
@@ -75,6 +87,31 @@ function writeReport() {
   fs.writeFileSync(path.join(OUT, "report.json"), JSON.stringify(report, null, 2));
 }
 
+// Which inputs produced this delivery. A stale working copy, or a film built from a different
+// commit than the one on disk, is otherwise indistinguishable from a clean run: the report says
+// what was measured, this says what it was measured on.
+const fingerprint = (dir) => {
+  const root = path.join(ROOT, dir);
+  const files = [];
+  const walk = (d) => {
+    for (const e of fs.readdirSync(d, { withFileTypes: true })) {
+      if (e.name === "node_modules" || e.name === ".git" || e.name === "out") continue;
+      const p = path.join(d, e.name);
+      if (e.isDirectory()) walk(p); else files.push(p);
+    }
+  };
+  if (!fs.existsSync(root)) return null;
+  walk(root);
+  files.sort();
+  const h = crypto.createHash("sha256");
+  for (const f of files) {
+    h.update(path.relative(root, f).split(path.sep).join("/"));
+    h.update("\0");
+    h.update(fs.readFileSync(f));
+  }
+  return { files: files.length, sha256: h.digest("hex").slice(0, 16) };
+};
+
 function pick(text, re, label) {
   const m = text.match(re);
   if (!m) throw new Error("could not read " + label + " from the stage output");
@@ -103,6 +140,7 @@ try {
   if (!SKIP_STATIC) {
     run("design contract", PYTHON, ["scripts/qa/design_check.py"]);
     run("type ratchet", PYTHON, ["scripts/qa/type_ratchet.py"]);
+    run("film isolation", "node", ["scripts/qa/film_isolation.mjs"]);
     run("typecheck", "npx", ["tsc", "--noEmit"]);
   }
 
@@ -176,8 +214,8 @@ try {
     report.numbers.mixGate = JSON.parse(mixGate.trim().split("\n").filter((l) => l.startsWith("{")).pop());
     audio = mix;
   } else {
-    log("\n! " + NARRATION + " not found: delivering the score alone (no narration to mix)");
-    report.numbers.narration = "absent";
+    log("\n! " + NARRATION + " not found: delivering the score alone (no --narration was requested)");
+    report.numbers.narration = "absent (no --narration given)";
   }
 
   // ---- 6. mux, normalise, gate the finished programme
@@ -239,6 +277,7 @@ try {
     report.numbers.exports = "skipped";
   }
 
+  report.numbers.inputs = { src: fingerprint("src"), data: fingerprint("data"), scripts: fingerprint("scripts") };
   report.pass = true;
   writeReport();
   const extras = doExports ? " + srt/chapters/cover" : "";

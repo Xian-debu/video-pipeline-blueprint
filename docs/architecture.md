@@ -4,9 +4,9 @@ Three layers, joined only by files on disk. Nothing in the pipeline calls an LLM
 service at render time, so a render is a pure function of committed inputs.
 
 ```
-            data/*.json ─┐
-   script.ts (content)   ├─► React components ─► Remotion renderer ─► out/*.mp4
-   public/**  (assets)  ─┘        (pure)              (Chromium)          │
+        data/<film>/*.json ─┐
+   src/<film>/script.ts    ├─► React components ─► Remotion renderer ─► out/*.mp4
+   public/**  (assets)    ─┘        (pure)              (Chromium)          │
                                                                           ▼
    narration.wav ─┐                                       ffmpeg loudnorm (EBU R128)
    score.wav      ├─► mix (ffmpeg amix) ─────────────────────────────────┘
@@ -21,7 +21,9 @@ Two entry points share one renderer:
 - **Generic**: `storyboard.json` validated by `src/schema.ts` (zod-free plain TS guards).
   A scene is a discriminated union — `title`, `graphic`, `image` — with duration, captions,
   and transition hints. `src/storyboard/Film.tsx` maps it to a `<Sequence>` list.
-- **Typed**: `src/lecture/script.ts` for the demo lecture. Scenes are written as data
+- **Per-film**: `src/<film>/script.ts` for each film (the quicksort lecture, the multiplication
+  film). A film owns `src/<film>/` and `data/<film>/` and reads no other film's files — enforced by
+  `scripts/qa/film_isolation.mjs`. Scenes are written as data
   (`SCENES` with `id`/`dur`/`title`), and every visible string lives in `LINES`, from which
   captions and the TTS script are derived. This keeps the narration, the subtitles and the scene
   budget in one place — the single most useful property of the whole project.

@@ -99,7 +99,7 @@ actually executing.
 ## 3. Pipeline at a glance
 
 ```
-data/*.json  ──►  src/lecture/script.ts  ──►  src/lecture/Lecture.tsx  ──►  Remotion render
+data/lecture/*.json ──► src/lecture/script.ts ──► src/lecture/Lecture.tsx ──► Remotion render
 (real traces)      (scene budget, lines)       (scenes + subtitles)         │
                                                                              ├─► stills (human review)
 IndexTTS-2 ──► public/voice/lNN.wav ──► narration.wav ──────────────────────┤
@@ -134,15 +134,16 @@ Three independent layers, joined only by files:
 │  │                           (inert unless lint props are set)
 │  └─ showcase/                one-file samples: transitions, typesetting, 3D, Manim overlay,
 │                              preset gallery (one look per preset)
-├─ data/                       design contract (design.spec.json), real traces, counters, source
-│                              lines, narration timings
+├─ data/                       shared contract only: design.spec.json, type-exceptions.json
+│  ├─ lecture/                 the quicksort film's own facts: trace, counters, source, voice timing
+│  └─ mult/                    the multiplication film's own facts: counts, benchmarks, NTT, code, voice
 ├─ public/voice/sample.wav     one narration line, kept so the audio path can be tested without TTS
 ├─ scripts/
 │  ├─ bootstrap.sh             system libraries, node, npm, headless Chromium
 │  ├─ doctor.sh                read-only environment report (PASS/FAIL)
 │  ├─ verify.sh                end-to-end smoke test: typecheck -> stills -> render -> QA
 │  ├─ make.mjs                 one command for one delivery: every gate, in order, into report.json
-│  ├─ generate_data.py         regenerates data/*.json from instrumented implementations
+│  ├─ generate_data.py         regenerates data/lecture/*.json from instrumented implementations
 │  ├─ generate_mult_data.py    the same for the multiplication film: counts, benchmarks, trace
 │  ├─ audio/render_music.mjs   deterministic score renderer
 │  ├─ audio/mix.mjs            narration + score mix: ducking, fades, peak guard (no re-render)
@@ -152,6 +153,7 @@ Three independent layers, joined only by files:
 │  ├─ qa/design_check.py       validates the design contract (contrast, scale, families, motion)
 │  ├─ qa/type_ratchet.py       no new hard-coded font sizes: the exception list may only shrink
 │  ├─ qa/still_lint.mjs        renders frames, reads the DOM boxes, fails on off-frame/edge/spill/overlap
+│  ├─ qa/film_isolation.mjs    one film may not read another film's data or source (layout rule)
 │  ├─ export/publish.mjs       SRT + chapters + cover, all derived from the lecture script
 │  └─ tts/                     local TTS: batch synthesis, re-timing, torchaudio patch
 ├─ docs/                       architecture, engineering standards, design language (provenance of

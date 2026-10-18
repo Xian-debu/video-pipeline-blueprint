@@ -16,6 +16,9 @@ step() { printf '\n== %s\n' "$*"; }
 step "1/6 typecheck"
 npx tsc --noEmit
 
+step "1.1/6 film isolation (a film may not read another film's data or source)"
+node scripts/qa/film_isolation.mjs
+
 step "1.2/6 design contract (data/design.spec.json)"
 "$PYTHON" scripts/qa/design_check.py
 

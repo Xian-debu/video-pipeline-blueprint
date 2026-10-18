@@ -7,7 +7,7 @@ speech no longer fits, then both the SCENES durations and the LINES offsets in
 src/lecture/script.ts are rewritten so picture, subtitles and voice stay in sync.
 
 Usage:
-  python3 scripts/tts/retime_narration.py --voice-json data/voice.json
+  python3 scripts/tts/retime_narration.py --voice-json data/lecture/voice.json
 """
 import argparse
 import json
@@ -43,7 +43,7 @@ def load_audio(path: str, target_sr: int) -> np.ndarray:
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--script", default="src/lecture/script.ts")
-    ap.add_argument("--voice-json", default="data/voice.json")
+    ap.add_argument("--voice-json", default="data/lecture/voice.json")
     ap.add_argument("--out", default="public/voice/narration.wav")
     ap.add_argument("--sample-rate", type=int, default=48000)
     ap.add_argument("--fps", type=int, default=30)

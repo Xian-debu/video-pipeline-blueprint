@@ -2,7 +2,7 @@
 """Batch-synthesize the narration track from the lecture script.
 
 Every { start, dur, speech } line in src/lecture/script.ts becomes one wav
-(public/voice/lNN.wav) plus a measured length in data/voice.json. Re-running
+(public/voice/lNN.wav) plus a measured length in data/lecture/voice.json. Re-running
 skips clips that already exist, so an interrupted run resumes cheaply.
 
 Usage (inside the TTS venv):
@@ -39,7 +39,7 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--script", default="src/lecture/script.ts")
     ap.add_argument("--out", default="public/voice")
-    ap.add_argument("--voice-json", default="data/voice.json")
+    ap.add_argument("--voice-json", default="data/lecture/voice.json")
     ap.add_argument("--indextts", required=True, help="path to the index-tts checkout")
     ap.add_argument("--model-dir", required=True, help="IndexTTS-2 checkpoint directory")
     ap.add_argument("--cfg", default=None, help="defaults to <model-dir>/config.yaml")

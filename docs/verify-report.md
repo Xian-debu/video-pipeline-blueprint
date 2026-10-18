@@ -313,6 +313,52 @@ A third defect was caught by `script_check.mjs` on the next pass: one rewritten 
 and the film re-rendered — the cheap check ran before the expensive one, which is the whole point
 of having it.
 
+
+## One film, one directory (enforced, not assumed)
+
+Two films used to share one `data/` root. That is where content quietly mixes: a film-specific JSON
+at the root is ambiguous, and a film that reads another film's file changes its numbers without any
+line of its own code moving. The layout is now a rule, and the rule is a gate:
+
+| Location | Owns |
+| --- | --- |
+| `data/design.spec.json`, `data/type-exceptions.json` | the shared contract (style, not content) |
+| `data/<film>/` | that film's facts: traces, counters, source lines, voice timings |
+| `src/<film>/` | that film's scenes and its `script.ts` (`SCENES` + `LINES`) |
+
+`scripts/qa/film_isolation.mjs` fails on an unpaired `data/<film>` (no matching `src/<film>`, or the
+reverse), a film-specific JSON sitting at `data/` root, an import that crosses films, and a film
+without a `script.ts` that exports `SCENES` and `FPS`. It runs in `verify.sh` step 1.1 and as the
+`film isolation` stage of `make`, before anything renders.
+
+What changed for the lecture film: `data/{trace,stats,code_lomuto,voice}.json` →
+`data/lecture/`; imports, `generate_data.py`, `synthesize.py` and `retime_narration.py` follow.
+Nothing in the picture or the audio changed.
+
+Verified on this tree (gen24, Node v22.21.1):
+
+| Check | Result |
+| --- | --- |
+| `node scripts/qa/film_isolation.mjs` | PASS — 2 films isolated (lecture, mult) |
+| same script against a deliberately broken tree | FAIL — 4 issues, exit 1 (unpaired ×2, foreign import, film JSON at root) |
+| `npx tsc --noEmit` | 0 errors (the moved JSON imports type-check) |
+| `scripts/qa/design_check.py` | PASS — 4 colour families, 3 presets, 30 contrast targets |
+| `scripts/qa/type_ratchet.py` | PASS — 52 grandfathered literals, list unchanged |
+| `node scripts/qa/still_lint.mjs` | PASS — 24 frames (the lecture frames read the moved data) |
+| `bash scripts/verify.sh` | exit 0 — `-15.2 LUFS`, `-1.6 dBTP`, flicker `mean|d|=0.0461`, `max=6.57` |
+
+Two related hardenings landed in the same commit:
+
+1. **No silent narration.** `make --narration <missing>` now exits 2 in the first second. Before, the
+   file's absence was logged and the film was delivered with the score alone — a silent film that
+   reported PASS. The default path is still allowed to be absent (a fresh clone runs `verify.sh`
+   without narration), but an explicit request is a promise, not a hint.
+2. **Input fingerprints in `report.json`.** `numbers.inputs` records a content hash of `src/`,
+   `data/` and `scripts/`, so a delivery can be tied to the exact inputs that produced it — a stale
+   working copy is otherwise indistinguishable from a clean run.
+3. **Still-lint frames are never clamped.** A target frame past the composition's end means the
+   target list is stale; it now fails (`exit 2`) instead of silently linting the last frame.
+
 ## What this report does not prove
 
 Narration quality (needs the TTS model), the Manim overlay (needs that asset), and 3D on a host

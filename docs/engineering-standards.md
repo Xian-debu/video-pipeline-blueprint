@@ -17,12 +17,20 @@ One fact, one home. When two files can disagree, the one higher in this list win
 | --- | --- | --- |
 | 1 | `data/design.spec.json` | the design contract: palette roles, type scale, spacing anchors, motion duties, text rules |
 | 2 | `src/design/tokens.ts` | derived TypeScript view of (1); the only place components import design values from |
-| 3 | `src/lecture/script.ts` | the film's content: scene budget (`SCENES`) and every visible string (`LINES`) |
-| 4 | `data/*.json` | recorded facts a scene visualises (traces, counters, source lines) |
+| 3 | `src/<film>/script.ts` | that film's content: scene budget (`SCENES`) and every visible string (`LINES`) |
+| 4 | `data/<film>/*.json` | recorded facts that film visualises (traces, counters, source lines) |
 | 5 | components under `src/` | composition only — no literal colours, sizes, or timings |
 
 Corollary: **changing a design value is a change to `data/design.spec.json` plus the derived
 tokens, in one commit**, never a tweak buried inside a scene component.
+
+**One film, one directory pair.** A film owns `src/<film>/` and `data/<film>/`; it may read its
+own data plus the two shared files (`data/design.spec.json`, `data/type-exceptions.json`) and the
+engine (`src/design/`, `src/storyboard/`). It may not read another film's data or source. The rule
+is mechanically checked by `scripts/qa/film_isolation.mjs`, wired into `verify.sh` and `make`:
+an unpaired directory, a film-specific JSON sitting at `data/` root, a cross-film import, or a film
+without its own `script.ts` fails the build. Adding a film is therefore: `src/<name>/` +
+`data/<name>/` + a composition in `Root.tsx` — never an edit to a neighbouring film's inputs.
 
 ## 2. Invariants (breaking one is a bug, not a style choice)
 

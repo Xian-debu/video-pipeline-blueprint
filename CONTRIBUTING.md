@@ -41,7 +41,8 @@ npm run make -- --composition Lecture --narration public/voice/narration.wav
 | the storyboard template's type | `type.families.storyboard` in the contract (sizes **and** tracking) | edit the numbers in `TitleScene`/`GraphicScene` |
 | a scene's composition | the scene component, using tokens and primitives | add a new colour or type size |
 | narration or on-screen text | `src/lecture/script.ts` (`LINES`) | duplicate the string in a component |
-| recorded data a scene shows | `data/` via `scripts/generate_data.py` | hand-edit the JSON |
+| recorded data a scene shows | `data/<film>/` via that film's generator script | hand-edit the JSON |
+| a new film | `src/<film>/` + `data/<film>/` + a composition in `src/Root.tsx` | put its data at `data/` root or import from another film |
 | the score (levels, bands, arrangement) | `scripts/audio/engine.mjs` — then re-run `npm run gate:music` | raise the level to make it audible: put the energy in 250-4k |
 | a third-party asset | `public/` **and** a row in `THIRD_PARTY_NOTICES.md` | drop a binary without provenance |
 | the pipeline's stage order or a gate | `scripts/make.mjs` + `scripts/verify.sh` | add a stage that only runs when someone remembers it |
