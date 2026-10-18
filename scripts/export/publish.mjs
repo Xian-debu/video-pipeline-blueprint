@@ -8,8 +8,9 @@
  * drift from the video).
  *
  * Usage: node scripts/export/publish.mjs [--out=out/export] [--cover-frame=180]
- * Outputs: lecture.srt, lecture.chapters.txt, lecture.chapters.ffmeta.txt,
- *          cover.png (1920x1080), cover_thumb.jpg (1280x720).
+ *          [--composition=Lecture] [--script=src/lecture/script.ts] [--prefix=lecture]
+ * Outputs: <prefix>.srt, <prefix>.chapters.txt, <prefix>.chapters.ffmeta.txt,
+ *          cover.png (1920x1080) — the cover is the frame of that composition.
  */
 import fs from "node:fs";
 import os from "node:os";
@@ -30,11 +31,15 @@ const argOf = (name, fallback) => {
 const OUT = path.resolve(argOf("out", "out/export"));
 const COVER_FRAME = Number(argOf("cover-frame", "180"));
 const FPS = 30;
+/** A film names itself: the same exporter serves every composition. */
+const COMPOSITION = argOf("composition", "Lecture");
+const SCRIPT = path.resolve(argOf("script", "src/lecture/script.ts"));
+const PREFIX = argOf("prefix", COMPOSITION === "Lecture" ? "lecture" : COMPOSITION.toLowerCase());
 
-/** Bundle the lecture script so this stays a plain Node program (no ts-node). */
-const loadLecture = async () => {
+/** Bundle the film script so this stays a plain Node program (no ts-node). */
+const loadScript = async () => {
   const result = await build({
-    entryPoints: [path.resolve("src/lecture/script.ts")],
+    entryPoints: [SCRIPT],
     bundle: true,
     format: "esm",
     platform: "node",
@@ -155,7 +160,7 @@ const check = (lines, marks, totalSec) => {
 };
 
 const main = async () => {
-  const { LINES, SCENES, TOTAL_SEC } = await loadLecture();
+  const { LINES, SCENES, TOTAL_SEC } = await loadScript();
   fs.mkdirSync(OUT, { recursive: true });
 
   const marks = chapters(SCENES);
@@ -166,13 +171,13 @@ const main = async () => {
     process.exit(1);
   }
 
-  fs.writeFileSync(path.join(OUT, "lecture.srt"), srt(LINES));
-  fs.writeFileSync(path.join(OUT, "lecture.chapters.txt"), humanChapters(marks));
-  fs.writeFileSync(path.join(OUT, "lecture.chapters.ffmeta.txt"), ffmeta(marks));
+  fs.writeFileSync(path.join(OUT, PREFIX + ".srt"), srt(LINES));
+  fs.writeFileSync(path.join(OUT, PREFIX + ".chapters.txt"), humanChapters(marks));
+  fs.writeFileSync(path.join(OUT, PREFIX + ".chapters.ffmeta.txt"), ffmeta(marks));
 
   // The cover is a frame of the film, so it cannot drift from it.
   const serveUrl = await bundle({ entryPoint: path.resolve("src/index.ts") });
-  const composition = await selectComposition({ serveUrl, id: "Lecture" });
+  const composition = await selectComposition({ serveUrl, id: COMPOSITION });
   const frame = Math.min(COVER_FRAME, composition.durationInFrames - 1);
   await renderStill({
     composition,
@@ -187,7 +192,7 @@ const main = async () => {
   const wrapped = cues.filter((c) => c.length > 1).length;
   const longestLine = Math.max(...cues.flat().map((l) => Array.from(l).length));
   const speaking = LINES.reduce((a, l) => a + l.dur, 0);
-  console.log("lecture: " + LINES.length + " subtitle cues, " + marks.length + " chapters, " + TOTAL_SEC.toFixed(1) + " s");
+  console.log(PREFIX + ": " + LINES.length + " subtitle cues, " + marks.length + " chapters, " + TOTAL_SEC.toFixed(1) + " s");
   console.log("subtitle span " + srtTime(LINES[0].start) + " -> " + srtTime(LINES[LINES.length - 1].start + LINES[LINES.length - 1].dur) + ", speaking " + speaking.toFixed(1) + " s");
   console.log("caption budget " + MAX_CHARS + " chars/line from data/design.spec.json; " + wrapped + " of " + LINES.length + " cues wrapped to 2 lines, longest line " + longestLine);
   console.log("chapters sum " + marks.reduce((a, m) => a + (m.end - m.start), 0).toFixed(2) + " s, first " + clock(marks[0].start) + ", last " + clock(marks[marks.length - 1].start));
