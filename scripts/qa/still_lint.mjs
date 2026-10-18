@@ -20,6 +20,7 @@
 import path from "node:path";
 import os from "node:os";
 import fs from "node:fs";
+import { build } from "esbuild";
 import { bundle } from "@remotion/bundler";
 import { renderStill, selectComposition } from "@remotion/renderer";
 
@@ -29,7 +30,9 @@ const OVERLAP_RATIO = 0.25;
 const DEFAULT_TARGETS = [
   { id: "Storyboard", frames: [60, 300] },
   { id: "Showreel", frames: [90, 400] },
-  { id: "Lecture", frames: [300, 2500] },
+  // Film compositions are not listed here: their frames are derived from the film script itself
+  // (one still at each scene's midpoint), so a timeline edit cannot leave a stale frame number
+  // behind. See FILM_SCRIPTS.
   // Transitions is a showcase of cross-fades: at a fade both the outgoing and
   // the incoming scene are on screen, so their text boxes are meant to
   // intersect. Overlap is the one rule this composition cannot satisfy.
@@ -39,14 +42,52 @@ const DEFAULT_TARGETS = [
   // One frame per preset: the gallery exists so a look can be checked, and the
   // check that matters most is that text still sits inside the frame in it.
   { id: "Presets", frames: [45, 135, 225] },
-  // Multiplication: one frame per scene of the multiplication film, so a broken
-  // layout in any single scene fails the gate. Frames are inside each scene's
-  // comfortable middle, not on a hard cut.
-  { id: "Multiplication", frames: [398, 1604, 3459, 5429, 7263, 9558, 12029, 14131, 16061, 17353] },
   // ManimOverlay is not in the default set: it needs public/manim/Formula.mov,
   // which is a locally rendered artefact and not committed. Render it first and
   // run `--compositions ManimOverlay --frames 30`.
 ];
+
+/**
+ * Compositions whose content comes from a film script, and the script that owns them.
+ * One still per scene, at the scene's midpoint: no cut, no transition, and a layout broken in any
+ * single scene still fails the gate. A hard-coded frame list was wrong the moment the timeline
+ * moved (and was clamped silently before that), so the list is computed from the source of truth.
+ */
+const FILM_SCRIPTS = {
+  Lecture: "src/lecture/script.ts",
+  Multiplication: "src/mult/script.ts",
+};
+
+async function filmTargets() {
+  const out = [];
+  for (const [id, script] of Object.entries(FILM_SCRIPTS)) {
+    const tmp = path.join(os.tmpdir(), "lint-frames-" + id + "-" + process.pid + ".mjs");
+    await build({
+      entryPoints: [path.resolve(script)],
+      bundle: true,
+      format: "esm",
+      platform: "node",
+      outfile: tmp,
+      logLevel: "error",
+      external: ["@remotion/*", "remotion"],
+    });
+    const mod = await import("file://" + tmp + "?t=" + Date.now());
+    fs.rmSync(tmp, { force: true });
+    const { SCENES, FPS } = mod;
+    if (!Array.isArray(SCENES) || !Number.isFinite(FPS)) throw new Error("still lint: " + script + " has no SCENES/FPS");
+    // Not every film script carries `start` (the lecture declares durations only), so the
+    // accumulation is done here: the midpoint of scene k is the sum of the durations before it.
+    let cursor = 0;
+    const frames = SCENES.map((s) => {
+      const mid = cursor + s.dur / 2;
+      cursor += s.dur;
+      return Math.round(mid * FPS);
+    });
+    out.push({ id, frames });
+    console.error("still lint: " + id + " -> " + frames.length + " frames from " + script);
+  }
+  return out;
+}
 
 const args = process.argv.slice(2);
 const fixtures = args.includes("--fixtures");
@@ -59,9 +100,25 @@ const targets = fixtures
   ? [{ id: "LintFixtures", frames: [0] }]
   : argOf("--compositions")
     ? [{ id: argOf("--compositions"), frames: (argOf("--frames") ?? "0").split(",").map(Number) }]
-    : DEFAULT_TARGETS;
+    : [...DEFAULT_TARGETS, ...(await filmTargets())];
 
 const rect = (b) => ({ x: b.x, y: b.y, w: b.w, h: b.h });
+
+// Measured with the glyph rect, not the element box. A chart label is a leaf element whose box is
+// often wider (or taller) than the text it paints, and a label that shares a container with its
+// value is not two texts on top of each other. Text vs text is the question the rule asks.
+// The text range's box includes the line box's half-leading (a 108 px title reports a 155 px
+// range), so it is clipped to its own element: what the reader sees is the layout box the text was
+// fitted into. Text that genuinely paints outside its box is a separate rule (`spills`), so
+// clipping here cannot hide a real overflow.
+const paintRect = (b) => {
+  if (!(b.text && b.tw > 0 && b.th > 0)) return rect(b);
+  const x = Math.max(b.x, b.tx);
+  const y = Math.max(b.y, b.ty);
+  const r = Math.min(b.x + b.w, b.tx + b.tw);
+  const bottom = Math.min(b.y + b.h, b.ty + b.th);
+  return { x, y, w: Math.max(0, r - x), h: Math.max(0, bottom - y) };
+};
 const intersect = (a, b) => {
   const x = Math.max(a.x, b.x);
   const y = Math.max(a.y, b.y);
@@ -97,10 +154,11 @@ const checkFrame = (comp, frame, payload, skip = []) => {
   const texts = boxes.filter((b) => !b.boxClip && b.text && !b.math);
   for (let i = 0; i < texts.length && !skip.includes("overlap"); i += 1) {
     for (let j = i + 1; j < texts.length; j += 1) {
-      const a = rect(texts[i]);
-      const b = rect(texts[j]);
+      const a = paintRect(texts[i]);
+      const b = paintRect(texts[j]);
       const area = Math.min(a.w * a.h, b.w * b.h);
       if (area <= 0) continue;
+      if (a.w <= 0 || a.h <= 0 || b.w <= 0 || b.h <= 0) continue;
       const overlap = intersect(a, b) / area;
       if (overlap > OVERLAP_RATIO) {
         issues.push({
