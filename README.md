@@ -118,7 +118,9 @@ Three independent layers, joined only by files:
 ├─ docs/                       architecture, engineering standards, design language (provenance of
 │                              the contract), deployment, verification, known issues, roadmap
 ├─ AGENTS.md                   rules for AI agents working in this repo
-└─ CONTRIBUTING.md             how to change things, and what "done" means here
+├─ CONTRIBUTING.md             how to change things, and what "done" means here
+├─ package-lock.json           pinned dependency tree (306 packages, installed with npm ci)
+└─ THIRD_PARTY_NOTICES.md      licences: npm packages, system tools, TTS models, reference reading
 ```
 
 Compositions: `Storyboard` (generic, 20 s), `Showreel` (30 s), `Lecture` (305 s demo),
@@ -298,6 +300,11 @@ Read [`docs/engineering-standards.md`](docs/engineering-standards.md) before cha
 the source-of-truth hierarchy (design contract -> tokens -> components), the determinism invariants,
 the design and content rules, the definition of done, and the git discipline. `CONTRIBUTING.md`
 has the short version and the review checklist; `AGENTS.md` is the same for coding agents.
+
+What you are allowed to ship: [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md) records the licence of
+everything this package installs or calls, including the two that are easy to get wrong — Remotion is
+under the Remotion License (free tier: individuals, non-profits, teams of up to three employees), and
+the IndexTTS-2 weights are under the bilibili Model Use License Agreement, not an OSI licence.
 
 ## 13. License
 

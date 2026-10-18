@@ -189,6 +189,32 @@ then review, and never review before the static checker passes.
 Nothing in this list is implemented beyond `#P1-01`; it is recorded so the next image scene starts
 from a named option instead of a mood.
 
+
+### 2.9 Icons: a policy, not a library
+
+`plan-core.md` §6.3 lists four legitimate icon bases (emoji / a built-in icon set / project-specific
+icons / none) and two disciplines: one family per document and one stroke width from {1.5, 2, 3}. The
+lecture uses **none**, and that is the first rule here — a 305 s film has no toolbar, so an icon has
+to earn its place as a diagram element, not as decoration.
+
+If one is needed:
+
+- **Inline JSX, committed**: `src/design/icons.tsx`, `viewBox="0 0 24 24"`, `strokeWidth={2}`,
+  `stroke="currentColor"`, size taken from the text role it labels (an icon next to a caption is
+  24 px, never a new number). No icon font, no CDN sprite, no package dependency — an icon font is a
+  font, and fonts at render time are both a determinism hazard and a licence to track.
+- **No emoji.** They render differently per emoji font version; two machines would produce two films.
+- **One family, stroke 2, geometric caps.** Mixing a filled set with an outline set is the icon
+  equivalent of mixing two typefaces, and §2.2's "no near-equivalent split" applies to shapes too.
+- **Meaning is never carried by the icon alone** (same reason as colour in §2.6); it labels text that
+  already says the thing.
+- **Brand marks** (a logo of a tool being discussed) must be the real mark, sourced from simple-icons
+  or the vendor, with a row in `THIRD_PARTY_NOTICES.md`; a hand-drawn approximation of a logo is
+  both a trademark problem and a credibility problem.
+
+None of this is implemented because nothing needs it yet; it exists so the first icon is a decision
+someone made, not a shape someone dropped in.
+
 ## 3. Deliberately diverged, with the reason
 
 ### 3.1 Page transitions: ppt-master fades, we hard cut
