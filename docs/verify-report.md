@@ -84,6 +84,31 @@ The 305 s lecture in the README was rendered with the same code path:
 Narration is 41 synthesized lines re-timed against measured speech durations; the score is 306 s
 rendered from seed 11. Both are inputs to the render, not outputs of it.
 
+## Still lint (measurement of the rendered DOM)
+
+`scripts/qa/still_lint.mjs` renders eleven frames across six compositions and reads the boxes the
+browser actually produced. Result on this tree:
+
+| Target | Frames | Boxes measured |
+| --- | --- | --- |
+| Storyboard | 60, 300 | 4, 3 |
+| Showreel | 90, 400 | 4, 16 |
+| Lecture | 300, 2500 | 14, 27 |
+| Transitions | 60, 120 | 18, 2 (overlap rule skipped: a cross-fade superimposes two scenes) |
+| Typesetting | 60, 200 | 151, 151 |
+| ThreeCube | 30 | 0 (no text) |
+
+Verdict: `PASS — 11 frames, no off-frame box, no edge text, no spill, no text overlap`. The fixture
+composition still fails on exactly the three rules it breaks (`canvas`, `spill`, `overlap`), so the
+gate is not vacuous; a frame that reports zero boxes exits 2 rather than passing.
+
+Two refinements came out of the first run, and both are deliberate:
+
+- Vertical text spill is only flagged beyond `max(6 px, 0.4 x font-size)`. A line box is shorter than
+  its glyphs; descenders and KaTeX italic correction were being reported as layout defects.
+- `Transitions` skips `overlap`. It exists to show a cross-fade, which by definition puts the
+  outgoing and incoming scene's text in the same place for its duration.
+
 ## What this report does not prove
 
 Narration quality (needs the TTS model), the Manim overlay (needs that asset), and 3D on a host

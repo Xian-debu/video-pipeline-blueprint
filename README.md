@@ -100,7 +100,7 @@ Three independent layers, joined only by files:
 │  ├─ storyboard/              generic template: storyboard JSON -> film
 │  ├─ lecture/                 the validated 305 s lecture (script + scenes)
 │  ├─ design/                  design contract loader + derived tokens, scene shell, KaTeX helpers,
-│  │                           motion primitives
+│  │                           motion primitives, still-lint probe (inert unless lint props are set)
 │  └─ showcase/                one-file samples: transitions, typesetting, 3D, Manim overlay
 ├─ data/                       design contract (design.spec.json), real traces, counters, source
 │                              lines, narration timings
@@ -114,6 +114,7 @@ Three independent layers, joined only by files:
 │  ├─ audio/loudnorm.sh        two-pass EBU R128 normalisation (video stream untouched)
 │  ├─ qa/luma_blink.py         per-frame luma jump + dip detector
 │  ├─ qa/design_check.py       validates the design contract (contrast, scale, motion budgets)
+│  ├─ qa/still_lint.mjs        renders frames, reads the DOM boxes, fails on off-frame/edge/spill/overlap
 │  └─ tts/                     local TTS: batch synthesis, re-timing, torchaudio patch
 ├─ docs/                       architecture, engineering standards, design language (provenance of
 │                              the contract), deployment, verification, known issues, roadmap
@@ -208,6 +209,8 @@ Node — see `docs/known-issues.md` K2), and any cloud TTS.
 ```
 1/6  typecheck          tsc --noEmit
 1.2  design contract    design_check.py: contrast ratios, type ladder, motion budgets
+1.3  still lint         still_lint.mjs: 11 frames measured from the DOM (off-frame, edge,
+                        spill, overlap) + a fixture that proves the rules still fire
 2/6  stills             Storyboard f60, Lecture f2500, Typesetting f60  -> human review
 3/6  score              deterministic wav from seed 11 (32 s)
 4/6  render             Showreel 30 s, h264 + aac
@@ -219,6 +222,12 @@ The design-contract step is cheap and catches the class of defect that is cheape
 render: a role that fails contrast on one of its real backgrounds, a type size that is not on the
 ladder, a motion duty whose budget exceeds its cap. It prints every measured ratio, so a reviewer can
 see the margin rather than the verdict.
+
+The still-lint step is the machine version of "look at the frame", for the four failures a machine
+can name: a box outside the 1920x1080 canvas, text closer than 24 px to the edge, a text range wider
+than the box it was given, and two text boxes sharing more than a quarter of the smaller one. It does
+not try to judge taste, and it cannot be fooled by a frame with no measurement — a frame that reports
+zero boxes is a **failing** gate (exit 2), not a pass.
 
 What it does **not** prove: narration quality (needs the TTS model), Manim overlay (needs the asset),
 or 3D on a GPU-less host. Those are separate, optional passes in `docs/deployment.md`.

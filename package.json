@@ -11,6 +11,7 @@
     "typecheck": "tsc --noEmit",
     "browser": "remotion browser ensure",
     "score": "node scripts/audio/render_music.mjs",
+    "lint:still": "node scripts/qa/still_lint.mjs",
     "verify": "bash scripts/verify.sh"
   },
   "dependencies": {

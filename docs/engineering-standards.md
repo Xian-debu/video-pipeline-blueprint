@@ -99,12 +99,14 @@ A change is done when all of the following are true and their numbers are writte
 
 1. `npx tsc --noEmit` passes.
 2. `python3 scripts/qa/design_check.py` passes (contract integrity).
-3. Stills regenerated for the changed scenes and **looked at**; the finding is recorded in
+3. `node scripts/qa/still_lint.mjs` passes (no off-frame box, no text in the safe-area margin, no
+   spill, no text overlap) and `--fixtures` still passes — the fixture proves the gate itself works.
+4. Stills regenerated for the changed scenes and **looked at**; the finding is recorded in
    `docs/verify-report.md` (what was checked, what was seen).
-4. A render exists and its duration matches the scene budget.
-5. `scripts/audio/loudnorm.sh` reports I in [-16, -13] LUFS and TP <= -1.5 dBFS.
-6. `scripts/qa/luma_blink.py` reports mean |Δ| <= 12 and no dip, over the full frame.
-7. The diff is committed, and the commit message says what changed and why.
+5. A render exists and its duration matches the scene budget.
+6. `scripts/audio/loudnorm.sh` reports I in [-16, -13] LUFS and TP <= -1.5 dBFS.
+7. `scripts/qa/luma_blink.py` reports mean |Δ| <= 12 and no dip, over the full frame.
+8. The diff is committed, and the commit message says what changed and why.
 
 "No claim of done without the numbers." A green `verify` alone is necessary and not sufficient —
 see §7.3 and the two v1.0.0 defects.

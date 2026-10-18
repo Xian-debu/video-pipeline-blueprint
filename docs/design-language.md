@@ -280,11 +280,12 @@ CJK renders tofu, which is why `doctor.sh` checks the fonts before rendering.
 | D3 | CJK/label letter-spacing violates ppt-master's S6 (chapter bar 2 px at 18 px = 11 %; `OVERVIEW` 8 px at 36 px = 22 %; subtitle 6 px at 44 px = 14 %) | tracking changes are visual changes; bundled here as a measured finding, not a silent edit | typography commit with stills before/after |
 | ~~D4~~ | **Paid.** `ImageScene` reads `motion.ambient` through `ambientScale()`; a 3 s scene now travels 1.0225 instead of 1.06 | — | this commit |
 | ~~D5~~ | **Paid.** Caption scrim is the `surface.scrim` fill role, read via `fillColor()`; `design_check.py` validates alpha and the fill/text split | — | this commit |
-| D6 | `design_check` validates the contract only; no component-level scan for literal colours/sizes | static JSX analysis is a different tool, and pretending otherwise would be dishonest | roadmap: still-frame lint |
+| ~~D6~~ | **Paid, partly.** The contract check still cannot see inside a component — but it no longer has to: `still_lint.mjs` renders a frame, reads the boxes the DOM actually produced, and fails on an off-frame box, text in the safe-area margin, a range wider than its box, or two text boxes overlapping. A literal colour is still invisible to it; a literal *size* usually is not | near-term item 2 |
 
 ## 5. Author checklist for a storyboard scene
 
-Read this before adding a scene; the machine check cannot see most of it.
+Read this before adding a scene; the machine checks (`design_check.py` on the contract,
+`still_lint.mjs` on rendered boxes) catch geometry and contrast, not intent.
 
 1. Colours and sizes come from `PALETTE` / `TYPE_SCALE`; if you need a new one, the commit is a
    contract commit, not a scene commit.

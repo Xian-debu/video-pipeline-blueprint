@@ -7,9 +7,12 @@ Ordered by value per unit of work, based on what actually slowed the reference p
 1. **One orchestrator** — `storyboard.json | script.ts -> stills -> (human review) -> render ->
    mix -> loudnorm -> QA`, with a manifest of artefacts and per-stage logs. The stages already exist
    as separate scripts; this is glue plus bookkeeping, not new capability.
-2. **Automated still linting** — safe-area / overlap / text-overflow checks on rendered frames
-   (bounding boxes are unavailable, but luma-region diffs plus text-extent heuristics catch the two
-   defects that slipped through: subtitle-over-title, panels out of frame).
+2. ~~**Automated still linting**~~ — **Done** (`scripts/qa/still_lint.mjs`). Rather than pixel
+   heuristics (which cannot tell a title from a caption), the component under test prints the DOM
+   boxes it laid out; the script renders a frame per target and fails on an off-frame box, text
+   inside the 24 px safe-area margin, a text range spilling its own box, or two text boxes
+   overlapping by more than 25 % of the smaller one. A fixture composition proves the rules still
+   fire, and a frame with no measurement fails the gate (exit 2) instead of passing silently.
 3. **Storyboard schema hardening** — version field, zod validation, and a migrator so old
    storyboards keep rendering.
 4. **Score presets** — a few named arrangements (calm/lecture/tutorial) instead of manual BPM/energy.
@@ -47,7 +50,7 @@ of them is "fix the look".
 | D3 | Letter-spacing violates the CJK tracking rule (chapter bar 11 %, `OVERVIEW` 22 %, subtitle 14 %) | a typography commit with before/after stills |
 | ~~D4~~ | **Paid** — `ImageScene` reads `motion.ambient` via `ambientScale()`; a 3 s scene travels 1.0225, not 1.06 | this roadmap's contract commit |
 | ~~D5~~ | **Paid** — caption scrim is the `surface.scrim` fill role (`usage: fill`, `alpha: 0.62`), read via `fillColor()` | this roadmap's contract commit |
-| D6 | `design_check` validates the contract only; components can still contain literal colours/sizes | automated still lint (near-term item 2) |
+| ~~D6~~ | **Paid** — `design_check` still validates the contract only, but `still_lint.mjs` renders frames and fails on off-frame boxes, edge text, spill and overlap; it cannot see a literal colour, it sees the consequence | near-term item 2 |
 
 ## Known non-goals
 

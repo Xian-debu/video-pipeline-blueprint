@@ -70,8 +70,14 @@ so the picture is never re-encoded. Target: I = -15 LUFS, TP = -2 dBTP for web d
   flashes, and renderer glitches.
 - Loudness is asserted, not eyeballed: `scripts/audio/loudnorm.sh` prints the measured values and
   `verify.sh` fails if they are outside the window.
-- Stills are a build artefact: `out/verify/still_*.png`. Overlap and overflow defects in this
-  project were found by looking at them, not by any metric.
+- Stills are a build artefact: `out/verify/still_*.png`. Two real defects here (a subtitle over a
+  title, proof panels out of frame) were found by looking at them, not by any metric.
+- `scripts/qa/still_lint.mjs` turns the part of that look that a machine can name into a gate: the
+  scene tree carries an inert `LintAudit` probe that, given `inputProps {lint:true, lintFrame:n}`,
+  logs every laid-out text box (with its text range) and every non-text panel once the frame is
+  ready; the script renders each target frame, applies four rules (`canvas`, `edge`, `spill`,
+  `overlap`), and fails when a frame reports nothing at all. The probe costs one `div` when the props
+  are absent, and `src/qa/LintFixtures.tsx` keeps the rules honest.
 
 ## 5. Why not a single orchestrator?
 

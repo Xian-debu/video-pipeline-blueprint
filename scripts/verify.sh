@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# End-to-end smoke test: typecheck -> stills -> 30 s video with score -> loudness -> flicker QA.
+# End-to-end smoke test: typecheck -> design check -> still lint -> stills -> 30 s video with score
+# -> loudness -> flicker QA.
 # It does NOT need the local TTS model; narration is verified separately (docs/deployment.md step 4).
 set -euo pipefail
 
@@ -25,6 +26,9 @@ step "2/6 still frames (layout / font / no overflow)"
 npx remotion still Storyboard "$OUT/still_storyboard.png" --frame=60 --log=error
 npx remotion still Lecture "$OUT/still_lecture_proof.png" --frame=2500 --log=error --props='{"music":null,"narration":null}'
 npx remotion still Typesetting "$OUT/still_typesetting.png" --frame=60 --log=error
+
+step "2.5/6 still lint (DOM boxes: off-frame, edge text, spill, overlap)"
+node scripts/qa/still_lint.mjs
 
 step "3/6 programmatic score (deterministic)"
 node scripts/audio/render_music.mjs --out=public/music/demo.wav --duration=32 --bpm=92 --seed=11 --energy=0.55

@@ -18,7 +18,7 @@ Read, in this order:
 ```bash
 bash scripts/bootstrap.sh   # apt libs, CJK fonts, node, headless Chromium
 bash scripts/doctor.sh      # must print "all checks passed"
-npm run verify              # typecheck -> design check -> stills -> render -> loudness -> flicker
+npm run verify              # typecheck -> design check -> still lint -> stills -> render -> loudness -> flicker
 ```
 
 Stills under `out/verify/` are part of the check, not decoration: open them.
@@ -48,7 +48,7 @@ One stage, one commit — no mixed refactor + behaviour changes, no "and also" c
 
 ## Pull / review checklist
 
-- [ ] `npx tsc --noEmit` and `python3 scripts/qa/design_check.py` pass.
+- [ ] `npx tsc --noEmit`, `python3 scripts/qa/design_check.py` and `npm run lint:still` pass.
 - [ ] Changed stills were rendered and looked at; findings recorded in `docs/verify-report.md`.
 - [ ] `npm run verify` passes end to end (loudness and flicker numbers included in the report).
 - [ ] No new literal colour/size/timing outside the design contract.

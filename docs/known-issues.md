@@ -149,3 +149,19 @@ every assumption its data schema broke.
 assert on a sample frame where a `place` step is on screen. (Careful with a global regex rename of
 `st.i`: it rewrites the accessor's own body into infinite recursion and Remotion fails with
 `RangeError: Maximum call stack size exceeded`.)
+
+## K13 — Two mounts in the render page, and a probe that measures the wrong one
+
+**Symptom.** The still-lint probe either reported every box at coordinates like `-66,-1000777`, or
+reported nothing at all for some compositions while working for others, so the gate exited 2.
+
+**Mechanism.** `@remotion/renderer` mounts the composition twice: the Studio bundle keeps a hidden
+mount (`position:fixed; top:-999999`, laid out at zero width) and it mounts *first*; the composition
+that is actually screenshotted lives in `#remotion-canvas` and appears later. Worse, React does not
+remount when the renderer moves that DOM into the canvas, so a layout effect that runs once will
+measure the hidden mount and never run again.
+
+**Fix here.** Do not measure on the first effect. Poll (25 ms, up to 3 s, while `delayRender` keeps
+the frame blocked) until a `#remotion-canvas` exists that *contains the probe and has children*,
+then measure relative to its rect. Keep the "exactly one report per frame" assertion in the
+script — a silent probe is a broken gate, not a pass.

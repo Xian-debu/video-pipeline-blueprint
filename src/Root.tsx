@@ -10,6 +10,23 @@ import { Transitions } from "./showcase/Transitions";
 import { Typesetting } from "./showcase/Typesetting";
 import { ThreeCube } from "./showcase/ThreeCube";
 import { ManimOverlay } from "./showcase/ManimOverlay";
+import { LintAudit } from "./design/lint";
+import { LintFixtures } from "./qa/LintFixtures";
+
+/**
+ * Every composition carries the still-lint probe. It renders nothing and does
+ * nothing unless scripts/qa/still_lint.mjs passes `{ lint: true, lintFrame }`
+ * as input props, so normal renders are unaffected.
+ */
+const withLint = (C: React.ComponentType<any>): React.FC<any> => {
+  const Wrapped = (props: any) => (
+    <>
+      <C {...props} />
+      <LintAudit />
+    </>
+  );
+  return Wrapped;
+};
 
 /**
  * 注册的 Composition 分三类：
@@ -26,7 +43,7 @@ export const RemotionRoot: React.FC = () => {
     <>
       <Composition
         id="Storyboard"
-        component={StoryboardFilm}
+        component={withLint(StoryboardFilm)}
         durationInFrames={totalFrames(DEMO_STORYBOARD)}
         fps={DEMO_STORYBOARD.fps}
         width={DEMO_STORYBOARD.width}
@@ -35,7 +52,7 @@ export const RemotionRoot: React.FC = () => {
       />
       <Composition
         id="Showreel"
-        component={StoryboardFilm}
+        component={withLint(StoryboardFilm)}
         durationInFrames={totalFrames(DEMO_FILM)}
         fps={DEMO_FILM.fps}
         width={DEMO_FILM.width}
@@ -44,17 +61,19 @@ export const RemotionRoot: React.FC = () => {
       />
       <Composition
         id="Lecture"
-        component={QuicksortLecture}
+        component={withLint(QuicksortLecture)}
         durationInFrames={LECTURE_FRAMES}
         fps={LECTURE_FPS}
         width={1920}
         height={1080}
         defaultProps={{ music: "music/score.wav", narration: null }}
       />
-      <Composition id="Transitions" component={Transitions} durationInFrames={178} fps={30} width={1920} height={1080} />
-      <Composition id="Typesetting" component={Typesetting} durationInFrames={240} fps={30} width={1920} height={1080} />
-      <Composition id="ThreeCube" component={ThreeCube} durationInFrames={120} fps={30} width={1280} height={720} />
-      <Composition id="ManimOverlay" component={ManimOverlay} durationInFrames={60} fps={30} width={1920} height={1080} />
+      <Composition id="Transitions" component={withLint(Transitions)} durationInFrames={178} fps={30} width={1920} height={1080} />
+      <Composition id="Typesetting" component={withLint(Typesetting)} durationInFrames={240} fps={30} width={1920} height={1080} />
+      <Composition id="ThreeCube" component={withLint(ThreeCube)} durationInFrames={120} fps={30} width={1280} height={720} />
+      <Composition id="ManimOverlay" component={withLint(ManimOverlay)} durationInFrames={60} fps={30} width={1920} height={1080} />
+      {/* QA only: deliberately broken layout, never part of a film. */}
+      <Composition id="LintFixtures" component={withLint(LintFixtures)} durationInFrames={30} fps={30} width={1920} height={1080} />
     </>
   );
 };
