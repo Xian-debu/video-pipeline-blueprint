@@ -144,7 +144,8 @@
           "accent": "#FF5A3C",
           "accent2": "#57C8B5",
           "muted": "#8A93A6",
-          "white": "#FFFFFF"
+          "white": "#FFFFFF",
+          "scrim": "#080A10"
         },
         "roles": {
           "background": {
@@ -184,6 +185,12 @@
               "ink",
               "ink2"
             ]
+          },
+          "surface.scrim": {
+            "color": "scrim",
+            "usage": "fill",
+            "alpha": 0.62,
+            "meaning": "full-frame scrim behind a caption that sits over imagery; a fill, never text"
           },
           "accent.secondary": {
             "color": "accent2",
@@ -284,7 +291,8 @@
     "ambient": {
       "minSeconds": 8,
       "maxSeconds": 24,
-      "meaning": "slow drift that makes a static page breathe; must be slower than any duty above"
+      "meaning": "slow drift that makes a static page breathe; must be slower than any duty above",
+      "rule": "a scene shorter than minSeconds travels proportionally less rather than moving faster; past minSeconds the full kenBurns delta is reached, and a scene never exceeds maxSeconds of drift at the declared rate"
     }
   },
   "text": {

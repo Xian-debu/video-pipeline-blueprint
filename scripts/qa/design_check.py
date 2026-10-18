@@ -84,6 +84,14 @@ def check_palette(spec, type_spec):
                 used.add(ref)
                 if ref not in colors:
                     fail("%s/%s: unknown colour %r" % (family_name, role_name, ref))
+            if "alpha" in role:
+                alpha = role["alpha"]
+                if not isinstance(alpha, (int, float)) or not (0 < alpha <= 1):
+                    fail("%s/%s: alpha must be within (0, 1] (got %r)" % (family_name, role_name, alpha))
+                if role.get("usage") != "fill":
+                    fail("%s/%s: alpha is only valid on a fill role (usage must be 'fill')" % (family_name, role_name))
+                if role.get("on"):
+                    fail("%s/%s: a fill role must not declare contrast targets" % (family_name, role_name))
             targets = role.get("on") or []
             if role.get("color") and not targets:
                 if role.get("usage") not in USAGES:
@@ -207,6 +215,10 @@ def check_motion(spec):
     lo, hi = ambient.get("minSeconds"), ambient.get("maxSeconds")
     if not isinstance(lo, (int, float)) or not isinstance(hi, (int, float)) or lo < 6 or hi <= lo:
         fail("motion.ambient must be minSeconds >= 6 and maxSeconds > minSeconds")
+    if isinstance(hi, (int, float)) and hi > 60:
+        fail("motion.ambient.maxSeconds must stay <= 60")
+    if not ambient.get("rule"):
+        fail("motion.ambient.rule must state how scenes shorter than minSeconds behave")
 
 
 def check_text(spec):

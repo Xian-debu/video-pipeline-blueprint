@@ -45,8 +45,8 @@ of them is "fix the look".
 | D1 | Two frozen colour families (`lecture`, `storyboard`) with different values | a palette merge commit that re-verifies every still |
 | D2 | Storyboard scenes hard-code type sizes instead of `TYPE_SCALE` | scene-by-scene refactor |
 | D3 | Letter-spacing violates the CJK tracking rule (chapter bar 11 %, `OVERVIEW` 22 %, subtitle 14 %) | a typography commit with before/after stills |
-| D4 | `ImageScene` ignores `motion.ambient`; short scenes push in faster than the 8 s floor | storyboard commit |
-| D5 | Caption scrim is an inline `rgba` rather than a contract `scrim` role | contract v2 |
+| ~~D4~~ | **Paid** — `ImageScene` reads `motion.ambient` via `ambientScale()`; a 3 s scene travels 1.0225, not 1.06 | this roadmap's contract commit |
+| ~~D5~~ | **Paid** — caption scrim is the `surface.scrim` fill role (`usage: fill`, `alpha: 0.62`), read via `fillColor()` | this roadmap's contract commit |
 | D6 | `design_check` validates the contract only; components can still contain literal colours/sizes | automated still lint (near-term item 2) |
 
 ## Known non-goals

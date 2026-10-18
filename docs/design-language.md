@@ -75,10 +75,10 @@ ppt-master (`plan-core.md` §6.1): anchor recurring semantic roles (`surface`, `
 becomes reusable. 60-30-10 is a starting proportion, never a lock.
 
 Here: the contract's role list is closed — `design_check.py` fails if a colour has no role
-(coverage check) and if a role has neither `on[]` nor `usage`. Scrims and translucent overlays stay
-in components (`rgba()` over a palette colour, never a new hex). The caption's
-`rgba(8,10,16,0.62)` backdrop is exactly the `scrim` role that ppt-master says should be anchored as a
-concept, currently implemented inline; it is on the debt list below.
+(coverage check) and if a role has neither `on[]` nor `usage`. Translucent overlays follow the same
+rule: the caption's backdrop is the `surface.scrim` role (`usage: "fill"`, `alpha: 0.62`), and
+components read it through `fillColor()`, so no new hex and no inline `rgba()` can appear. A fill role
+carries an alpha instead of an `on[]` list; the checker enforces that split in both directions.
 
 ### 2.3 A small ordered type scale with ratios to body
 
@@ -128,9 +128,14 @@ scrim and foreground stay locked while the world moves behind them ("windows, no
 
 Here: `motion.ambient` fixes the band at 8–24 s, and `ImageScene`'s Ken Burns is the implementation
 (`scale` 1.00 → `kenBurns` default 1.06 across the scene). It is the only motion an image page is
-allowed beyond its caption, and it must never carry information. Partial adoption: `ImageScene` does
-not yet read `motion.ambient`, so a 3 s image scene gets a 3 s push-in that is faster than the band
-— debt, see §4.
+allowed beyond its caption, and it must never carry information.
+
+The band is a *rate*, not a duration, and `ambientScale()` in `src/design/contract.ts` is what makes
+that true: the delta is spread over `span = clamp(sceneSeconds, minSeconds, maxSeconds)`, so a scene
+shorter than 8 s **travels less** (3 s → 1.0225) instead of moving faster, and a scene longer than
+24 s reaches the full delta within the band and then holds. The contract states this in
+`motion.ambient.rule`; `design_check.py` fails if that string is missing, so the rule cannot quietly
+drift away from the code that implements it.
 
 ### 2.6 Aesthetic baseline items that became layout rules
 
@@ -273,8 +278,8 @@ CJK renders tofu, which is why `doctor.sh` checks the fonts before rendering.
 | D1 | Two colour families (`lecture` and `storyboard`) with different values, both frozen | merging changes existing renders and needs a full re-verification, which this contract-only change is not allowed to do | `docs/roadmap.md`, palette merge commit |
 | D2 | Hard-coded type sizes in storyboard scenes (128/92/46/44/40/36/30/52) instead of `TYPE_SCALE` | changing them changes the template's look; the check cannot see inside components anyway | scene refactor, one scene per commit |
 | D3 | CJK/label letter-spacing violates ppt-master's S6 (chapter bar 2 px at 18 px = 11 %; `OVERVIEW` 8 px at 36 px = 22 %; subtitle 6 px at 44 px = 14 %) | tracking changes are visual changes; bundled here as a measured finding, not a silent edit | typography commit with stills before/after |
-| D4 | `ImageScene` ignores `motion.ambient` (a 3 s scene pushes in faster than the 8 s floor) | wiring it changes render timing behaviour of the storyboard template | storyboard commit |
-| D5 | Caption scrim is an inline `rgba` instead of a contract `scrim` role | needs a new role + contrast target semantics for overlays | contract v2 |
+| ~~D4~~ | **Paid.** `ImageScene` reads `motion.ambient` through `ambientScale()`; a 3 s scene now travels 1.0225 instead of 1.06 | — | this commit |
+| ~~D5~~ | **Paid.** Caption scrim is the `surface.scrim` fill role, read via `fillColor()`; `design_check.py` validates alpha and the fill/text split | — | this commit |
 | D6 | `design_check` validates the contract only; no component-level scan for literal colours/sizes | static JSX analysis is a different tool, and pretending otherwise would be dishonest | roadmap: still-frame lint |
 
 ## 5. Author checklist for a storyboard scene

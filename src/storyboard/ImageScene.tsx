@@ -1,13 +1,18 @@
 import React from "react";
-import { AbsoluteFill, Img, interpolate, staticFile, useCurrentFrame } from "remotion";
+import { AbsoluteFill, Img, interpolate, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
 import { FONT_SANS, PALETTE } from "../theme";
+import { ambientScale } from "../design/contract";
 import type { Scene } from "../schema";
 
 export const ImageScene: React.FC<{ scene: Scene }> = ({ scene }) => {
   const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
   const dur = scene.durationInFrames;
   const k = scene.kenBurns ?? 1.06;
-  const scale = interpolate(frame, [0, dur], [1, k]);
+  // The drift's rate comes from the contract (motion.ambient), not from the scene length:
+  // a 3 s scene moves proportionally less, so the plate never reads as a push-in (D4).
+  const end = ambientScale(k, dur, fps);
+  const scale = interpolate(frame, [0, dur], [1, end]);
   return (
     <AbsoluteFill style={{ background: PALETTE.ink, overflow: "hidden" }}>
       {scene.plate ? (

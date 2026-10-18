@@ -1,6 +1,7 @@
 import React from "react";
 import { AbsoluteFill, interpolate } from "remotion";
 import { FONT_SANS, PALETTE } from "../theme";
+import { fillColor } from "../design/contract";
 import type { CaptionItem } from "../schema";
 
 /**
@@ -32,7 +33,7 @@ export const Caption: React.FC<{ item: CaptionItem; localFrame: number }> = ({ i
           fontSize: 52,
           lineHeight: 1.35,
           color: PALETTE.white,
-          background: "rgba(8,10,16,0.62)",
+          background: fillColor("storyboard", "surface.scrim"),
           padding: "14px 28px",
           borderRadius: 10,
           maxWidth: 1500,

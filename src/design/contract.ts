@@ -9,7 +9,17 @@ export type PaletteFamily = "lecture" | "storyboard";
 export type Duty = "static" | "enter" | "emphasize" | "move" | "exit";
 
 type ColorMap = Record<string, string>;
-type RoleMap = Record<string, { color?: string; colors?: string[]; minContrast?: number; minSize?: number; on?: string[]; usage?: string }>;
+export type RoleDef = {
+  color?: string;
+  colors?: string[];
+  minContrast?: number;
+  minSize?: number;
+  on?: string[];
+  usage?: string;
+  alpha?: number;
+  meaning?: string;
+};
+type RoleMap = Record<string, RoleDef>;
 type FamilySpec = { colors: ColorMap; roles: RoleMap };
 
 export const spec = raw;
@@ -38,16 +48,48 @@ export const CAPTION = raw.text.caption;
 
 export const dutyFrames = (duty: Duty): number => MOTION.duties[duty].frames;
 
+/** family 内某个语义角色的定义（色名、对比度目标、alpha）。 */
+export const roleSpec = (family: PaletteFamily, role: string): RoleDef => {
+  const def = PALETTE_FAMILIES[family].roles[role];
+  if (!def) throw new Error("design contract: unknown role " + family + "/" + role);
+  return def;
+};
+
 /** family 内某个语义角色对应的色值。 */
 export const roleColor = (family: PaletteFamily, role: string): string => {
   const fam = PALETTE_FAMILIES[family];
-  const def = fam.roles[role];
-  if (!def) throw new Error("design contract: unknown role " + family + "/" + role);
+  const def = roleSpec(family, role);
   const name = def.color ?? def.colors?.[0];
   if (!name) throw new Error("design contract: role " + family + "/" + role + " has no color");
   const hex = fam.colors[name];
   if (!hex) throw new Error("design contract: unknown color " + family + "/" + name);
   return hex;
+};
+
+/** 填充角色 -> rgba()：alpha 只在契约里声明，组件不再内联 rgba。 */
+export const fillColor = (family: PaletteFamily, role: string): string => {
+  const def = roleSpec(family, role);
+  if (def.usage !== "fill") throw new Error("design contract: " + family + "/" + role + " is not a fill role");
+  if (typeof def.alpha !== "number") throw new Error("design contract: " + family + "/" + role + " has no alpha");
+  const hex = roleColor(family, role).replace("#", "");
+  const r = parseInt(hex.slice(0, 2), 16);
+  const g = parseInt(hex.slice(2, 4), 16);
+  const b = parseInt(hex.slice(4, 6), 16);
+  return "rgba(" + r + "," + g + "," + b + "," + def.alpha + ")";
+};
+
+/**
+ * 环境运动的终点倍率（Ken Burns）。
+ * 契约说 ambient 是一次漂移应持续 8-24 秒：比 minSeconds 短的场景"走得少"而不是"走得快"，
+ * 比 maxSeconds 长的场景在 maxSeconds 内走完余下的路然后静止。返回值 >= 1。
+ */
+export const ambientScale = (targetScale: number, durationInFrames: number, fps: number): number => {
+  const delta = targetScale - 1;
+  if (delta <= 0) return 1;
+  const seconds = durationInFrames / fps;
+  const span = Math.min(Math.max(seconds, MOTION.ambient.minSeconds), MOTION.ambient.maxSeconds);
+  const travelled = delta * (Math.min(seconds, span) / span);
+  return 1 + travelled;
 };
 
 const channel = (v: number): number => (v / 255 <= 0.03928 ? v / 255 / 12.92 : Math.pow((v / 255 + 0.055) / 1.055, 2.4));
