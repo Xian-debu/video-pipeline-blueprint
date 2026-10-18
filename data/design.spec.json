@@ -528,6 +528,46 @@
           "CJK-bearing roles stay at or below 5% of the size; subtitle is 6/44 = 13.6% and is a known deviation, not a precedent",
           "Latin-only overline and ordinal may run wider (22.2% and 6.7%); design_check reports their ratio but does not fail on it"
         ]
+      },
+      "film": {
+        "note": "The multiplication film (2019 lines of new scene code). A third frozen family, because the lecture ladder stops at body 30 and this film needs roles between caption and display - a ladder, not advisory sizes.",
+        "sizes": {
+          "cover": 108,
+          "display": 88,
+          "h1": 54,
+          "num": 40,
+          "lead": 34,
+          "h2": 30,
+          "body": 26,
+          "mono": 24,
+          "label": 21,
+          "code": 19,
+          "meta": 17,
+          "tiny": 15
+        },
+        "order": [
+          "cover",
+          "display",
+          "h1",
+          "num",
+          "lead",
+          "h2",
+          "body",
+          "mono",
+          "label",
+          "code",
+          "meta",
+          "tiny"
+        ],
+        "tracking": {
+          "label": 3,
+          "meta": 2
+        },
+        "trackingCjkRoles": [],
+        "trackingRules": [
+          "label and meta are Latin/mono roles only (kickers, counters, the chapter bar); CJK text in this film carries zero tracking",
+          "3 px at 21 px = 14.3% and 2 px at 17 px = 11.8% are reported by design_check; both are Latin, so neither is a CJK deviation"
+        ]
       }
     },
     "ratchet": {

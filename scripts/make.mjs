@@ -28,6 +28,11 @@ for (let i = 0; i < argv.length; i++) {
 
 const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), "..");
 const COMP = args.composition ?? "Lecture";
+/** Which film script backs a composition's subtitles and chapters. */
+const EXPORTS = {
+  Lecture: { script: "src/lecture/script.ts", prefix: "lecture" },
+  Multiplication: { script: "src/mult/script.ts", prefix: "multiplication" },
+};
 const OUT = path.resolve(ROOT, args.out ?? "out/package");
 const NARRATION = args.narration ?? "public/voice/narration.wav";
 const STILL_FRAMES = (args["still-frames"] ?? "").split(",").filter(Boolean);
@@ -109,8 +114,16 @@ try {
   log("duration " + report.numbers.seconds + " s (" + (probed.frames ?? "?") + " frames)");
 
   const score = path.join(OUT, "score.wav");
-  run("score", "node", ["scripts/audio/render_music.mjs", "--out=" + score,
-    "--duration=" + Math.ceil(seconds), "--seed=" + (args.seed ?? "11"), "--energy=" + (args.energy ?? "0.8")]);
+  if (args.score) {
+    // A 10-minute bed costs ~19 minutes to synthesize and does not depend on the picture,
+    // so a picture-only iteration reuses it — and still has to pass the gate below.
+    fs.mkdirSync(path.dirname(score), { recursive: true });
+    fs.copyFileSync(path.resolve(args.score), score);
+    log("\n== score (reused " + args.score + ")");
+  } else {
+    run("score", "node", ["scripts/audio/render_music.mjs", "--out=" + score,
+      "--duration=" + Math.ceil(seconds), "--seed=" + (args.seed ?? "11"), "--energy=" + (args.energy ?? "0.8")]);
+  }
   const stemGate = run("music gate (stem)", PYTHON, ["scripts/qa/music_gate.py", "--music", score]);
   report.numbers.stem = JSON.parse(stemGate.trim().split("\n").filter((l) => l.startsWith("{")).pop());
 
@@ -125,8 +138,15 @@ try {
   }
 
   const rawMp4 = path.join(OUT, "raw_video.mp4");
-  run("render (picture only)", "npx", ["remotion", "render", COMP, rawMp4,
-    "--props={\"music\":null,\"narration\":null}", "--log=error"]);
+  if (args.raw) {
+    // Same reason as --score: a gate that fails after the picture is final must not cost
+    // another 25-minute render. The duration check below still guards the reuse.
+    fs.copyFileSync(path.resolve(args.raw), rawMp4);
+    log("\n== render (reused " + args.raw + ")");
+  } else {
+    run("render (picture only)", "npx", ["remotion", "render", COMP, rawMp4,
+      "--props={\"music\":null,\"narration\":null}", "--log=error"]);
+  }
   const realSeconds = ffprobeDuration(rawMp4);
   report.numbers.renderedSeconds = Number(realSeconds.toFixed(3));
   if (Math.abs(realSeconds - seconds) > 0.15) {
@@ -199,11 +219,14 @@ try {
   // ---- 7. delivery exports, copied next to the film. The exporter is bound to the lecture
   //         script (its cues and chapters are that script), so other compositions skip it unless
   //         asked explicitly with --exports
-  const doExports = args.exports ? args.exports !== "false" : COMP === "Lecture";
+  const exp = EXPORTS[COMP];
+  const doExports = args.exports ? args.exports !== "false" : Boolean(exp);
   if (doExports) {
-    run("publish", "node", ["scripts/export/publish.mjs"]);
+    if (!exp) throw new Error("no export script known for " + COMP + " (add it to EXPORTS in make.mjs)");
+    run("publish", "node", ["scripts/export/publish.mjs", "--composition=" + COMP,
+      "--script=" + exp.script, "--prefix=" + exp.prefix]);
     const exported = [];
-    for (const f of ["lecture.srt", "lecture.chapters.txt", "lecture.chapters.ffmeta.txt", "cover.png"]) {
+    for (const f of [exp.prefix + ".srt", exp.prefix + ".chapters.txt", exp.prefix + ".chapters.ffmeta.txt", "cover.png"]) {
       const from = path.join(ROOT, "out/export", f);
       if (!fs.existsSync(from)) throw new Error("publish did not produce " + f);
       fs.copyFileSync(from, path.join(OUT, f));
@@ -211,7 +234,7 @@ try {
     }
     report.numbers.exports = exported;
   } else {
-    log("\n! delivery exports are bound to the Lecture script: skipped for " + COMP
+    log("\n! this composition has no delivery export script: skipped for " + COMP
       + " (pass --exports to force it)");
     report.numbers.exports = "skipped";
   }

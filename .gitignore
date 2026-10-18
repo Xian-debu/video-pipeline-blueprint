@@ -3,5 +3,7 @@ out/
 .remotion/
 public/music/*.wav
 public/voice/narration.wav
+public/voice/mult_narration.wav
+data/mult/lines.json
 public/manim/*.mov
 *.log

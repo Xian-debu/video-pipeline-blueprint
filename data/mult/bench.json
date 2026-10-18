@@ -1,0 +1,92 @@
+{
+ "host": {
+  "cpu": "Intel(R) Core(TM) Ultra 7 255HX",
+  "python": "3.12.3",
+  "numpy": "2.3.5",
+  "base": 10000
+ },
+ "rows": [
+  {
+   "limbs": 16,
+   "digits": 64,
+   "schoolbookMs": 0.0,
+   "schoolbookMuls": 256,
+   "karatsubaMs": 0.6,
+   "karatsubaMuls": 153,
+   "karatsubaAdds": 1624,
+   "nativeMs": 0.0002,
+   "speedup": 0.0
+  },
+  {
+   "limbs": 64,
+   "digits": 256,
+   "schoolbookMs": 1.1,
+   "schoolbookMuls": 4096,
+   "karatsubaMs": 6.0,
+   "karatsubaMuls": 1365,
+   "karatsubaAdds": 15535,
+   "nativeMs": 0.0006,
+   "speedup": 0.18
+  },
+  {
+   "limbs": 256,
+   "digits": 1024,
+   "schoolbookMs": 11.5,
+   "schoolbookMuls": 65536,
+   "karatsubaMs": 49.8,
+   "karatsubaMuls": 12189,
+   "karatsubaAdds": 141799,
+   "nativeMs": 0.0054,
+   "speedup": 0.23
+  },
+  {
+   "limbs": 1024,
+   "digits": 4096,
+   "schoolbookMs": 195.0,
+   "schoolbookMuls": 1048576,
+   "karatsubaMs": 468.0,
+   "karatsubaMuls": 110125,
+   "karatsubaAdds": 1293382,
+   "nativeMs": 0.0501,
+   "speedup": 0.42
+  }
+ ],
+ "ntt": [
+  {
+   "limbs": 256,
+   "digits": 1024,
+   "nttMs": 4.9
+  },
+  {
+   "limbs": 1024,
+   "digits": 4096,
+   "nttMs": 23.7
+  },
+  {
+   "limbs": 4096,
+   "digits": 16384,
+   "nttMs": 110.3
+  }
+ ],
+ "native": {
+  "rows": [
+   {
+    "digits": 1024,
+    "micros": 4.86
+   },
+   {
+    "digits": 4096,
+    "micros": 47.84
+   },
+   {
+    "digits": 16384,
+    "micros": 455.08
+   },
+   {
+    "digits": 65536,
+    "micros": 4171.61
+   }
+  ],
+  "measuredExponent": 1.624
+ }
+}

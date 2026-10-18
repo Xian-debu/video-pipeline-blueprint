@@ -11,6 +11,8 @@ import { Typesetting } from "./showcase/Typesetting";
 import { ThreeCube } from "./showcase/ThreeCube";
 import { ManimOverlay } from "./showcase/ManimOverlay";
 import { PresetGallery, PRESET_GALLERY_FRAMES } from "./showcase/PresetGallery";
+import { Multiplication } from "./mult/Multiplication";
+import { TOTAL as MULT_FRAMES, FPS as MULT_FPS } from "./mult/script";
 import { LintAudit } from "./design/lint";
 import { LintFixtures } from "./qa/LintFixtures";
 
@@ -35,6 +37,8 @@ const withLint = (C: React.ComponentType<any>): React.FC<any> => {
  *   2) Lecture               —— 本次验证过的 305 s 教学片（quicksort），数据来自真实执行
  *   3) Transitions / Typesetting / ThreeCube / ManimOverlay —— 单项能力的最小样张
  *   4) Presets               —— 同一份版式在 data/design.spec.json 的每个配色预设下各演一遍
+ *   5) Multiplication        —— 逐位乘法演进片（n² → Karatsuba → Toom-3 → NTT → 魔法），
+ *                              数据来自 scripts/generate_mult_data.py 的真实执行
  *
  * Lecture 的默认配乐指向 public/music/score.wav（由 scripts/audio/render_music.mjs 生成）。
  * 旁白默认关闭：先跑 scripts/tts/synthesize.py 产出 public/voice/narration.wav，
@@ -66,6 +70,15 @@ export const RemotionRoot: React.FC = () => {
         component={withLint(QuicksortLecture)}
         durationInFrames={LECTURE_FRAMES}
         fps={LECTURE_FPS}
+        width={1920}
+        height={1080}
+        defaultProps={{ music: "music/score.wav", narration: null }}
+      />
+      <Composition
+        id="Multiplication"
+        component={withLint(Multiplication)}
+        durationInFrames={MULT_FRAMES}
+        fps={MULT_FPS}
         width={1920}
         height={1080}
         defaultProps={{ music: "music/score.wav", narration: null }}

@@ -88,6 +88,39 @@ PYTHON=env/tts/bin/python python3 scripts/tts/retime_narration.py \
 41 lines took ~9 minutes (RTF ~1.75, GPU saturated). `retime_narration.py` rewrites the scene
 durations in `src/lecture/script.ts` when speech does not fit — commit that diff, it is content.
 
+**A film whose timing comes from measurement.** The multiplication film does not estimate speaking
+time from a character count: it synthesises first, then sizes every line from the measured clip.
+
+```bash
+# 1. freeze the line table (scene, index, start, duration, text)
+node scripts/qa/dump_script.mjs src/mult/script.ts data/mult/lines.json
+
+# 2. synthesise clip by clip; each finished clip's length is written to data/mult/voice.json
+source env/tts/bin/activate
+python3 scripts/tts/synthesize_mult.py --lines data/mult/lines.json --out /opt/.../mult_voice \
+  --voice-json data/mult/voice.json --indextts pkg/index-tts --model-dir shared/models/IndexTTS-2 \
+  --ref-audio pkg/index-tts/examples/voice_03.wav --fp16     # fp16 is the difference between 12 h and 13 min
+
+# 3. dump AGAIN: the line table now has the measured durations
+node scripts/qa/dump_script.mjs src/mult/script.ts data/mult/lines.json
+
+# 4. lay the clips on that timeline
+python3 scripts/tts/build_mult_narration.py --lines data/mult/lines.json \
+  --clips /opt/.../mult_voice --out public/voice/mult_narration.wav
+```
+
+Order matters: step 3 must repeat after step 2. Building the narration from the pre-synthesis table
+produced two lines whose speech overran its slot (`overrun recur[7]: 4.67s speech into 4.62s slot`) —
+the film would have cut both of them off. `build_mult_narration.py` prints every overrun; zero is the
+only acceptable count.
+
+Re-recording one line: dump, delete that clip (`l%03d.wav`, the global index in the line table — the
+others print `skip`), synthesise, dump again, rebuild the narration. `voice.json` is committed (it is
+what fixes the timeline); `lines.json` is not (it is a build product).
+
+Store the clips outside the working tree. They are the most expensive thing in the pipeline; a
+`rm -rf` of a scratch copy must not be able to delete an hour of synthesis.
+
 ### 3.4 Score, mix, render, normalise
 
 The mix is deliberately outside the renderer: the stems can be re-levelled, re-gated and re-muxed

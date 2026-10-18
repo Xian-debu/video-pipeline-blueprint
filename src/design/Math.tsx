@@ -64,7 +64,7 @@ export const MathLine: React.FC<{
       <Math tex={tex} block size={size} color={color} align="left" />
     </div>
     {no ? (
-      <div style={{ fontFamily: FONT.mono, fontSize: 19, color: C.inkFaint, width: 50, textAlign: "right", flexShrink: 0 }}>{no}</div>
+      <div style={{ fontFamily: FONT.mono, fontSize: 19, color: C.inkFaint, minWidth: 50, textAlign: "right", flexShrink: 0, whiteSpace: "nowrap" }}>{no}</div>
     ) : null}
   </div>
 );

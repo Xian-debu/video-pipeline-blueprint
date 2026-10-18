@@ -262,6 +262,57 @@ PASS no luma jump and no blink dip
 make: PASS — out/pkg_test/Storyboard.mp4 (12 s, -15 LUFS, TP -2 dBFS) + report.json
 ```
 
+## The second film: `Multiplication` (one command, end to end)
+
+Same orchestrator, different film — this is the check that P5 generalises rather than being a
+quicksort-shaped script. Run on gen24 against the synced working copy:
+
+```bash
+node scripts/make.mjs --composition Multiplication \
+  --narration /opt/aigen/outputs/mult_narration.wav \
+  --score /opt/aigen/outputs/mult_score.wav \
+  --raw /opt/aigen/outputs/mult_raw2.mp4 \
+  --cut-frames 795,2413,4505,6257,8075,10848,13018,15052,16878 \
+  --out out/pkg_mult --exports=true
+```
+
+18 stages, all exit 0. Numbers from `out/pkg_mult/report.json`:
+
+| Gate | Measured | Verdict |
+| --- | --- | --- |
+| Duration | 587.87 s in composition, 587.900 s in container (Probe vs compositions table agree) | pass |
+| Stem | full -25.08 dBFS, audible band -27.86, audible_share 0.631, sub_share 0.068 | pass |
+| Mix | 589.07 s, duck 4.5 dB on 65.7% of the timeline, peak -2.00 dBFS, rms -19.12 | pass |
+| Mix gate | speech -15.28 / gap_full -25.57 / gap_audible -28.29 dB; bed contributes 41.7 dB | pass |
+| Loudness | I = -15 LUFS, TP = -2 dBTP (assertions: I ∈ [-16,-13], TP ≤ -1.5) | pass |
+| Flicker | mean\|Δ\| 0.0147, p99 0.1428, max 8.74 with 9 cut frames masked (threshold 12) | pass |
+| Still lint | 24 frames, no off-frame box, no edge text, no spill, no overlap | pass |
+| Exports | 106 cues, 10 chapters, cover 92,711 B | pass |
+| Caption budget | longest line 34 chars; 0 of 106 SRT cues needed wrapping | pass |
+
+Delivered file: 27,717,606 B, sha256 `af276de189cbf923684f986f65ff950d8e4455c91e088ff8079762b92e3ced17`.
+
+Audio was spot-checked after delivery with `volumedetect` at t=120/300/420/560 s
+(mean -18.2 / -20.4 / -18.7 / -25.8 dBFS, peaks -2.1 / -3.4 / -3.1 / -7.6 dBFS): narration and bed
+are both present for the whole film — the failure this was guarding against is a silent middle,
+which loudness gates alone do not catch. The t=560 s sample lands on the quiet tail of the code
+scene, which is why it is lower.
+
+Two defects were found by auditing the finished film, not by a gate:
+
+1. The induction proof on screen did not close. With `p = log₂3`, guessing `T(n) ≤ c·nᵖ` leaves
+   `cn ≤ cn^p(1 − 3/2^p) = 0` — false for every n > 0. Fixed by guessing the stronger
+   `T(n) ≤ c·nᵖ − 2dn`, which reproduces itself exactly (docs/known-issues.md K16).
+2. The same 1024-digit native time appeared twice with different values (bar 5.40 µs from one
+   measurement, growth table 4.86 µs from another). Both bars now read one field
+   (`BENCH.native.rows[digits=1024].micros`); the ratio is computed from it, not typed.
+
+A third defect was caught by `script_check.mjs` on the next pass: one rewritten narration line was
+44 characters against the contract's 34-character caption budget. The line was re-synthesized
+(one clip, `l032.wav`), the timeline re-derived from the new measured length (590.63 s → 587.87 s),
+and the film re-rendered — the cheap check ran before the expensive one, which is the whole point
+of having it.
+
 ## What this report does not prove
 
 Narration quality (needs the TTS model), the Manim overlay (needs that asset), and 3D on a host

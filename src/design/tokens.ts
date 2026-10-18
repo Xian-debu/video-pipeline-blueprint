@@ -11,6 +11,11 @@ export const SB = TYPE_FAMILIES.storyboard.sizes;
 /** 同一族排的字距（px）。CJK 超过 5% 的项在契约里标为已知偏差。 */
 export const SB_T = TYPE_FAMILIES.storyboard.tracking as Record<string, number>;
 
+/** 逐位乘法片的字号族：契约里的第三套阶梯（cover 108 到 tiny 15）。 */
+export const FT = TYPE_FAMILIES.film.sizes;
+
+export const FT_T = TYPE_FAMILIES.film.tracking as Record<string, number>;
+
 export const G = {
   grid: SPACING.grid,
   gutter: SPACING.gutter,

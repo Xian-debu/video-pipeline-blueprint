@@ -39,6 +39,10 @@ const DEFAULT_TARGETS = [
   // One frame per preset: the gallery exists so a look can be checked, and the
   // check that matters most is that text still sits inside the frame in it.
   { id: "Presets", frames: [45, 135, 225] },
+  // Multiplication: one frame per scene of the multiplication film, so a broken
+  // layout in any single scene fails the gate. Frames are inside each scene's
+  // comfortable middle, not on a hard cut.
+  { id: "Multiplication", frames: [398, 1604, 3459, 5429, 7263, 9558, 12029, 14131, 16061, 17353] },
   // ManimOverlay is not in the default set: it needs public/manim/Formula.mov,
   // which is a locally rendered artefact and not committed. Render it first and
   // run `--compositions ManimOverlay --frames 30`.

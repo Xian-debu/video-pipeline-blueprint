@@ -201,3 +201,34 @@ was written to catch.
 
 **Fix here.** Weight by power (`|X|**2`) whenever a share of energy is meant, and keep the fixture:
 a gate whose fixture passes for the wrong reason will pass the real input for the wrong reason too.
+
+## K16 — An induction proof that does not close
+
+**Symptom.** The multiplication film's recursion scene proved `T(n) = Theta(n^log2 3)` by guessing
+`T(n) <= c n^p` and substituting: `3c(n/2)^p + cn <= cn^p + cn`, therefore `cn <= cn^p (1 - 3/2^p)`,
+"which holds for large enough c". At `p = log2 3` the right side is **zero**, and the inequality is
+false for every n > 0. The narration said the `dn` term "gets absorbed"; it cannot.
+
+**Mechanism.** With `3/2^p = 1` the substitution reproduces exactly the bound plus one `dn`, so the
+plain guess has no slack left to pay for the merge step. This is the standard reason the textbook
+induction strengthens the hypothesis: guess `T(n) <= c n^p - 2dn`. Then
+`3(c(n/2)^p - dn) + dn = c n^p - 2dn` — the extra term cancels itself, and only the base case needs
+a large enough `c`.
+
+**Fix here.** Screen and narration both replaced with the strengthened guess. The lesson is not about
+Karatsuba: a proof written for a video is still a proof, so substitute one step before believing it.
+A slide that says "for large enough c" is a smell — check that the algebra actually has a free c.
+
+## K17 — `--out` that quietly became a boolean
+
+**Symptom.** `node scripts/audio/render_music.mjs --out /tmp/score.wav --duration=593` spent 20 minutes
+rendering and left no `/tmp/score.wav`. The JSON summary said `"out":"true"`.
+
+**Mechanism.** `render_music.mjs` parsed arguments as `--k=v` only: `a.replace(/^--/,"").split("=")`
+gives `["out", undefined]` for `--out`, which the fallback turned into the string `"true"`. The score
+was written to a file literally named `true` in the working directory. `make.mjs` and `mix.mjs` had
+already learned to accept both forms; this one had not.
+
+**Fix here.** One parser for both forms (`--k=v` and `--k v`), plus an explicit refusal:
+`if (args.out === "true") throw`. When an option takes a path, "present but empty" has to be an error,
+not a default.
