@@ -1,0 +1,10 @@
+{
+  "source": "data/gears/params.json",
+  "powerW": 1000.0,
+  "omega1RadPerSec": 30.0,
+  "torque1Nm": 33.333333333333336,
+  "torque2Nm": 83.33333333333334,
+  "torqueRatio": 2.5,
+  "speedRatio": 0.4,
+  "check": "torque1 * omega1 == torque2 * omega2 == power"
+}

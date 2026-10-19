@@ -1,0 +1,30 @@
+{
+  "source": "data/gears/params.json",
+  "rows": [
+    {
+      "clearanceMm": 0.02,
+      "pitchRadius": 20.0,
+      "angularErrorDeg": 0.057295760414500616,
+      "arcSeconds": 206.26473749220222
+    },
+    {
+      "clearanceMm": 0.05,
+      "pitchRadius": 20.0,
+      "angularErrorDeg": 0.14323915036830656,
+      "arcSeconds": 515.6609413259037
+    },
+    {
+      "clearanceMm": 0.1,
+      "pitchRadius": 20.0,
+      "angularErrorDeg": 0.2864765102770745,
+      "arcSeconds": 1031.3154369974682
+    },
+    {
+      "clearanceMm": 0.2,
+      "pitchRadius": 20.0,
+      "angularErrorDeg": 0.5729386976834859,
+      "arcSeconds": 2062.579311660549
+    }
+  ],
+  "identity": "angular error (rad) = clearance / pitch radius"
+}

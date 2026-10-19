@@ -1,0 +1,40 @@
+{
+  "units": "1 unit = 1 mm on screen; scene normalises by pitch radius",
+  "pressureAngleDeg": 20,
+  "pairs": {
+    "a": {
+      "module": 2,
+      "z1": 20,
+      "z2": 50,
+      "faceWidth": 3,
+      "label": "20:50"
+    },
+    "b": {
+      "module": 2,
+      "zSun": 24,
+      "zPlanet": 18,
+      "zRing": 60,
+      "planets": 3,
+      "faceWidth": 3,
+      "label": "sun 24 / planet 18 / ring 60"
+    }
+  },
+  "history": {
+    "clock": {
+      "label": "摆钟分针 : 时针",
+      "ratio": 12,
+      "note": "定义值：分针 1 小时 1 圈，时针 12 小时 1 圈"
+    },
+    "windTurbine": {
+      "label": "风电齿轮箱（典型值）",
+      "ratioMin": 80,
+      "ratioMax": 120,
+      "note": "行业典型区间，非本机实测；只作量级参照"
+    },
+    "watch": {
+      "label": "机械表擒纵前的减速（典型值）",
+      "ratio": 3600,
+      "note": "秒针到分针 60，分针到时针 12"
+    }
+  }
+}

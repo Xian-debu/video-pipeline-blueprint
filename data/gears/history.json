@@ -1,0 +1,40 @@
+{
+  "source": "data/gears/params.json",
+  "clockRatio": 12,
+  "clockNote": "定义值：分针 1 小时 1 圈，时针 12 小时 1 圈",
+  "watchRatio": 3600,
+  "watchNote": "秒针到分针 60，分针到时针 12",
+  "windRatioMin": 80,
+  "windRatioMax": 120,
+  "windNote": "行业典型区间，非本机实测；只作量级参照",
+  "kindLegend": {
+    "definition": "由定义得出，可自行验算",
+    "typical": "行业典型值，非本机实测"
+  },
+  "items": [
+    {
+      "era": "古代",
+      "label": "水车 · 磨盘",
+      "kind": "geometry",
+      "text": "同一根轴上，木齿只负责传力；速比由齿数决定"
+    },
+    {
+      "era": "1656",
+      "label": "摆钟",
+      "kind": "definition",
+      "text": "分针 : 时针 = 12 : 1，速比第一次被写进图纸"
+    },
+    {
+      "era": "1900s",
+      "label": "行星减速",
+      "kind": "geometry",
+      "text": "同一套齿，三种工况给三个速比"
+    },
+    {
+      "era": "今天",
+      "label": "风电齿轮箱",
+      "kind": "typical",
+      "text": "大速比、大扭矩，仍然只是齿数之比"
+    }
+  ]
+}
