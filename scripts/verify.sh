@@ -18,9 +18,11 @@ step() { printf '\n== %s\n' "$*"; }
 # generator in the gate also means a stale hand-edit cannot survive a release.
 step "0.5/6 gear data (derive every number from data/gears/params.json)"
 "$PYTHON" scripts/generate_gear_data.py
-if git ls-files data/gears | grep -qvE '^data/gears/(params|voice)\.json$'; then
-  echo "FAIL derived gear data is tracked — only params.json and voice.json are sources" >&2
-  exit 1
+if git rev-parse --git-dir >/dev/null 2>&1; then
+  if git ls-files data/gears | grep -qvE '^data/gears/(params|voice)\.json$'; then
+    echo "FAIL derived gear data is tracked — only params.json and voice.json are sources" >&2
+    exit 1
+  fi
 fi
 
 step "1/6 typecheck"
