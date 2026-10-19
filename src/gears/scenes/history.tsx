@@ -4,7 +4,7 @@ import * as THREE from "three";
 import { C, FONT, FT, FT_T, G } from "../../design/tokens";
 import { ChapterBar, SceneShell } from "../../design/Scene";
 import { Canvas3D } from "../../design/three/Canvas3D";
-import { Dolly, Orbit } from "../../design/three/CameraRig";
+import { Crane } from "../../design/three/CameraRig";
 import { StudioLights } from "../../design/three/lighting";
 import { PAL, makeMaterial, type MaterialPreset } from "../../design/three/materials";
 import { SCENES, LINES, FPS, TOTAL, frameOf, linesOf, sceneOf } from "../script";
@@ -43,7 +43,8 @@ const SHistory: React.FC = () => {
           <Gear spec={{ z: 12, module: 6, pressureAngleDeg: PA, faceWidth: 5, bore: 8 }} phase={f * 0.04} material="matte" color={PAL.paper} position={[-1.5, 0, 0]} />
           <Gear spec={{ z: 60, module: 2, pressureAngleDeg: PA, faceWidth: 6, bore: 10 }} phase={-f * 0.008} material="satin" color={PAL.accent} position={[1.6, 0, 0]} />
         </group>
-        <Orbit radius={9.6} height={3.8} fromDeg={16} toDeg={-10} target={[0, 0.2, 0]} />
+        {/* 从钟表尺度升到风机尺度：慢摇臂 + 反向横移，给"同一条曲线、不同尺度"一个空间动作。 */}
+        <Crane radius={9.6} fromHeight={2.9} toHeight={5.4} fromDeg={16} toDeg={-12} target={[0, 0.2, 0]} />
       </Stage>
     </SceneShell>
   );

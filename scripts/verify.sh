@@ -82,7 +82,7 @@ step "2.12/6 3D scene budget (3D share floor, pure-2D ceiling)"
 npm run --silent lint:budget
 
 step "2.13/6 gear 3D frames (coverage, not black, deterministic)"
-node scripts/qa/three_frame_lint.mjs --composition=Gears --frames=900,2400,3150,4067,6400,6915,7786,8300 --repeat
+node scripts/qa/three_frame_lint.mjs --composition=Gears --frames=20,900,4067,5490,6450,6915,7786,7980,9120 --repeat
 
 step "3/6 programmatic score (deterministic)"
 node scripts/audio/render_music.mjs --out=public/music/demo.wav --duration=32 --bpm=92 --seed=11 --energy=0.55

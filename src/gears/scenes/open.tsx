@@ -4,7 +4,7 @@ import * as THREE from "three";
 import { C, FONT, FT, FT_T, G } from "../../design/tokens";
 import { ChapterBar, SceneShell } from "../../design/Scene";
 import { Canvas3D } from "../../design/three/Canvas3D";
-import { Dolly, Orbit } from "../../design/three/CameraRig";
+import { Crane } from "../../design/three/CameraRig";
 import { StudioLights } from "../../design/three/lighting";
 import { PAL, makeMaterial, type MaterialPreset } from "../../design/three/materials";
 import { SCENES, LINES, FPS, TOTAL, frameOf, linesOf, sceneOf } from "../script";
@@ -31,7 +31,8 @@ const SOpen: React.FC = () => {
         <group position={[0, 0.2, 0]} rotation={[0.42, -0.34, 0]} scale={1 / MM}>
           <Pair th={0.2 + f * 0.012} />
         </group>
-        <Orbit radius={12.4} height={4.4} fromDeg={-12} toDeg={12} target={[0, 0.2, 0]} />
+        {/* 开场：摇臂从高处落下并横移，像把镜头放到工作台上。 */}
+        <Crane radius={12.4} fromHeight={6.6} toHeight={3.6} fromDeg={-14} toDeg={10} target={[0, 0.2, 0]} />
       </Stage>
     </SceneShell>
   );

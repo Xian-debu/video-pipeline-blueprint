@@ -4,7 +4,7 @@ import * as THREE from "three";
 import { C, FONT, FT, FT_T, G } from "../../design/tokens";
 import { ChapterBar, SceneShell } from "../../design/Scene";
 import { Canvas3D } from "../../design/three/Canvas3D";
-import { Dolly, Orbit } from "../../design/three/CameraRig";
+import { Crane } from "../../design/three/CameraRig";
 import { StudioLights } from "../../design/three/lighting";
 import { PAL, makeMaterial, type MaterialPreset } from "../../design/three/materials";
 import { SCENES, LINES, FPS, TOTAL, frameOf, linesOf, sceneOf } from "../script";
@@ -45,7 +45,8 @@ const SPlanetary: React.FC = () => {
         <group position={[0, 0.1, 0]} rotation={[0.34, -0.12, 0]} scale={1 / (MM * 1.7)}>
           <Planetary th={th} material="satin" />
         </group>
-        <Orbit radius={7.2} height={3.6} fromDeg={-12} toDeg={12} target={[0, 0.1, 0]} />
+        {/* 摇臂升起：先从侧面看三个零件，再抬高看清内齿圈把行星咬在里面。 */}
+        <Crane radius={7.4} fromHeight={2.6} toHeight={6.2} fromDeg={-16} toDeg={6} target={[0, 0.1, 0]} />
       </Stage>
     </SceneShell>
   );

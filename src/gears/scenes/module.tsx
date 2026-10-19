@@ -33,7 +33,19 @@ const SModule: React.FC = () => {
       </Bullet>
       <Bullet at={frameOf("module", 4)}>换模数就换中心距：{m3}·{a.z1 + a.z2}/2 = {centreDistance(m3, a.z1, a.z2)} mm</Bullet>
       {/* 这一场真的有两层：主对在焦平面上，m=3 那个轮子离机位更近、偏下，应该虚掉一层。 */}
-      <Stage camera="product" dof={{ range: 5, blur: 8, subject: [0, 0.9, 0] }}>
+      {/*
+        移焦：讲到"换模数就换中心距"时，焦点从主对挪到左边那个 m=3 的轮子。
+        焦段（focus）由 DoF 每帧按 |camera - subject| 算，这里只声明"从哪一帧开始、挪到哪"。
+      */}
+      <Stage
+        camera="product"
+        dof={{
+          range: 5,
+          blur: 8,
+          subject: [0, 0.9, 0],
+          rack: { to: [-1.9, -1.95, 1.4], start: Math.round(dur * 0.5), end: Math.round(dur * 0.72) },
+        }}
+      >
         <StudioLights ambient={0.5} key={2.9} shadowSize={2048} shadowBias={-0.0002} shadowNormalBias={0.02} />
         <group position={[0, 0.9, 0]} rotation={[0.34, -0.22, 0]} scale={1 / MM}>
           <group position={[0, 0, 0]}>

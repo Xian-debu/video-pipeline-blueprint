@@ -34,6 +34,43 @@ export const Dolly: React.FC<{ from: Vec3; to: Vec3; target?: Vec3; start?: numb
   return null;
 };
 
+/**
+ * 摇臂：绕主体画弧的同时升降，落点也可以跟着移动。
+ * 和 Dolly/Orbit 的区别是"两个轴同时动"：位置=球坐标(半径, 高度插值, 角度插值)，
+ * 落点=两段插值。它比 Dolly 更像摄影机运动，比 Orbit 多一个竖直方向的信息。
+ *
+ * 同样只读 useCurrentFrame —— 不做物理、不用真实时钟。
+ */
+export const Crane: React.FC<{
+  radius: number;
+  fromHeight: number;
+  toHeight: number;
+  fromDeg: number;
+  toDeg: number;
+  target?: Vec3;
+  targetTo?: Vec3;
+  start?: number;
+  end?: number;
+}> = ({ radius, fromHeight, toHeight, fromDeg, toDeg, target = [0, 0.9, 0], targetTo, start = 0, end }) => {
+  const frame = useCurrentFrame();
+  const { durationInFrames } = useVideoConfig();
+  const { camera } = useThree();
+  const last = end ?? durationInFrames;
+  const t = interpolate(frame, [start, Math.max(start + 1, last)], [0, 1], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+    easing: Easing.inOut(Easing.cubic),
+  });
+  const deg = fromDeg + (toDeg - fromDeg) * t;
+  const rad = (deg * Math.PI) / 180;
+  const height = fromHeight + (toHeight - fromHeight) * t;
+  const look = targetTo
+    ? ([target[0] + (targetTo[0] - target[0]) * t, target[1] + (targetTo[1] - target[1]) * t, target[2] + (targetTo[2] - target[2]) * t] as Vec3)
+    : target;
+  aim(camera, [Math.sin(rad) * radius, height, Math.cos(rad) * radius], look);
+  return null;
+};
+
 /** 环绕：固定半径与高度，从 fromDeg 转到 toDeg（度）。转台镜头用这个。 */
 export const Orbit: React.FC<{ radius: number; height: number; fromDeg: number; toDeg: number; target?: Vec3 }> = ({
   radius,

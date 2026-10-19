@@ -1,5 +1,6 @@
 import React from "react";
 import { useFrame, useThree } from "@react-three/fiber";
+import { useCurrentFrame } from "remotion";
 import * as THREE from "three";
 
 /**
@@ -34,6 +35,11 @@ export type DofSettings = {
   focus?: number;
   /** 自动对焦的落点（世界坐标）。省略则不跟踪，焦点固定在对焦距离上。 */
   subject?: [number, number, number];
+  /**
+   * 移焦（rack focus）：在 [start, end] 帧之间把焦点从 subject 挪到 to。
+   * 这是叙事动作，不是渲染参数 —— 所以由场次给帧号，渲染器只负责插值。
+   */
+  rack?: { to: [number, number, number]; start: number; end: number };
   /** 从焦点到完全虚化的距离。越小，景深越"薄"。 */
   range?: number;
   /** 完全虚化时的模糊半径（1080p 像素）。 */
@@ -127,6 +133,7 @@ void main() {
 `;
 
 export const DepthOfField: React.FC<{ settings: DofSettings; exposure?: number }> = ({ settings, exposure = 1 }) => {
+  const frame = useCurrentFrame();
   const gl = useThree((s) => s.gl);
   const scene = useThree((s) => s.scene);
   const camera = useThree((s) => s.camera);
@@ -136,6 +143,11 @@ export const DepthOfField: React.FC<{ settings: DofSettings; exposure?: number }
     () => (settings.subject ? new THREE.Vector3(...settings.subject) : null),
     [settings.subject?.[0], settings.subject?.[1], settings.subject?.[2]]
   );
+  const rackTo = React.useMemo(
+    () => (settings.rack ? new THREE.Vector3(...settings.rack.to) : null),
+    [settings.rack?.to[0], settings.rack?.to[1], settings.rack?.to[2]]
+  );
+  const focusPoint = React.useMemo(() => new THREE.Vector3(), []);
 
   const rig = React.useMemo(() => {
     const rt = new THREE.WebGLRenderTarget(size.width, size.height, {
@@ -178,11 +190,18 @@ export const DepthOfField: React.FC<{ settings: DofSettings; exposure?: number }
 
   // 接管控件渲染：priority>0 时 R3F 不再自己 render，由这里两趟完成。
   useFrame(() => {
-    // 自动对焦：CameraRig（Dolly/Orbit）在本帧已经改过相机位置，这里读到的是当帧值。
+    // 自动对焦：CameraRig（Dolly/Crane/Orbit）在本帧已经改过相机位置，这里读到的是当帧值。
     if (settings.focus === undefined) {
-      rig.material.uniforms.uFocus.value = subject
-        ? camera.position.distanceTo(subject)
-        : camera.position.length();
+      if (subject) {
+        focusPoint.copy(subject);
+        if (rackTo && settings.rack) {
+          const t = Math.min(1, Math.max(0, (frame - settings.rack.start) / Math.max(1, settings.rack.end - settings.rack.start)));
+          focusPoint.lerp(rackTo, t * t * (3 - 2 * t));
+        }
+        rig.material.uniforms.uFocus.value = camera.position.distanceTo(focusPoint);
+      } else {
+        rig.material.uniforms.uFocus.value = camera.position.length();
+      }
     }
     gl.setRenderTarget(rig.rt);
     gl.setClearColor(0x000000, 0);
