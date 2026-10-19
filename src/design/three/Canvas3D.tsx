@@ -4,13 +4,15 @@ import { useThree } from "@react-three/fiber";
 import { ThreeCanvas } from "@remotion/three";
 import * as THREE from "three";
 import { C } from "../tokens";
+import { DepthOfField, type DofSettings } from "./DepthOfField";
 
 /**
- * 显式色彩管线。three 的默认值（NoToneMapping）意味着"渲染器输出什么，屏幕就显示什么"，
- * 高光会直接顶到 255 并失去色相：本片 backlash 场那对浅色齿轮的盘面就是这样烧成一整片白的。
+ * 显式色彩管线。@react-three/fiber 未显式指定时默认就是 ACESFilmic（见其 Canvas 实现），
+ * 所以这一层不是"修好了一个坏默认"，而是把"曲线是哪条、曝光是多少"写进工程：
+ * 库的默认值可以变，片子的观感不能随库变。
  *
- * ACESFilmic 把高光滚到白色之前先收一档，曝光再补回来——这不是滤镜，是把"场景亮度"
- * 映射到"显示亮度"的那一步，缺了它，材质参数再调也没有上限。
+ * 实测：本片交付版就已经是 ACES；改成显式后参考帧逐像素不变。真正的问题不在曲线，
+ * 而在平盘面本身没有明暗（见 docs/33 的测量记录）。
  *
  * 只在 ThreeCanvas 内部生效：所有 3D 镜头共用一条管线，场景代码不碰渲染器。
  */
@@ -48,7 +50,9 @@ export const Canvas3D: React.FC<{
   shadows?: boolean;
   /** ACES 曝光。1.0 是"不改亮度"的起点；场景整体偏暗时由调用方抬，不在场景里堆灯光。 */
   exposure?: number;
-}> = ({ children, camera = "wide", background = C.bg, shadows = true, exposure = 1 }) => {
+  /** 给景深就开景深：一场戏要不要薄景深，是导演决定，不是渲染器决定。 */
+  dof?: DofSettings;
+}> = ({ children, camera = "wide", background = C.bg, shadows = true, exposure = 1, dof }) => {
   const { width, height } = useVideoConfig();
   const c = CAMERA[camera];
   return (
@@ -63,6 +67,7 @@ export const Canvas3D: React.FC<{
       >
         {background ? <color attach="background" args={[background]} /> : null}
         <ToneMapping exposure={exposure} />
+        {dof ? <DepthOfField settings={dof} exposure={exposure} /> : null}
         {children}
       </ThreeCanvas>
     </AbsoluteFill>

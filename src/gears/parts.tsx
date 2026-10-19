@@ -3,6 +3,7 @@ import { AbsoluteFill, Audio, interpolate, Sequence, staticFile, useCurrentFrame
 import * as THREE from "three";
 import { C, FONT, FT, FT_T, G } from "../design/tokens";
 import { ChapterBar, SceneShell } from "../design/Scene";
+import type { DofSettings } from "../design/three/DepthOfField";
 import { Canvas3D } from "../design/three/Canvas3D";
 import { Dolly, Orbit } from "../design/three/CameraRig";
 import { StudioLights } from "../design/three/lighting";
@@ -269,9 +270,11 @@ export const Stage: React.FC<{
   front?: number;
   /** ACES 曝光。齿轮材质是浅色纸感，满曝光时盘面读成"贴纸"；0.9 让白色落到 210 附近。 */
   exposure?: number;
-}> = ({ children, camera = "product", shift = 1.25, front = 2.2, exposure = 0.9 }) => (
+  /** 给景深就开景深（只有真正近景的场才该薄）。 */
+  dof?: DofSettings;
+}> = ({ children, camera = "product", shift = 1.25, front = 2.2, exposure = 0.9, dof }) => (
   <AbsoluteFill style={{ pointerEvents: "none" }}>
-    <Canvas3D camera={camera} background={null} exposure={exposure}>
+    <Canvas3D camera={camera} background={null} exposure={exposure} dof={dof}>
       <group position={[shift, 0, 0]}>
         <directionalLight position={[1.2, 3.2, 9]} intensity={front} color={C.paper} />
         {children}

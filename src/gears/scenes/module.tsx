@@ -32,7 +32,8 @@ const SModule: React.FC = () => {
         中心距 = m(z₁+z₂)/2 = {a.module}·{a.z1 + a.z2}/2 = {centreDistance(a.module, a.z1, a.z2)} mm
       </Bullet>
       <Bullet at={frameOf("module", 4)}>换模数就换中心距：{m3}·{a.z1 + a.z2}/2 = {centreDistance(m3, a.z1, a.z2)} mm</Bullet>
-      <Stage camera="product">
+      {/* 这一场真的有两层：主对在焦平面上，m=3 那个轮子离机位更近、偏下，应该虚掉一层。 */}
+      <Stage camera="product" dof={{ range: 5, blur: 8, subject: [0, 0.9, 0] }}>
         <StudioLights ambient={0.5} key={2.9} shadowSize={2048} shadowBias={-0.0002} shadowNormalBias={0.02} />
         <group position={[0, 0.9, 0]} rotation={[0.34, -0.22, 0]} scale={1 / MM}>
           <group position={[0, 0, 0]}>
