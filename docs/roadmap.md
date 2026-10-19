@@ -31,7 +31,16 @@ Ordered by value per unit of work, based on what actually slowed the reference p
    (`three_frame_lint.mjs`: coverage floor/ceiling, not-black, sha256 twice). The asset path is
    documented as the hard part: `@remotion/three` advances the canvas once per frame, so anything
    loading after mount is never drawn (K20).
-6. **Score presets** — a few named arrangements (calm/lecture/tutorial) instead of manual BPM/energy.
+6. ~~**Blender plate branch (optional)**~~ — **Done** (`scripts/blender/`, `PlateStage`,
+   `docs/blender-plates.md`). Final-quality Cycles renders baked offline into a numbered PNG set plus
+   a `report.json` manifest, composited per frame like any other image. The scene is a command, not a
+   `.blend`: the model is imported, normalised, re-shaded from the same material tokens and lit by the
+   same three-point rig, and the camera sweep is interpolated from the frame index. `plate_lint`
+   checks the manifest against the files and against the consuming composition's duration. Measured:
+   8.18 s/frame at 1080p/64 spp on CUDA (90 frames in 736 s) — cheap enough to keep out of the edit
+   loop, which is why it is a cached artifact and not a render step. EEVEE in background mode is documented as a trap: it
+   silently falls back to Mesa's software rasteriser (K21).
+7. **Score presets** — a few named arrangements (calm/lecture/tutorial) instead of manual BPM/energy.
 
 ## Medium term
 

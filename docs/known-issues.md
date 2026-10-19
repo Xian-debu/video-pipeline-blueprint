@@ -308,3 +308,33 @@ through `staticFile()`. See `docs/3d.md`.
 **Lesson for the gate.** Coverage, mean luma and determinism all passed on a wrong frame: they
 measure "something was drawn", not "the thing we meant was drawn". A gate cannot distinguish an
 empty studio from a studio with a model — the still review does. Keep both.
+
+## K21 — "It rendered" is not "the GPU rendered", and the engine enum lies
+
+**Symptom.** Two passes that looked like successes and were not.
+
+1. `--engine eevee --probe` returned `{"ok": true, "engine": "BLENDER_EEVEE", "seconds": 8.82}` for a
+   **64×64, 4-sample** frame. It rendered. It rendered on `llvmpipe`, Mesa's software rasteriser,
+   which is what `blender -b` gets when there is no display: `libEGL warning: failed to get driver
+   name for fd -1`, `MESA: error: ZINK: failed to choose pdev`, `EGL Error (0x3009): EGL_BAD_MATCH`.
+   The same probe on Cycles/CUDA took **0.43 s** on the `RTX 5070 Laptop GPU`.
+2. `--engine cycles` reported `"engine 'cycles' unavailable", "available": ["BLENDER_EEVEE"]` while
+   the Cycles module was demonstrably loaded and enabled.
+
+**Mechanism.** The first is a silent backend downgrade: EEVEE needs a GL context, a headless Linux
+box has none, Mesa hands back llvmpipe, and Blender is happy. Nothing in the exit status or the
+output JSON says "this is 20× slower than it should be"; you have to read the renderer string. The
+second is a Blender implementation detail: engines added by an addon register dynamically, and
+`bpy.types.RenderSettings.bl_rna.properties["engine"].enum_items` keeps listing only the built-ins.
+Under `--factory-startup` the Cycles addon is loaded but not enabled either, so even a "did it load"
+check passes while the engine stays unreachable.
+
+**Fix here.** `resolve_engine()` probes by **assignment** — `scene.render.engine = "CYCLES"` inside a
+`try`, `TypeError` means unavailable — and `ensure_cycles()` enables the addon before that. The probe
+prints `gpu.renderer` and the actual `compute_device_type`/`device list`, so "which silicon" is part
+of the evidence rather than an assumption. Plates are rendered with Cycles; EEVEE in background mode
+is documented as a CI trap.
+
+**Lesson for the gate.** A green `ok: true` from a renderer answers "did a PNG appear", not "did the
+path we paid for run". Probes should print the thing that would differ if the fast path were
+unavailable — here the renderer string and the device name — and someone should read it.

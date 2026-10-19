@@ -469,6 +469,69 @@ surface by less than 1 % of its extent and did **not** remove the residual bandi
 shading of a low-poly surface, so shot B draws a wireframe overlay instead of pretending the surface
 is polished. This is recorded as an asset limitation, not a render setting.
 
+## The plate branch (`PlateStage`, 90 frames)
+
+A plate is a frame rendered offline by Blender and then used as an image layer. The point is not
+"Blender can render": it is that the expensive picture becomes a **checksummed artifact** that the
+Remotion side can replay without a GPU. So the branch ships with a contract and a gate, and no
+plate is committed.
+
+**Contract** (`docs/blender-plates.md`): `public/plates/<set>/plate_%04d.png` plus one
+`report.json` carrying engine, device, samples, resolution, alpha, ground, the model's sha256, per
+frame timings and per frame sha256. `public/plates/` is gitignored — the deliverable is the report,
+the readable artifact is regenerable.
+
+**What was rendered here** — Blender 5.2.2 LTS at `/opt/aigen/video2/env/blender`, Cycles on CUDA
+(RTX 5070 Laptop), 64 spp, denoise, shadow catcher, alpha, 1920×1080, frames 0–89:
+
+```
+npm run plates -- --glb public/models/nailong_v3_15k.glb --samples 64 --alpha
+  --radius 4.8 4.8  --height-cam 2.2 2.9  --azimuth 30 -30  --target-z 0.9
+  --color '#b9b3a8'  --material matte  --ground shadow
+  → 90 plate(s) in 736.0s (mean 8.177 s/frame, median 8.143)
+```
+
+Gates, in order:
+
+```
+node scripts/qa/plate_lint.mjs
+  PASS public/plates/showcase  90 plate(s) · 1920×1080 · CYCLES 64 spp ·
+       mean 8.18 s/frame · alpha · 74,860,576 B · model sha256 6300bc2a4bf6
+npx remotion render PlateStage  →  90 frames · 1920×1080 · 30 fps · 387,962 B
+python3 scripts/qa/luma_blink.py
+  frames=90 mean=34.85 min=28.82 max=36.23
+  mean|d|=0.0895 p99=0.5497 max=0.56 jump_thresh=12.0  → PASS
+node scripts/qa/still_lint.mjs  →  PASS (34 frames)
+```
+
+**Three engine facts, each of which cost a cycle to find** (K21):
+
+1. `blender -b` has no display, and EEVEE does not fail there — it silently falls back to Mesa's
+   software rasteriser (`llvmpipe`), 8.82 s for a 64×64 / 4 spp probe. Cycles on CUDA did the same
+   probe in 0.43 s. A successful EEVEE render is not evidence that a GPU rendered it.
+2. The engine enum lies. With `--factory-startup` the Cycles add-on is enabled, yet
+   `RenderSettings.bl_rna.properties["engine"].enum_items` lists only `BLENDER_EEVEE`. The renderer
+   therefore *tries* `scene.render.engine = "CYCLES"` and catches `TypeError` instead of consulting
+   the enum.
+3. OptiX fails on this driver (`error code 7804`), so `set_cycles_device()` walks
+   OPTIX → CUDA → HIP → ONEAPI → METAL and reports what it actually got (`device CUDA`,
+   `scene_device GPU`) into the report. The report is the evidence; the command line is not.
+
+**Framing was decided on stills, not on gates.** Radius 7.2 left the model at ~23 % of frame height
+inside the stage's right column; radius 4.3 cut it at the edges; 4.8 is the shipped value. The first
+material (`#e8e4dc` under a 1400 W key) clipped the top of the model to pure white — the silhouette
+survived and the form did not — so the shipped set is `#b9b3a8` with key 1100 / fill 380 / rim 720.
+Those numbers are arguments (`--color`, `--key-power`, …), which is the rule: a plate set is a
+command, not a .blend file in the repo.
+
+**A red gate found on the way in.** `type_ratchet.py` failed on `ThreeStage.tsx` and
+`PlateStage.tsx`: both had been written with pixel literals (16/17/18/20/22, tracking 1/2/3), which
+the contract forbids for new work. Rather than grandfather them into
+`data/type-exceptions.json` (a list that may only shrink), the HUD got a fourth contract family,
+`type.families.showcase` (`SC.*` / `SC_T.*`), frozen from the accepted stills. The ratchet now
+reports *52 literals across 9 files, unchanged*, and the refactor is provably non-visual: frame 30
+hashed `9beb01e7…` before and after.
+
 ## What this report does not prove
 
 Narration quality (needs the TTS model), the Manim overlay (needs that asset), and whether the 3D

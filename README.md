@@ -25,7 +25,7 @@ integrated loudness -15.1 LUFS, true peak -1.8 dBTP, 41 narration lines.
 
 不是库，不是 SaaS，不是一键安装器。目标是：克隆下来，`bash scripts/bootstrap.sh` +
 `npm run verify` 两分钟内得到 PASS，然后照着 `docs/deployment.md` 换成你自己的内容。
-坑都在 `docs/known-issues.md`（K1–K17），没有一条是假设出来的。
+坑都在 `docs/known-issues.md`（K1–K21），没有一条是假设出来的。
 
 ## 1. What this is, and what it is not
 
@@ -134,8 +134,8 @@ Three independent layers, joined only by files:
 │  │                           (canvas, lights, camera rigs, materials, glTF model), still-lint
 │  │                           probe (inert unless lint props are set)
 │  └─ showcase/                one-file samples: transitions, typesetting, ThreeCube, ThreeStage
-│                              (procedural / imported / composited 3D), Manim overlay, preset
-│                              gallery (one look per preset)
+│                              (procedural / imported / composited 3D), PlateStage (consumes
+│                              Blender plates), Manim overlay, preset gallery (one look per preset)
 ├─ data/                       shared contract only: design.spec.json, type-exceptions.json
 │  ├─ lecture/                 the quicksort film's own facts: trace, counters, source, voice timing
 │  └─ mult/                    the multiplication film's own facts: counts, benchmarks, NTT, code, voice
@@ -160,6 +160,9 @@ Three independent layers, joined only by files:
 │  ├─ qa/model_lint.mjs        parses a GLB without three.js: triangle budget, extent, watertight
 │  ├─ qa/three_frame_lint.mjs  renders 3D frames and measures coverage / black / determinism
 │  ├─ assets/smooth_glb.mjs    dependency-free Taubin smoother for carved/voxel meshes
+│  ├─ blender/render_plates.py offline plates without Blender's GUI: scene, camera by frame
+│  │                           number, report.json with a sha256 per frame (Blender is optional)
+│  ├─ qa/plate_lint.mjs        plate set integrity: contiguous frames, byte/sha match, duration
 │  ├─ qa/film_isolation.mjs    one film may not read another film's data or source (layout rule)
 │  ├─ qa/tree_hash.mjs         one hash for the tree that a run is about to measure
 │  ├─ export/publish.mjs       SRT + chapters + cover, all derived from the lecture script
@@ -175,8 +178,9 @@ Three independent layers, joined only by files:
 Compositions: `Storyboard` (generic, 20 s), `Showreel` (30 s), `Lecture` (305 s demo),
 `Multiplication` (591 s demo, the second film), `Transitions`, `Typesetting`, `ThreeCube`,
 `ManimOverlay` (single-capability samples), `ThreeStage` (30 s: procedural geometry, an imported
-`.glb`, and a transparent 3D layer over 2D text) and `Presets` (9 s: the same title scene in each
-palette preset, for judging a look).
+`.glb`, and a transparent 3D layer over 2D text), `PlateStage` (3 s: consumes a Blender-rendered
+plate sequence; needs `npm run plates` first, and says so when the plates are missing) and
+`Presets` (9 s: the same title scene in each palette preset, for judging a look).
 
 One command runs the whole delivery. `npm run make` walks the stages in the order that makes a
 failure cheapest to fix — contract, score, score gate, picture-only render, review stills, still
@@ -220,8 +224,10 @@ summing to the film's duration) and a cover rendered from frame 180. Nothing in 
 authored by hand, so it cannot drift from the picture.
 
 Type is a contract question, not a scene one. The storyboard template reads `SB.*` and `SB_T.*`
-(sizes, tracking) from `type.families.storyboard`, so changing the template's type means editing one
-JSON file. The validated film's own sizes are *grandfathered* in `data/type-exceptions.json` (52
+(sizes, tracking) from `type.families.storyboard`, the multiplication film reads `FT.*` from
+`type.families.film`, and the showcase HUD reads `SC.*` / `SC_T.*` from `type.families.showcase` —
+so changing a surface's type means editing one JSON file. The validated film's own sizes are
+*grandfathered* in `data/type-exceptions.json` (52
 literals across 9 files, mostly the lecture's chrome) rather than promoted into the contract, and
 `scripts/qa/type_ratchet.py` fails the build when a literal is added, duplicated or left stale — the
 list can only shrink.
@@ -327,6 +333,8 @@ Node — see `docs/known-issues.md` K2), and any cloud TTS.
 2/6  stills             Storyboard f60, Lecture f2500, Typesetting f60  -> human review
 2.6  model lint         model_lint.mjs: GLB structure, triangle budget, extent, watertight
 2.7  3D frames          three_frame_lint.mjs: coverage floor/ceiling, not black, sha256 twice
+2.8  plate set          plate_lint.mjs: frames contiguous, every PNG byte/sha matches report.json,
+                        report count == PlateStage duration (skipped with a reason when absent)
 3/6  score              deterministic wav from seed 11 (32 s)
 3.4  music self-test    music_gate.py --self-test: a sub-only bed must still be rejected
 3.5  music gate         music_gate.py: >= 50% of power in 250-4k Hz, <= 20% in 20-120 Hz
@@ -396,6 +404,12 @@ Full detail in `docs/known-issues.md`; the short list:
   remainder, so the step is false for every n; it shipped on a still that looked fine. Fixed by
   guessing the strengthened `c·nᵖ − 2dn`. **K17 `--out` became the string `"true"`**: a flag
   parser that only understood `--k=v` wrote a 114 MB score into a file named `true`.
+- **K21 "it rendered" is not "the GPU rendered"**: `blender -b` has no display, so EEVEE silently
+  falls back to Mesa's `llvmpipe` software rasteriser (a 64×64 probe took 8.82 s; the same probe on
+  Cycles/CUDA took 0.43 s), and the Cycles engine does not even appear in the RNA engine enum under
+  `--factory-startup`. Plates therefore render with Cycles, device resolution is reported by the
+  probe, and `resolve_engine()` probes by assignment instead of trusting the enum. See
+  `docs/blender-plates.md`.
 
 ## 10. Choosing an environment (and lower-tier substitutes)
 

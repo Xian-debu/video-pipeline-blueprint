@@ -42,6 +42,16 @@ node scripts/qa/model_lint.mjs "public/models/*.glb" --watertight --allow=no-nor
 step "2.7/6 3D frames (coverage, not black, deterministic)"
 node scripts/qa/three_frame_lint.mjs --composition=ThreeStage --frames=150,450,750 --repeat
 
+# Offline plates are an optional branch (Blender is not a dependency of the daily
+# path). The gate is real whenever the plates exist, and says why it skipped when
+# they do not — a silent skip is how a stale plate set survives a release.
+if [ -d public/plates/showcase ]; then
+  step "2.8/6 plate set (contiguous, byte-stable, matches the stage duration)"
+  node scripts/qa/plate_lint.mjs
+else
+  step "2.8/6 plate set — skipped (public/plates/showcase not rendered; see docs/blender-plates.md)"
+fi
+
 step "3/6 programmatic score (deterministic)"
 node scripts/audio/render_music.mjs --out=public/music/demo.wav --duration=32 --bpm=92 --seed=11 --energy=0.55
 

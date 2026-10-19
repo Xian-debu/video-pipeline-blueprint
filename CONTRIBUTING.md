@@ -39,6 +39,7 @@ npm run make -- --composition Lecture --narration public/voice/narration.wav
 | a colour, size, spacing anchor, or motion timing | `data/design.spec.json` (+ derived `src/design/tokens.ts` if the shape changes) | hard-code a literal in a scene |
 | a new palette look (preset) | `palette.families` + a `palette.presets` row in the contract | hard-code hex in a scene or fork a component per look |
 | the storyboard template's type | `type.families.storyboard` in the contract (sizes **and** tracking) | edit the numbers in `TitleScene`/`GraphicScene` |
+| the showcase HUD's type (chips, counters, provenance rows) | `type.families.showcase` (`SC.*` / `SC_T.*`) | write a `fontSize` literal into a showcase composition |
 | a scene's composition | the scene component, using tokens and primitives | add a new colour or type size |
 | narration or on-screen text | `src/lecture/script.ts` (`LINES`) | duplicate the string in a component |
 | recorded data a scene shows | `data/<film>/` via that film's generator script | hand-edit the JSON |

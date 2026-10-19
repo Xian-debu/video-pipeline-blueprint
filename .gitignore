@@ -6,4 +6,6 @@ public/voice/narration.wav
 public/voice/mult_narration.wav
 data/mult/lines.json
 public/manim/*.mov
+# Blender plates (P16): rendered artifacts described by report.json, never committed.
+public/plates/
 *.log

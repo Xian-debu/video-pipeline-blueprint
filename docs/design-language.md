@@ -289,7 +289,8 @@ Read this before adding a scene; the machine checks (`design_check.py` on the co
 `still_lint.mjs` on rendered boxes) catch geometry and contrast, not intent.
 
 1. Colours come from a role (`useRole("text.primary")`), sizes from `TYPE_SCALE` or a family — the storyboard template
-   reads `SB.*` / `SB_T.*` (sizes and tracking) out of `type.families.storyboard`. A new size is a
+   reads `SB.*` / `SB_T.*` (sizes and tracking) out of `type.families.storyboard`, the multiplication
+   film reads `FT.*`, and the showcase HUD reads `SC.*` / `SC_T.*`. A new size is a
    contract commit, never a scene commit: `type_ratchet.py` fails the build if a component gains a
    literal that is not already grandfathered.
 2. Text over an image gets a scrim; text over a plate image is otherwise a review failure (H4/S9).

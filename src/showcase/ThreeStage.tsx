@@ -1,6 +1,6 @@
 import React from "react";
 import { AbsoluteFill, Sequence, interpolate, useCurrentFrame } from "remotion";
-import { C, FONT, G, SB, SB_T, T } from "../design/tokens";
+import { C, FONT, G, SB, SB_T, SC, SC_T, T } from "../design/tokens";
 import { Canvas3D } from "../design/three/Canvas3D";
 import { Dolly, Orbit } from "../design/three/CameraRig";
 import { Ground, StudioLights } from "../design/three/lighting";
@@ -21,7 +21,7 @@ const LATTICE = 7;
 const CELL = 1.05;
 
 const Kicker: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <div style={{ fontFamily: FONT.mono, fontSize: 22, letterSpacing: 3, color: C.cyan }}>{children}</div>
+  <div style={{ fontFamily: FONT.mono, fontSize: SC.kicker, letterSpacing: SC_T.kicker, color: C.cyan }}>{children}</div>
 );
 
 const Title: React.FC<{ children: React.ReactNode; size?: number }> = ({ children, size = T.h1 }) => (
@@ -141,8 +141,8 @@ const SpecimenShot: React.FC = () => {
           ["法线", "缺失 → 重算"],
         ].map(([k, v]) => (
           <div key={k} style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
-            <span style={{ fontFamily: FONT.mono, fontSize: 17, color: C.inkFaint, letterSpacing: 1 }}>{k}</span>
-            <span style={{ fontSize: 20, color: C.ink }}>{v}</span>
+            <span style={{ fontFamily: FONT.mono, fontSize: SC.label, color: C.inkFaint, letterSpacing: SC_T.label }}>{k}</span>
+            <span style={{ fontSize: SC.meta, color: C.ink }}>{v}</span>
           </div>
         ))}
       </div>
@@ -180,8 +180,8 @@ const CompositeShot: React.FC = () => {
                   key={t}
                   style={{
                     fontFamily: FONT.mono,
-                    fontSize: 16,
-                    letterSpacing: 2,
+                    fontSize: SC.chip,
+                    letterSpacing: SC_T.chip,
                     color: C.cyan,
                     border: "1px solid " + C.cyanDeep,
                     borderRadius: 999,
@@ -204,7 +204,7 @@ const CompositeShot: React.FC = () => {
         </Canvas3D>
       </AbsoluteFill>
       <AbsoluteFill style={{ padding: G.pad, pointerEvents: "none" }}>
-        <div style={{ position: "absolute", right: G.pad, top: G.pad, fontFamily: FONT.mono, fontSize: 18, letterSpacing: SB_T.overline, color: C.inkFaint }}>
+        <div style={{ position: "absolute", right: G.pad, top: G.pad, fontFamily: FONT.mono, fontSize: SC.value, letterSpacing: SB_T.overline, color: C.inkFaint }}>
           03 / 03 · COMPOSITE
         </div>
       </AbsoluteFill>

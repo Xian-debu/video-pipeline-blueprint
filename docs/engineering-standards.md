@@ -69,7 +69,8 @@ The contract is data, so these are checks, not opinions:
 - **Type:** a short, ordered scale (display > h1 > h2 > body > caption, plus mono and math). New
   sizes are a contract change, not a one-off. Body copy must stay legible at the intended viewing
   distance, which is why the scale is fixed rather than fitted per scene. A surface that needs its
-  own ladder gets a *family* (`type.families.storyboard`) rather than a private set of numbers, and
+  own ladder gets a *family* (`type.families.storyboard`, `type.families.film`,
+  `type.families.showcase`) rather than a private set of numbers, and
   its tracking is declared next to the sizes: CJK tracking above 5 % of the size is a recorded
   deviation, not a tool for emphasis. Literals that predate the rule are listed in
   `data/type-exceptions.json`; `type_ratchet.py` fails when that list grows.
@@ -123,7 +124,10 @@ A change is done when all of the following are true and their numbers are writte
    A change that touches 3D also passes `node scripts/qa/model_lint.mjs "public/models/*.glb"
    --watertight --allow=no-normals` and `node scripts/qa/three_frame_lint.mjs
    --composition=ThreeStage --frames=150,450,750 --repeat`, and its framing was reviewed on stills
-   (composition is deliberately not machine-judged — see `docs/3d.md`).
+   (composition is deliberately not machine-judged — see `docs/3d.md`). A change that touches plates
+   also passes `node scripts/qa/plate_lint.mjs` (manifest vs. files vs. consumer duration) and
+   states which engine and device rendered them: a plate set is evidence only if it says what made
+   it, and "it rendered" is not "the GPU rendered" — see `docs/known-issues.md` K21.
 4. Stills regenerated for the changed scenes and **looked at**; the finding is recorded in
    `docs/verify-report.md` (what was checked, what was seen).
 5. A render exists and its duration matches the scene budget.

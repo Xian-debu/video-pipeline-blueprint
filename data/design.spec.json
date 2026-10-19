@@ -565,6 +565,33 @@
           "label and meta are Latin/mono roles only (kickers, counters, the chapter bar); CJK text in this film carries zero tracking",
           "3 px at 21 px = 14.3% and 2 px at 17 px = 11.8% are reported by design_check; both are Latin, so neither is a CJK deviation"
         ]
+      },
+      "showcase": {
+        "note": "The HUD that sits under a showcase headline (chips, provenance rows, plate counters). These are labels at a fixed size next to a rendered image, not a ladder: freezing them keeps the design surface free of pixel literals without pretending 16/17/18/20/22 is a scale.",
+        "sizes": {
+          "kicker": 22,
+          "meta": 20,
+          "value": 18,
+          "label": 17,
+          "chip": 16
+        },
+        "order": [
+          "kicker",
+          "meta",
+          "value",
+          "label",
+          "chip"
+        ],
+        "tracking": {
+          "kicker": 3,
+          "chip": 2,
+          "label": 1
+        },
+        "trackingCjkRoles": [],
+        "trackingRules": [
+          "All five roles are Latin/mono only; the HUD carries no CJK at these sizes",
+          "3 px at 22 px = 13.6%, 2 px at 16 px = 12.5%, 1 px at 17 px = 5.9% - Latin, so design_check reports them as Latin and not as CJK deviations"
+        ]
       }
     },
     "ratchet": {

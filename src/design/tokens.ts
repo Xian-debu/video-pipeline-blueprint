@@ -16,6 +16,11 @@ export const FT = TYPE_FAMILIES.film.sizes;
 
 export const FT_T = TYPE_FAMILIES.film.tracking as Record<string, number>;
 
+/** showcase 的 HUD 字号族（标题下的胶囊、校验和面板、plate 计数），不是阶梯。 */
+export const SC = TYPE_FAMILIES.showcase.sizes;
+
+export const SC_T = TYPE_FAMILIES.showcase.tracking as Record<string, number>;
+
 export const G = {
   grid: SPACING.grid,
   gutter: SPACING.gutter,
