@@ -13,6 +13,16 @@ mkdir -p "$OUT"
 
 step() { printf '\n== %s\n' "$*"; }
 
+# Derived numbers are not committed (data/gears/*.json is ignored): a clean clone only has the
+# two sources, so the generator must run before anything imports the derived files. Keeping the
+# generator in the gate also means a stale hand-edit cannot survive a release.
+step "0.5/6 gear data (derive every number from data/gears/params.json)"
+"$PYTHON" scripts/generate_gear_data.py
+if git ls-files data/gears | grep -qvE '^data/gears/(params|voice)\.json$'; then
+  echo "FAIL derived gear data is tracked — only params.json and voice.json are sources" >&2
+  exit 1
+fi
+
 step "1/6 typecheck"
 npx tsc --noEmit
 

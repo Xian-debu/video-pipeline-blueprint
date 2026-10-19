@@ -8,6 +8,12 @@ public/voice/gears_narration.wav
 public/voice/gears/
 data/mult/lines.json
 data/gears/lines.json
+# gears: params.json (inputs) and voice.json (measured narration) are the only sources.
+# Everything else under data/gears is written by scripts/generate_gear_data.py — never committed,
+# so a reviewer of a diff is looking at inputs, not at numbers that were already derived from them.
+data/gears/*.json
+!data/gears/params.json
+!data/gears/voice.json
 public/manim/*.mov
 # Blender plates (P16): rendered artifacts described by report.json, never committed.
 public/plates/
