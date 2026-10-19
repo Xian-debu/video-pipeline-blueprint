@@ -338,3 +338,41 @@ is documented as a CI trap.
 **Lesson for the gate.** A green `ok: true` from a renderer answers "did a PNG appear", not "did the
 path we paid for run". Probes should print the thing that would differ if the fast path were
 unavailable — here the renderer string and the device name — and someone should read it.
+
+## K22 — An isosurface extractor is watertight right up until it quietly drops a quad
+
+**Symptom.** Three ways the same extractor produced a mesh that looked fine on screen and was not
+a solid:
+
+1. Marching tetrahedra with a fixed cube decomposition: 161,172 boundary edges on the gear and
+   56,584 non-manifold edges. Every triangle was in the right place; the shared faces between
+   neighbouring cells were triangulated along *different diagonals*, so the surface had hairline
+   cracks the whole way through.
+2. Surface nets, bounding box found by scanning for interior samples at 48³: the scan missed the
+   chip's 0.03-half-thickness pins, the box closed onto the solid, the extractor clipped the
+   surface at the boundary, and 872 edges came out open. The mesh still rendered, just with a hole
+   where the clip was.
+3. Newton-projecting each vertex onto the isosurface with `p -= f * grad f / |grad f|^2`: vertices
+   flew 46 units away from a 2-unit prop and the volume came out 4×10⁴ % high.
+
+**Mechanism.** Each is the same class of bug: a step that is *usually* a no-op becomes visible only
+when a feature is smaller than a cell. A tetrahedral face diagonal is invisible on a smooth blob and
+fatal on a lathe; a bounding-box scan is exact for a sphere and wrong for a pin; Newton's step is
+exact for a true distance field (`|grad f| = 1`) and divergent where a boolean of primitives gives
+only a bound, because `|grad f|` can be near zero while the threshold check ("gradient is not
+zero") still passes. And watertightness cannot be seen in a picture — an open crack renders as a
+slightly different shade.
+
+**Fix here.** Surface nets (one vertex per crossed cell, one quad per crossing grid edge) makes
+watertightness a property of the construction. Props declare their own cubic bounds instead of
+scanning for one. The Newton step is normalised, clamped to 1.2 cells and skipped when
+`|grad f| < 0.2`; the gradient itself is a centred difference *divided by 2h* (the undivided
+version has `|g| ≈ 0.015`, which silently skips every projection — that cost a round too).
+Finally, the generator counts boundary and non-manifold edges itself, refuses to write a file that
+fails, and `model_lint --watertight` re-derives the same numbers from the bytes.
+
+**Lesson for the gate.** "It is a closed surface" is a countable claim, so count it: every
+undirected edge used exactly twice, in opposite directions (and every edge oriented consistently
+with the outward normal). If a generator cannot prove that from its own topology, it cannot claim
+watertight in a doc either. The corollary is documented as a limit in `docs/sdf-assets.md`: a
+feature thinner than one cell does not degrade gracefully — it tears the mesh.

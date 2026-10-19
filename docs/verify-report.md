@@ -417,9 +417,10 @@ exit 2  (no gate ran)
 
 Still review frames are derived rather than listed: `still_lint.mjs` reads each film's `script.ts`
 and takes the midpoint of every scene (accumulating `dur`, since the lecture's `SCENES` carry no
-`start`), so 31 frames are linted — Storyboard 2, Showreel 2, Transitions 2, Typesetting 2,
-ThreeCube 1, Presets 3, Lecture 9, Multiplication 10 — and a frame past the composition's end is an
-error, never a clamp.
+`start`), so 36 frames are linted — Storyboard 2, Showreel 2, Transitions 2, Typesetting 2, ThreeCube 1,
+ThreeStage 3, PropStage 2, Presets 3, Lecture 9, Multiplication 10 — and a frame past the composition's
+end is an error, never a clamp. (PlateStage is linted only when its plates exist, since `public/plates/`
+is not in the repo.)
 
 Two gate rules were fixed while doing this, both found by the new frames (`docs/known-issues.md`
 K19): an out-of-range target used to be clamped to the last frame, and the overlap test used text
@@ -441,7 +442,7 @@ node scripts/qa/three_frame_lint.mjs --composition=ThreeStage --frames=150,450,7
   PASS frame 150  coverage 14.59%  bg 18  mean 37.18  sha256 b8d4e3d3d6cb2a68
   PASS frame 450  coverage 17.83%  bg 22  mean 38.00  sha256 11668ce1a95690af
   PASS frame 750  coverage  4.37%  bg 25  mean 27.01  sha256 21cfd6594f98c6b9
-node scripts/qa/still_lint.mjs                                                     PASS (34 frames)
+node scripts/qa/still_lint.mjs                                                     PASS (36 frames)
 ```
 
 **What was seen, and what changed because of it.** The first frames of shots B and C contained no
@@ -501,7 +502,7 @@ npx remotion render PlateStage  →  90 frames · 1920×1080 · 30 fps · 387,96
 python3 scripts/qa/luma_blink.py
   frames=90 mean=34.85 min=28.82 max=36.23
   mean|d|=0.0895 p99=0.5497 max=0.56 jump_thresh=12.0  → PASS
-node scripts/qa/still_lint.mjs  →  PASS (34 frames)
+node scripts/qa/still_lint.mjs  →  PASS (36 frames)
 ```
 
 **Three engine facts, each of which cost a cycle to find** (K21):
@@ -531,6 +532,59 @@ the contract forbids for new work. Rather than grandfather them into
 `type.families.showcase` (`SC.*` / `SC_T.*`), frozen from the accepted stills. The ratchet now
 reports *52 literals across 9 files, unchanged*, and the refactor is provably non-visual: frame 30
 hashed `9beb01e7…` before and after.
+
+## Generated assets (`PropStage`, 150 frames)
+
+A third way to get geometry: write the shape as a distance field, not as a mesh. Props are CSG
+expressions — a gear is a disc minus four lightening holes minus an axle bore, plus twelve teeth —
+and a surface-nets extractor turns the field into triangles. The normal is the analytic gradient of
+the field, so there are no carving steps to smooth away; watertightness is a property of the
+construction, not a claim made afterwards.
+
+```
+npm run props          # gear, chip, nut -> public/models/prop_*.glb
+  prop gear  112^3  bbox 1.92x0.38x1.92  tris 61,088  V 0.5847  mc 0.5871  dV 0.42%
+               cell 0.0179  proj 18504 (max 0.0098)  boundary 0  nonManifold 0  flipped 0  2490 ms
+  prop chip  112^3  bbox 2.5x0.28x2.3    tris 39,908  V 0.9109  mc 0.9298  dV 2.04%  …
+  prop nut   112^3  bbox 1.6x0.44x1.6    tris 50,128  V 0.8151  mc 0.8284  dV 1.61%  …
+npm run lint:props
+  PASS prop_chip.glb   958,724 B · 1 prim / 39,908 tris · watertight · sha256 e3a84dbcf5afc3a1
+  PASS prop_gear.glb 1,466,808 B · 1 prim / 61,088 tris · watertight · sha256 57ec4bd056425241
+  PASS prop_nut.glb  1,203,956 B · 1 prim / 50,128 tris · watertight · sha256 e80ea5d20788f4ca
+  model_lint: PASS — 4 asset(s), triangles ≤ 400000, watertight required
+npx remotion render PropStage  →  150 frames · 1920×1080 · 30 fps · 764,905 B
+node scripts/qa/still_lint.mjs →  PASS (36 frames)
+```
+
+Volume is checked two ways that share no code: the divergence theorem over the extracted triangles,
+and a Monte-Carlo integration of the same distance field (200,000 samples). They agree to 0.42 %,
+2.04 % and 1.61 %; a mesh that looks closed but is not would diverge on both, not just one.
+
+**What was seen, and what changed because of it.** The first PropStage frames contained the ground
+plane, the lights and the shadows — and no props at all: the three `useGltf` calls had been placed
+*inside* the canvas subtree, the same trap as K20 in a different disguise. That is now a rule carved
+into the composition: every `useGltf` runs in the body of the shot, outside `Canvas3D`.
+
+With the props visible, the surfaces were covered in moiré bands. Two causes, found by turning
+shadows off (the bands flattened, so half of it was shadow acne at 1024 map resolution — the shipped
+setting is 2048 with `bias -0.0002` / `normalBias 0.02`), and the remaining bands are the honest
+resolution limit of surface nets on hard-edged props: it has no edge representation, so a gear tooth
+gets rounded at cell scale (0.018 units). Newton projection plus six Taubin rounds improved the
+silhouette; they did not remove it. This is recorded as a limitation in `docs/sdf-assets.md`, not
+hidden behind a blur.
+
+**Three extractor bugs, all found by counting instead of looking** (K22). Marching tetrahedra on a
+fixed cube decomposition left 161,172 boundary edges, because neighbouring cells triangulated their
+shared face along different diagonals; a bounding box found by scanning for interior samples missed
+the chip's 0.03-thick pins, so the extractor clipped the surface and produced 872 open edges; and a
+Newton step normalised by `|grad f|` rather than `1` threw vertices 46 units away on a field whose
+gradient is only a bound. Surface nets fixed the first, explicit per-prop bounds the second, and a
+clamped step with a `|grad f|` floor the third. The generator now counts boundary and non-manifold
+edges itself and refuses to write a file that fails.
+
+**A regression this work caught in an older gate.** `still_lint` gained the PropStage frames
+(34 → 36) and, in doing so, revealed that the type ratchet was already red on the previous commit
+— see the plate section above.
 
 ## What this report does not prove
 

@@ -127,7 +127,10 @@ A change is done when all of the following are true and their numbers are writte
    (composition is deliberately not machine-judged — see `docs/3d.md`). A change that touches plates
    also passes `node scripts/qa/plate_lint.mjs` (manifest vs. files vs. consumer duration) and
    states which engine and device rendered them: a plate set is evidence only if it says what made
-   it, and "it rendered" is not "the GPU rendered" — see `docs/known-issues.md` K21.
+   it, and "it rendered" is not "the GPU rendered" — see `docs/known-issues.md` K21. A change that adds or regenerates a generated asset also
+    passes `npm run lint:props`: watertight is a hard requirement there, not a nicety, and the
+    generator proves it from its own topology before writing the file (every undirected edge exactly
+    twice, opposite directions — see K22 and `docs/sdf-assets.md`).
 4. Stills regenerated for the changed scenes and **looked at**; the finding is recorded in
    `docs/verify-report.md` (what was checked, what was seen).
 5. A render exists and its duration matches the scene budget.

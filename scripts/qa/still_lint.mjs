@@ -41,6 +41,7 @@ const DEFAULT_TARGETS = [
   { id: "ThreeCube", frames: [30] },
   // One frame per 3D shot: procedural lattice, imported glTF, transparent composite.
   { id: "ThreeStage", frames: [150, 450, 750] },
+  { id: "PropStage", frames: [45, 110] },
   // One frame per preset: the gallery exists so a look can be checked, and the
   // check that matters most is that text still sits inside the frame in it.
   { id: "Presets", frames: [45, 135, 225] },

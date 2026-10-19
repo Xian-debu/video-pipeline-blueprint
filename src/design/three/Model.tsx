@@ -43,13 +43,23 @@ export const useGltf = (url: string): THREE.Group | null => {
 };
 
 /** 归一化 + 材质覆盖 + 法线补齐（雕刻网格常常没有平滑法线，会出台阶）。 */
-export const prepare = (source: THREE.Group, height: number, preset: MaterialPreset, color: string): THREE.Group => {
+export const prepare = (
+  source: THREE.Group,
+  height: number,
+  preset: MaterialPreset,
+  color: string,
+  fit: "height" | "max" = "height"
+): THREE.Group => {
   const root = source.clone(true);
   root.updateMatrixWorld(true);
   const box = new THREE.Box3().setFromObject(root);
   const size = new THREE.Vector3();
   box.getSize(size);
-  const scale = height / Math.max(size.y, 1e-6);
+  // fit="height"（默认）：把 Y 高度归一化到 height，适合站立的角色/扫描件。
+  // fit="max"：把最长边归一化，适合齿轮、芯片这类扁平件 —— 按 Y 归一化会把
+  // 一个 0.38 高的齿轮放大成 7.5 宽，占满整个镜头。
+  const span = fit === "max" ? Math.max(size.x, size.y, size.z) : size.y;
+  const scale = height / Math.max(span, 1e-6);
   const center = new THREE.Vector3();
   box.getCenter(center);
   const wrapper = new THREE.Group();
@@ -72,6 +82,8 @@ export const prepare = (source: THREE.Group, height: number, preset: MaterialPre
 export const Model: React.FC<{
   source: THREE.Group;
   height?: number;
+  /** 归一化基准：height = Y 高度，max = 最长边（扁平件用它）。 */
+  fit?: "height" | "max";
   material?: MaterialPreset;
   color?: string;
   y?: number;
@@ -84,11 +96,11 @@ export const Model: React.FC<{
    */
   wireframe?: boolean;
   wireframeColor?: string;
-}> = ({ source, height = 2, material = "matte", color = PAL.paper, y = 0, spin = 0, wireframe = false, wireframeColor = "#7ee0c8" }) => {
+}> = ({ source, height = 2, fit = "height", material = "matte", color = PAL.paper, y = 0, spin = 0, wireframe = false, wireframeColor = "#7ee0c8" }) => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const obj = useMemo(() => {
-    const prepared = prepare(source, height, material, color);
+    const prepared = prepare(source, height, material, color, fit);
     if (wireframe) {
       // 先收集再挂载：traverse 期间往树里加节点会让遍历无限深入（子节点也会被遍历）。
       const meshes: THREE.Mesh[] = [];
@@ -106,6 +118,6 @@ export const Model: React.FC<{
       }
     }
     return prepared;
-  }, [source, height, material, color, wireframe, wireframeColor]);
+  }, [source, height, fit, material, color, wireframe, wireframeColor]);
   return <primitive object={obj} position={[0, y, 0]} rotation={[0, (frame / fps) * spin, 0]} />;
 };

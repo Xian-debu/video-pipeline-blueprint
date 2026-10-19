@@ -6,10 +6,25 @@ import { C } from "../tokens";
  * 颜色同样来自令牌——3D 的灯光是设计系统的一部分，不是渲染参数。
  * 阴影贴图固定 1024，避免不同机器上的默认值差异。
  */
-export const StudioLights: React.FC<{ ambient?: number; key?: number; rim?: number }> = ({
+export const StudioLights: React.FC<{
+  ambient?: number;
+  key?: number;
+  rim?: number;
+  /** 阴影贴图边长。小而近的物体（道具在 1.5 单位量级）需要更大，否则自阴影出条纹。 */
+  shadowSize?: number;
+  shadowBias?: number;
+  /** 沿法线的偏移，比 depth bias 更能压掉平面上的自阴影条纹。 */
+  shadowNormalBias?: number;
+  /** 主光阴影相机的半边长；场景越大越要放宽，太小会让阴影在视野外被裁掉。 */
+  shadowExtent?: number;
+}> = ({
   ambient = 0.42,
   key = 2.6,
   rim = 1.5,
+  shadowSize = 1024,
+  shadowBias = -0.0006,
+  shadowNormalBias = 0,
+  shadowExtent = 9,
 }) => (
   <>
     <ambientLight intensity={ambient} color={C.bgSoft} />
@@ -18,12 +33,13 @@ export const StudioLights: React.FC<{ ambient?: number; key?: number; rim?: numb
       intensity={key}
       color={C.paper}
       castShadow
-      shadow-mapSize={[1024, 1024]}
-      shadow-bias={-0.0006}
-      shadow-camera-left={-9}
-      shadow-camera-right={9}
-      shadow-camera-top={9}
-      shadow-camera-bottom={-9}
+      shadow-mapSize={[shadowSize, shadowSize]}
+      shadow-bias={shadowBias}
+      shadow-normalBias={shadowNormalBias}
+      shadow-camera-left={-shadowExtent}
+      shadow-camera-right={shadowExtent}
+      shadow-camera-top={shadowExtent}
+      shadow-camera-bottom={-shadowExtent}
       shadow-camera-near={0.5}
       shadow-camera-far={40}
     />

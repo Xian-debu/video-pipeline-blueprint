@@ -25,7 +25,7 @@ integrated loudness -15.1 LUFS, true peak -1.8 dBTP, 41 narration lines.
 
 不是库，不是 SaaS，不是一键安装器。目标是：克隆下来，`bash scripts/bootstrap.sh` +
 `npm run verify` 两分钟内得到 PASS，然后照着 `docs/deployment.md` 换成你自己的内容。
-坑都在 `docs/known-issues.md`（K1–K21），没有一条是假设出来的。
+坑都在 `docs/known-issues.md`（K1–K22），没有一条是假设出来的。
 
 ## 1. What this is, and what it is not
 
@@ -135,12 +135,14 @@ Three independent layers, joined only by files:
 │  │                           probe (inert unless lint props are set)
 │  └─ showcase/                one-file samples: transitions, typesetting, ThreeCube, ThreeStage
 │                              (procedural / imported / composited 3D), PlateStage (consumes
-│                              Blender plates), Manim overlay, preset gallery (one look per preset)
+│                              Blender plates), PropStage (generated SDF props), Manim overlay,
+│                              preset gallery (one look per preset)
 ├─ data/                       shared contract only: design.spec.json, type-exceptions.json
 │  ├─ lecture/                 the quicksort film's own facts: trace, counters, source, voice timing
 │  └─ mult/                    the multiplication film's own facts: counts, benchmarks, NTT, code, voice
 ├─ public/voice/sample.wav     one narration line, kept so the audio path can be tested without TTS
-├─ public/models/              nailong_v3_15k.glb (262 KB), smoothed, watertight, no normals
+├─ public/models/              nailong_v3_15k.glb (262 KB, smoothed, watertight, no normals) and
+│                              prop_{gear,chip,nut}.glb (SDF/CSG, watertight, generated)
 ├─ scripts/
 │  ├─ bootstrap.sh             system libraries, node, npm, headless Chromium
 │  ├─ doctor.sh                read-only environment report (PASS/FAIL)
@@ -160,6 +162,7 @@ Three independent layers, joined only by files:
 │  ├─ qa/model_lint.mjs        parses a GLB without three.js: triangle budget, extent, watertight
 │  ├─ qa/three_frame_lint.mjs  renders 3D frames and measures coverage / black / determinism
 │  ├─ assets/smooth_glb.mjs    dependency-free Taubin smoother for carved/voxel meshes
+│  ├─ assets/sdf_props.mjs     SDF/CSG props -> surface nets -> watertight GLB (geometry as code)
 │  ├─ blender/render_plates.py offline plates without Blender's GUI: scene, camera by frame
 │  │                           number, report.json with a sha256 per frame (Blender is optional)
 │  ├─ qa/plate_lint.mjs        plate set integrity: contiguous frames, byte/sha match, duration
@@ -179,8 +182,9 @@ Compositions: `Storyboard` (generic, 20 s), `Showreel` (30 s), `Lecture` (305 s 
 `Multiplication` (591 s demo, the second film), `Transitions`, `Typesetting`, `ThreeCube`,
 `ManimOverlay` (single-capability samples), `ThreeStage` (30 s: procedural geometry, an imported
 `.glb`, and a transparent 3D layer over 2D text), `PlateStage` (3 s: consumes a Blender-rendered
-plate sequence; needs `npm run plates` first, and says so when the plates are missing) and
-`Presets` (9 s: the same title scene in each palette preset, for judging a look).
+plate sequence; needs `npm run plates` first, and says so when the plates are missing), `PropStage`
+(5 s: three props that exist only as CSG expressions, built by `npm run props`) and `Presets`
+(9 s: the same title scene in each palette preset, for judging a look).
 
 One command runs the whole delivery. `npm run make` walks the stages in the order that makes a
 failure cheapest to fix — contract, score, score gate, picture-only render, review stills, still
@@ -335,6 +339,8 @@ Node — see `docs/known-issues.md` K2), and any cloud TTS.
 2.7  3D frames          three_frame_lint.mjs: coverage floor/ceiling, not black, sha256 twice
 2.8  plate set          plate_lint.mjs: frames contiguous, every PNG byte/sha matches report.json,
                         report count == PlateStage duration (skipped with a reason when absent)
+2.9  generated props    lint:props: every prop_*.glb parses, stays under the triangle budget,
+                        and is watertight (boundary edges = 0, non-manifold edges = 0)
 3/6  score              deterministic wav from seed 11 (32 s)
 3.4  music self-test    music_gate.py --self-test: a sub-only bed must still be rejected
 3.5  music gate         music_gate.py: >= 50% of power in 250-4k Hz, <= 20% in 20-120 Hz

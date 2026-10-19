@@ -40,7 +40,15 @@ Ordered by value per unit of work, based on what actually slowed the reference p
    8.18 s/frame at 1080p/64 spp on CUDA (90 frames in 736 s) — cheap enough to keep out of the edit
    loop, which is why it is a cached artifact and not a render step. EEVEE in background mode is documented as a trap: it
    silently falls back to Mesa's software rasteriser (K21).
-7. **Score presets** — a few named arrangements (calm/lecture/tutorial) instead of manual BPM/energy.
+7. ~~**Generated SDF/CSG assets**~~ — **Done** (`scripts/assets/sdf_props.mjs`, `PropStage`,
+   `docs/sdf-assets.md`). Props exist only as distance-field expressions; a surface-nets extractor
+   turns them into a mesh, the normal is the analytic gradient (so there are no carving steps), and
+   the generator refuses to write a file that is not closed — surface nets makes watertightness a
+   property of the construction, and the mesh volume is cross-checked against a Monte-Carlo
+   integration of the same field (ΔV ≤ 2.04%). Three props, 39,908–61,088 triangles, ~1 MB each.
+   Limits are documented honestly: a feature thinner than one cell tears the mesh, and hard edges are
+   rounded at cell scale (K22).
+8. **Score presets** — a few named arrangements (calm/lecture/tutorial) instead of manual BPM/energy.
 
 ## Medium term
 

@@ -52,6 +52,11 @@ else
   step "2.8/6 plate set — skipped (public/plates/showcase not rendered; see docs/blender-plates.md)"
 fi
 
+# Generated props are produced by code, so the artifacts are in the repo and this gate is
+# unconditional: a prop that stopped being watertight is a broken file, not a stale cache.
+step "2.9/6 generated props (watertight, inside the triangle budget)"
+npm run --silent lint:props
+
 step "3/6 programmatic score (deterministic)"
 node scripts/audio/render_music.mjs --out=public/music/demo.wav --duration=32 --bpm=92 --seed=11 --energy=0.55
 
