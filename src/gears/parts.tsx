@@ -261,19 +261,33 @@ export const Head: React.FC<{ id: string }> = ({ id }) => {
  * useVideoConfig，用 CSS 缩一半只会把画面拉歪）。要把画面让给左侧文字，就把
  * 物体在相机空间里整体右移 —— 这是几何，不是布局。
  */
-export const Stage: React.FC<{ children: React.ReactNode; camera?: "wide" | "product" | "low" | "top"; shift?: number }> = ({
-  children,
-  camera = "product",
-  shift = 1.25,
-}) => (
+export const Stage: React.FC<{
+  children: React.ReactNode;
+  camera?: "wide" | "product" | "low" | "top";
+  shift?: number;
+  /** 正面补光强度：盘面几乎与主光垂直，没有它只剩轮廓（K23）。 */
+  front?: number;
+  /** ACES 曝光。齿轮材质是浅色纸感，满曝光时盘面读成"贴纸"；0.9 让白色落到 210 附近。 */
+  exposure?: number;
+}> = ({ children, camera = "product", shift = 1.25, front = 2.2, exposure = 0.9 }) => (
   <AbsoluteFill style={{ pointerEvents: "none" }}>
-    <Canvas3D camera={camera} background={null}>
+    <Canvas3D camera={camera} background={null} exposure={exposure}>
       <group position={[shift, 0, 0]}>
-        {/* 齿轮是平的：正面几乎与主光垂直，不补一盏正面光，盘面就只剩轮廓。 */}
-        <directionalLight position={[1.2, 3.2, 9]} intensity={2.2} color={C.paper} />
+        <directionalLight position={[1.2, 3.2, 9]} intensity={front} color={C.paper} />
         {children}
       </group>
     </Canvas3D>
+    {/* 镜头暗角，只压在 3D 层上：文字在同一层之上，不会被一起压暗。
+        不是滤镜——是把注意力从四角收回画面中心（docs/32 §2）。 */}
+    <div
+      style={{
+        position: "absolute",
+        inset: 0,
+        pointerEvents: "none",
+        background:
+          "radial-gradient(ellipse 80% 80% at 52% 46%, rgba(0,0,0,0) 42%, rgba(0,0,0,0.17) 78%, rgba(0,0,0,0.34) 100%)",
+      }}
+    />
   </AbsoluteFill>
 );
 
@@ -293,4 +307,3 @@ export const Value: React.FC<{ label: string; value: string; at: number }> = ({ 
     </div>
   );
 };
-
