@@ -1,6 +1,5 @@
 import React from "react";
 import { useFrame, useThree } from "@react-three/fiber";
-import { useCurrentFrame } from "remotion";
 import * as THREE from "three";
 
 /**
@@ -28,18 +27,12 @@ import * as THREE from "three";
  */
 export type DofSettings = {
   /**
-   * 对焦距离（相机空间 z，单位≈世界单位）。
-   * 省略时每帧按"相机到 subject 的距离"自动算 —— 运镜一动焦点就跟着动，
-   * 不会出现推轨推过去主体虚掉的穿帮。
+   * 对焦距离：相机空间 z，也就是沿视线方向的深度（不是到相机的直线距离）。
+   * 必须给，而且是量出来的 —— 齿轮是大圆盘，盘面斜着插进画面，同一个零件的
+   * 深度跨度有好几个世界单位；"对焦到零件原点"会把焦平面放到零件后面去。
+   * 量法：把 depth 可视化渲一帧，读对焦位置那个像素的深度（见 docs/34 §4）。
    */
-  focus?: number;
-  /** 自动对焦的落点（世界坐标）。省略则不跟踪，焦点固定在对焦距离上。 */
-  subject?: [number, number, number];
-  /**
-   * 移焦（rack focus）：在 [start, end] 帧之间把焦点从 subject 挪到 to。
-   * 这是叙事动作，不是渲染参数 —— 所以由场次给帧号，渲染器只负责插值。
-   */
-  rack?: { to: [number, number, number]; start: number; end: number };
+  focus: number;
   /** 从焦点到完全虚化的距离。越小，景深越"薄"。 */
   range?: number;
   /** 完全虚化时的模糊半径（1080p 像素）。 */
@@ -133,21 +126,11 @@ void main() {
 `;
 
 export const DepthOfField: React.FC<{ settings: DofSettings; exposure?: number }> = ({ settings, exposure = 1 }) => {
-  const frame = useCurrentFrame();
   const gl = useThree((s) => s.gl);
   const scene = useThree((s) => s.scene);
   const camera = useThree((s) => s.camera);
   const size = useThree((s) => s.size);
 
-  const subject = React.useMemo(
-    () => (settings.subject ? new THREE.Vector3(...settings.subject) : null),
-    [settings.subject?.[0], settings.subject?.[1], settings.subject?.[2]]
-  );
-  const rackTo = React.useMemo(
-    () => (settings.rack ? new THREE.Vector3(...settings.rack.to) : null),
-    [settings.rack?.to[0], settings.rack?.to[1], settings.rack?.to[2]]
-  );
-  const focusPoint = React.useMemo(() => new THREE.Vector3(), []);
 
   const rig = React.useMemo(() => {
     const rt = new THREE.WebGLRenderTarget(size.width, size.height, {
@@ -166,7 +149,7 @@ export const DepthOfField: React.FC<{ settings: DofSettings; exposure?: number }
         uRes: { value: new THREE.Vector2(size.width, size.height) },
         uNear: { value: camera.near },
         uFar: { value: camera.far },
-        uFocus: { value: settings.focus ?? camera.position.length() },
+        uFocus: { value: settings.focus },
         uRange: { value: settings.range ?? 6 },
         uBlur: { value: ((settings.blur ?? 8) * size.height) / 1080 },
         uExposure: { value: exposure },
@@ -190,19 +173,6 @@ export const DepthOfField: React.FC<{ settings: DofSettings; exposure?: number }
 
   // 接管控件渲染：priority>0 时 R3F 不再自己 render，由这里两趟完成。
   useFrame(() => {
-    // 自动对焦：CameraRig（Dolly/Crane/Orbit）在本帧已经改过相机位置，这里读到的是当帧值。
-    if (settings.focus === undefined) {
-      if (subject) {
-        focusPoint.copy(subject);
-        if (rackTo && settings.rack) {
-          const t = Math.min(1, Math.max(0, (frame - settings.rack.start) / Math.max(1, settings.rack.end - settings.rack.start)));
-          focusPoint.lerp(rackTo, t * t * (3 - 2 * t));
-        }
-        rig.material.uniforms.uFocus.value = camera.position.distanceTo(focusPoint);
-      } else {
-        rig.material.uniforms.uFocus.value = camera.position.length();
-      }
-    }
     gl.setRenderTarget(rig.rt);
     gl.setClearColor(0x000000, 0);
     gl.clear();

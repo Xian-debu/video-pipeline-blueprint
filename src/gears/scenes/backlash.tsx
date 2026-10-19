@@ -33,8 +33,10 @@ const SBacklash: React.FC = () => {
       <div style={{ position: "absolute", left: 40, right: "38%", top: 470, bottom: 150 }}>
         <BacklashDiagram f={f} />
       </div>
-      {/* 广角 + 大轮盘面斜着退向画外：薄景深把远侧齿顶压软，视线才落在啮合处那道缝上。 */}
-      <Stage camera="wide" shift={1.6} dof={{ range: 6, blur: 6, subject: [0, 0.1, 0] }}>
+      {/* 广角 + 大轮盘面斜着退向画外：薄景深把远侧齿顶压软，视线才落在啮合处那道缝上。
+          9.0 是量出来的：渲一帧深度图，啮合处那几个像素的深度在 8.5–9.1 之间。
+          机位是固定的 wide，所以一个常数就够，不需要跟踪。 */}
+      <Stage camera="wide" shift={1.6} dof={{ focus: 9.0, range: 4, blur: 6 }}>
         <StudioLights ambient={0.6} key={2.4} shadowSize={1024} />
         <group position={[0, 0.1, 0]} rotation={[0.12, 0.2, 0]} scale={1 / (MM * 0.8)}>
           <Pair th={f * 0.01} material="matte" />

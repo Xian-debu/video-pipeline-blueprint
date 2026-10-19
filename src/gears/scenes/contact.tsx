@@ -40,8 +40,9 @@ const SContact: React.FC = () => {
           啮合线走过 {(travel * eps).toFixed(2)} 个齿距
         </div>
       </div>
-      {/* 推轨近景：齿顶一排排退向远处，焦点跟着 camera 到啮合点自动走。 */}
-      <Stage camera="product" dof={{ range: 8, blur: 4, subject: [0, 0.1, 0] }}>
+      {/* 推轨近景：齿顶一排排退向远处。9.5 取自深度图（中段啮合处 10.5，收尾推到 8.0），
+          推轨全片只走 2.6 个单位，range 8 下这点漂移落在 1 px 以内。 */}
+      <Stage camera="product" dof={{ focus: 9.5, range: 5, blur: 4 }}>
         <StudioLights ambient={0.5} key={2.9} shadowSize={2048} shadowBias={-0.0002} shadowNormalBias={0.02} />
         <group position={[0, 0.1, 0]} rotation={[0.42, -0.3, 0]} scale={1 / (MM * 0.8)}>
           <Pair th={f * 0.05} material="satin" highlight={0} />
