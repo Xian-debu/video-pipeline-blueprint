@@ -60,6 +60,7 @@ const FILM_SCRIPTS = {
   Lecture: "src/lecture/script.ts",
   Multiplication: "src/mult/script.ts",
   Gears: "src/gears/script.ts",
+  Hawk: "src/hawk/script.ts",
 };
 
 async function filmTargets() {

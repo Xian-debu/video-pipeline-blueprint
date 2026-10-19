@@ -1,7 +1,7 @@
 {
   "meta": {
     "source": "Hawk: An Efficient NALM System for Accurate Low-Power Appliance Recognition (SenSys '24)",
-    "note": "所有数值逐条摘自论文正文与 Table 1–4 / Figure 16，未做二次计算；field 表只摘录 11 台中的代表行，avg 行原样保留。"
+    "note": "所有数值逐条摘自论文正文与 Table 1–4 / Figure 16，未做二次计算；field.rows 是 Table 4 全部 9 行，avg 行原样保留。基线值均标注 baseline 前缀，勿混用。"
   },
   "headline": {
     "stateAvgF1": 93.94,
@@ -11,13 +11,17 @@
   },
   "hawkdata": {
     "appliances": 22,
-    "hours": 2304,
+    "programmableAppliances": 18,
+    "hours": 32.2,
+    "baselineHours": 2304,
     "uniqueStateEverySec": 25.43,
     "switchEventEverySec": 18.91,
-    "categoryBR": 0.0014,
+    "categoryBR": 0.212,
+    "baselineCategoryBR": 0.0014,
     "onStateBR": 0.877,
+    "baselineOnStateBR": 0.000122,
     "onOffBR": 0.424,
-    "baselineOnOffBR": 0.000122,
+    "baselineOnOffBR": 0.338,
     "collectionTimeRatio": 71.5,
     "stateComboGain": 6.34
   },
@@ -123,14 +127,17 @@
   },
   "sync": {
     "within220usPct": 99.65,
-    "precisionUnderMs": 5
+    "avgSyncErrorUs": 20.6,
+    "maxSyncErrorUs": 61.8,
+    "vsTsfRatio": 17.2,
+    "relatedLIT2020PrecisionMs": 5
   },
   "oss": {
     "repo": "https://github.com/WZiJ/SenSys24-Hawk",
     "includes": [
       "Hawk 的算法管线源码",
       "HawkDATA 数据集",
-      "22 台可编程电器的标注"
+      "实验室 22 台电器（18 台可编程）的标注"
     ],
     "license": "CC BY 4.0",
     "doi": "https://doi.org/10.1145/3666025.3699359"

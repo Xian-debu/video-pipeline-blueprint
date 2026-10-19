@@ -36,6 +36,7 @@ const EXPORTS = {
   Lecture: { script: "src/lecture/script.ts", prefix: "lecture" },
   Multiplication: { script: "src/mult/script.ts", prefix: "multiplication" },
   Gears: { script: "src/gears/script.ts", prefix: "gears" },
+  Hawk: { script: "src/hawk/script.ts", prefix: "hawk" },
 };
 const OUT = path.resolve(ROOT, args.out ?? "out/package");
 const NARRATION = args.narration ?? "public/voice/narration.wav";

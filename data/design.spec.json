@@ -540,7 +540,8 @@
           "label": 21,
           "code": 19,
           "meta": 17,
-          "tiny": 15
+          "tiny": 15,
+          "micro": 12
         },
         "order": [
           "cover",
@@ -554,16 +555,20 @@
           "label",
           "code",
           "meta",
-          "tiny"
+          "tiny",
+          "micro"
         ],
         "tracking": {
           "label": 3,
-          "meta": 2
+          "meta": 2,
+          "cover": 8,
+          "micro": 1
         },
         "trackingCjkRoles": [],
         "trackingRules": [
           "label and meta are Latin/mono roles only (kickers, counters, the chapter bar); CJK text in this film carries zero tracking",
-          "3 px at 21 px = 14.3% and 2 px at 17 px = 11.8% are reported by design_check; both are Latin, so neither is a CJK deviation"
+          "3 px at 21 px = 14.3%, 2 px at 17 px = 11.8%, 8 px at 108 px = 7.4% and 1 px at 12 px = 8.3% are reported by design_check; all four are Latin, so none is a CJK deviation",
+          "cover (8 px on the HAWK wordmark) and micro (12 px vote-cell labels) were added for the Hawk paper film; additive keys only, no existing size changed"
         ]
       },
       "showcase": {
