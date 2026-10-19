@@ -118,6 +118,38 @@ description of the picture, it is checking the picture.
 | Deliverables | 64 SRT cues (0 wrapped), 11 chapters, cover |
 | sha256 | `458d15f08137e001433810ec1dcdfb8b369383f8eddb16d84c6beb95c4b993ef` |
 
+### The fourth film: someone else's paper, read out loud
+
+`Hawk` (composition id `Hawk`, doc `docs/hawk.md`) is the first film whose subject is not my own
+material: a 12-minute reading of *Hawk: An Efficient NALM System for Accurate Low-Power Appliance
+Recognition* (SenSys '24, CC BY 4.0) for a viewer who has never opened the paper. It is also the first
+film where the expensive part is **not** the renderer: eleven numbers had to be traced back to a line in
+the PDF after the film already passed every gate (K25), and one pre-computed difference series had to be
+thrown away because it argued the opposite of the slide it was drawn on (K26).
+
+Two paper figures are used as-is — the title page and the synchronisation-error CDF — cropped with
+`annots=False` so the highlighter marks on the annotator's copy cannot leak into the film. Everything
+else is drawn: the balanced Gray-code table, the shared-voltage clock, the 30-cycle difference, the vote
+board, the latency table.
+
+| Property | Measured |
+| --- | --- |
+| Runtime | 757.37 s, 30 fps, 1920x1080 (22,721 frames) |
+| Scenes | 12: problem, paper, four concepts, dataset, sync, difference, vote, evaluation, limits, OSS, outro |
+| Narration | 149 lines, IndexTTS-2, content-addressed clips (13 re-synthesised after the fact-check, 136 reused), 0 overruns |
+| Source ledger | `data/hawk/eval.json`, hand-written, every value carries the table it came from; 11 corrections recorded in `docs/hawk.md` §5 |
+| Paper plates | 2 of 8 crops used; `page.get_pixmap(annots=False)` + a yellow-pixel count of 0 |
+| Synthetic data | `wave.json` is flagged `synthetic: true` and says so on screen; the Gray-code sequence is derived, labelled as such |
+| Audio | aac 48 kHz, I = -15 LUFS, TP = -2 dBTP; mix gate speech -15.42, gap -25.20 |
+| Flicker gate | mean\|Δ\| 0.0171, p99 0.1234, max 25.99 across 11 declared hard cuts (threshold 12) |
+| Deliverables | 149 SRT cues (0 wrapped), 12 chapters, cover |
+| sha256 | `f44aa3a96f397ef1a091a077ccb4a9b9bf44df1e60dd5e914a8bde3528295e5a` |
+
+| | |
+| --- | --- |
+| ![Title page of the paper](docs/images/still_hawk_paper.png) | ![Steady-state difference](docs/images/still_hawk_diff.png) |
+| The paper's own first page, badge `原文 第 1 页`, with the five authors and both institutions named in the film | The difference panel: the 1500 W step leaves the axis, the +40 W plateau is boxed — computed in the component, not read from a file |
+
 ## 3. Pipeline at a glance
 
 ```

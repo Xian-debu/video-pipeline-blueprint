@@ -655,3 +655,38 @@ recorded run above (-15.2 LUFS, -1.6 dBTP, max abs delta 6.57).
 One prerequisite this exposed: the flicker gate needs `numpy`, and a bare `python3` does not have it.
 `scripts/bootstrap.sh` now installs `python3-numpy`, and `scripts/doctor.sh` checks for it, so the
 missing piece is reported before a render rather than after it.
+## The fourth film: `Hawk` (a paper read out loud)
+
+The first film whose evidence is not mine. What was verified here is therefore split: the render gates
+are the same ones as before, but the content gate is a **ledger read against the source**, because no
+machine gate can tell whether a ratio is upside down (K25).
+
+```bash
+node scripts/make.mjs --composition=Hawk \
+  --narration=public/voice/hawk_narration.wav --score=out/hawk-score.wav \
+  --cut-frames=1258,3046,4746,6441,9392,12140,14556,16628,18719,19952,21946 \
+  --out=out/hawk-package
+```
+
+Every stage exit 0, `make: PASS — out/hawk-package/Hawk.mp4 (757.37 s, -15 LUFS, TP -2 dBFS)`,
+12 of 12 scenes rendered from the committed source (`segments.reused = 0`).
+
+| Gate | Measured | Verdict |
+| --- | --- | --- |
+| Duration | 757.37 s in container for 22,721 declared frames (render 757.367, delta 0.003 s) | pass |
+| Still lint | 59 frames total (Hawk 12 + Gears 11 + Lecture 9 + Multiplication 10 + showcase 17), no off-frame box, no edge text, no spill, no overlap | pass |
+| Stem | full -25.09 dBFS, audible band -27.85, audible_share 0.631, sub_share 0.068 | pass |
+| Mix | duck 4.5 dB on 64.6 % of the timeline, peak -1.72 dBFS, rms -19.33 | pass |
+| Mix gate | speech -15.42 / gap_full -25.20 / gap_audible -28.19 dB; bed contributes 41.8 dB | pass |
+| Loudness | I = -15 LUFS, TP = -2 dBTP | pass |
+| Flicker | mean\|Δ\| 0.0171, p99 0.1234, raw max 25.99 with 11 declared cuts masked (threshold 12) | pass |
+| Exports | 149 cues (0 wrapped, longest 34 chars against a 34-char budget), 12 chapters, cover at frame 180 | pass |
+| Content ledger | 11 numbers corrected after re-reading `paper.txt`; each surviving value carries its source table (K25) | pass |
+
+Delivered file: 34,375,786 B, sha256
+`f44aa3a96f397ef1a091a077ccb4a9b9bf44df1e60dd5e914a8bde3528295e5a`.
+
+Two gate failures happened before this PASS, and both are worth more than the PASS: the film was
+invisible to `still_lint` because it was missing from `FILM_SCRIPTS` (a gate that passes because it does
+not look is not a gate), and once it was visible, two frames failed `overlap` because the DOM probe runs
+before the figure's image decodes (K27). The picture was correct in both cases; the measurement was not.

@@ -109,13 +109,18 @@ const Line: React.FC<{
 
 /** 原文图版：paper 底 + 细边框 + 「原文」角标，子元素可用百分比坐标叠标注。 */
 const Fig: React.FC<{
-  id: string; src: string; width: number; at?: number; label?: string; tag?: string; filter?: string; children?: React.ReactNode;
-}> = ({ id, src, width, at = 0, label, tag, filter, children }) => {
+  id: string; src: string; width: number; /** native size, so the box is sized before the image decodes */ w: number; h: number;
+  at?: number; label?: string; tag?: string; filter?: string; children?: React.ReactNode;
+}> = ({ id, src, width, w, h, at = 0, label, tag, filter, children }) => {
   const f = useCurrentFrame();
   const p = at === 0 ? 1 : pct(f, at, at + 24);
   return (
     <div style={{ width, opacity: p, position: "relative" }}>
-      <div style={{ position: "relative", background: C.paper, borderRadius: 8, overflow: "hidden", border: "1px solid " + C.panelLine, filter }}>
+      {/* The height is reserved from the native size. Without it the caption sits at the top of a
+          zero-height box until the image decodes, and the DOM probe — which measures earlier than
+          paint — reports the 「原文」badge and the caption overlapping: a gate failure on a frame
+          that renders fine. */}
+      <div style={{ position: "relative", width, height: Math.round((width * h) / w), background: C.paper, borderRadius: 8, overflow: "hidden", border: "1px solid " + C.panelLine, filter }}>
         <Img src={staticFile(src)} style={{ width: "100%", display: "block" }} />
         {children}
         <div style={{
@@ -238,7 +243,7 @@ const SPaper: React.FC = () => {
     <Scene id="paper">
       <Head kicker="02 / 这篇论文" title="Hawk：两条腿走路" goal="SenSys 2024，嵌入式传感系统的顶级会议" />
       <div style={{ position: "absolute", left: PAD, top: 256, display: "flex", gap: 48 }}>
-        <Fig id="header" tag="第 1 页" src="hawk/header.png" width={780} at={6} label="第 1 页 · 标题、作者与机构（会议名在页脚）" />
+        <Fig id="header" tag="第 1 页" src="hawk/header.png" width={780} w={1485} h={513} at={6} label="第 1 页 · 标题、作者与机构（会议名在页脚）" />
         <div style={{ width: 620 }}>
           <Build at={12}>
             <Mono size={FT.label} color={C.cyan} style={{ letterSpacing: FT_T.meta }}>作者团队</Mono>
@@ -471,7 +476,7 @@ const SSpt: React.FC = () => {
         </div>
       </Card>
       <div style={{ position: "absolute", left: PAD + 980, top: 268, width: CW - 980 }}>
-        <Fig id="fig10" tag="Figure 10" src="hawk/fig10.png" width={520} at={34} label="同一时刻的采样误差分布（红线 = 220 µs）">
+        <Fig id="fig10" tag="Figure 10" src="hawk/fig10.png" width={520} w={598} h={341} at={34} label="同一时刻的采样误差分布（红线 = 220 µs）">
           <div style={{ position: "absolute", left: "18%", top: 0, width: 2, height: "100%", background: "rgba(251,113,133,0.9)" }} />
         </Fig>
         <div style={{ marginTop: 10 }}>

@@ -17,7 +17,8 @@ data/gears/*.json
 public/manim/*.mov
 # Blender plates (P16): rendered artifacts described by report.json, never committed.
 public/plates/
-*.logpublic/voice/hawk/
+*.log
+public/voice/hawk/
 public/voice/hawk_narration.wav
 data/hawk/lines.json
 data/hawk/clips.json

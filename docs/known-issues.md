@@ -433,3 +433,95 @@ hidden the black frame too if the gate had been given it before the fix.
 use the same arithmetic, or the two disagree at the seams. There is now a second reason to keep the
 scene table integer where possible: `start` values that land on a half frame (x.5) round
 inconsistently between the two files.
+
+## K25 — One number under the wrong label inverts the whole argument
+
+**Symptom.** None. The hawk film rendered clean, passed tsc, passed all four static gates, and looked
+right in twelve still frames. Then I re-read `paper.txt` line by line against `eval.json` and found
+eleven numbers carrying the wrong label — the worst being "采集开销是基线的 **71.5 倍**"
+(the paper's `collectionTimeRatio` is **1/71.5**, i.e. this system is 71.5× *cheaper*) and
+"同步精度 5 ms" (5 ms is LIT2020's number; Hawk's own is 61.8 µs max / 220 µs at 99.65%,
+three orders of magnitude and someone else's credit).
+
+**Mechanism.** A paper-reading film has two independent sources of error and both are silent:
+the picture can be wrong (caught by still lint) and the *claim* can be wrong (caught by nothing).
+The gates all measure the renderer: contrast, type tokens, film isolation, luma, loudness. Not one of
+them reads the sentence. And because a narration line and its number card are authored at different
+times, a wrong ratio survives as long as the two agree with each other.
+
+**Fix here.** A single hand-written ledger (`data/hawk/eval.json`) that no component may bypass, each
+entry carrying `meta.note` with the source table; then a full pass where every on-screen number is
+grepped back to a line in `paper.txt`. Eleven corrections, all listed in `docs/hawk.md` §5.
+The narration lines that quoted a wrong value were changed too, and the TTS was re-run — which is why
+content-addressed clip naming (K-less, see §6 of the doc) matters: 13 clips re-synthesised, 136 reused.
+
+**Lesson.** For a film whose subject is someone else's evidence, "the code type-checks" is worth
+nothing. The only gate that would have caught these is a human reading the ledger against the source,
+so the ledger has to be small enough to read in one sitting and structured so each row is checkable in
+isolation — number, label, unit, source. Numbers that come in pairs (this system vs. baseline) are
+where the direction gets flipped, and every one of them needs both halves written down explicitly.
+
+## K26 — A pre-computed difference series argued the opposite of the slide it was drawn on
+
+**Symptom.** Scene 7 was supposed to show "subtract the previous steady state, and a 40 W step rises out
+from under a 1500 W background". The rendered curve showed a clean `+40 W` plateau *and* a
+`−1500 W` cliff that dominated the axis; the dashed highlight landed on the wrong segment, and with a
+naive autoscale the whole `+40 W` region collapsed into a flat line.
+
+**Mechanism.** `wave.json` carried `series.diff` — a 30-cycle sliding-window difference, useful for the
+SNR argument but wrong for *this* picture. When the 1500 W kettle step slides out of the 30-cycle
+window, the difference returns to zero with a 1500 W edge, so the series contains a huge negative step
+that has nothing to do with the appliance being recognised. The paper's "steady-state difference" is
+not that series; it is "after the step settles, difference against the new steady state".
+
+**Fix here.** Compute it in the component, for the picture's purpose:
+`d30[i] = total[i] - total[i - LAG]` with `LAG = 30`, clip the axis to ±90 W, annotate the 1500 W edge
+as explicitly out of range, and auto-detect the `18 < v < 90` run to place the `+40 W` box.
+Also: the raw series has 30 leading `null`s (no history), and `Math.min(...arr)` over that is `NaN`,
+which silently kills the whole polyline — the `Line` component now takes `(number|null)[]` and skips
+null segments instead of interpolating through them.
+
+**Lesson.** A derived data file is derived *for one question*. Reusing it in a scene that asks a
+different question produces a figure that is internally consistent, correct-looking, and arguing the
+opposite. The tell was that the argument and the picture disagreed in mood ("40 W emerges" vs. a
+1500 W cliff); when a chart needs a sentence to explain why it looks wrong, the chart is wrong.
+
+## K27 — The DOM probe measures before the image decodes, so a correct frame fails
+
+**Symptom.** With `still_lint` finally pointed at the hawk film (it had been missing from `FILM_SCRIPTS`,
+so the gate passed on a list that did not include the new film), two of twelve frames failed on
+`overlap`: the `原文 Figure 10` badge against the caption under the same figure, boxes intersecting by
+76 % of the smaller one. Both frames render perfectly — the badge is in the top-left corner of the
+figure and the caption is 300 px below it.
+
+**Mechanism.** The probe is `src/design/lint.tsx`, a React effect that reports `getBoundingClientRect`
+for every text node — it runs when the composition is ready, which is before the `<Img>` has finished
+decoding. `Fig` sized its box from the image itself (`<Img style={{width:"100%"}}>`), so at probe time
+the box was zero-height, the caption sat 8 px under the badge, and the measured layout described a
+frame that never existed on screen. Only figures that carry both a badge and a caption can fail, which
+is why exactly the two `Fig` frames were flagged and the other ten were clean.
+
+**Fix here.** `Fig` takes the native pixel size (`w`/`h`) and reserves `height = width*h/w` on the box,
+so layout no longer depends on decode order. The gate then measures what paints; the frame itself is
+byte-identical after load, but a picture is not allowed to depend on a race just because that race
+happens to be resolved by the time it is encoded.
+
+**Lesson.** "The rendered PNG looks right" and "the probe says the layout is wrong" are compatible when
+the probe runs earlier than paint. Both are true statements about different moments. A layout that
+needs a loaded asset to have its correct size is a latent bug in *any* measuring pipeline — and the
+still-frame gate is the only gate here that measures layout rather than pixels, so it is the only one
+that can see it. Corollary: adding a film to the repository but not to `FILM_SCRIPTS` silently turns
+the gate off for that film — which is what happened here for two make runs before the list caught up.
+
+## K28 — A `.gitignore` rule appended without a leading newline disables nothing, quietly
+
+**Symptom.** `git status` showed `?? public/voice/hawk/` (26 MB, 149 wav files) after the commit that was
+supposed to ignore it. The rule was there: line 20 of `.gitignore` read `*.logpublic/voice/hawk/`.
+
+**Mechanism.** The previous line was `*.log` with no trailing newline; the append concatenated two
+patterns into one string that matches neither. git reported no error, the file looked right in an
+editor that soft-wraps, and the next `git add -A` would have committed the audio.
+
+**Fix here.** Split the line, then confirm with `git check-ignore -v` rather than by eye
+(`git check-ignore` names the matching rule and its line number). The habit worth keeping: after
+editing an ignore file, ask git what it thinks, not the file.
