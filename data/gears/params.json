@@ -7,6 +7,7 @@
       "z1": 20,
       "z2": 50,
       "faceWidth": 3,
+      "backlashMm": 0.05,
       "label": "20:50"
     },
     "b": {
@@ -16,6 +17,7 @@
       "zRing": 60,
       "planets": 3,
       "faceWidth": 3,
+      "backlashMm": 0.05,
       "label": "sun 24 / planet 18 / ring 60"
     }
   },

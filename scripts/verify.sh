@@ -57,6 +57,21 @@ fi
 step "2.9/6 generated props (watertight, inside the triangle budget)"
 npm run --silent lint:props
 
+# The gears film computes its own geometry, so its gates are arithmetic ones: the
+# involute identity, the ratio, the Willis equation and the backlash angle must still
+# close, and two meshing profiles must not overlap anywhere over a tooth pitch.
+step "2.10/6 gear geometry (involute identity, ratio, Willis, backlash)"
+npm run --silent lint:geometry
+
+step "2.11/6 gear meshing (no profile crossings over a tooth pitch)"
+node scripts/qa/mesh_check.mjs
+
+step "2.12/6 3D scene budget (3D share floor, pure-2D ceiling)"
+npm run --silent lint:budget
+
+step "2.13/6 gear 3D frames (coverage, not black, deterministic)"
+node scripts/qa/three_frame_lint.mjs --composition=Gears --frames=900,2400,3150,6400,8300 --repeat
+
 step "3/6 programmatic score (deterministic)"
 node scripts/audio/render_music.mjs --out=public/music/demo.wav --duration=32 --bpm=92 --seed=11 --energy=0.55
 

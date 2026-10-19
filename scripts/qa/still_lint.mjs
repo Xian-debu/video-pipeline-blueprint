@@ -59,6 +59,7 @@ const DEFAULT_TARGETS = [
 const FILM_SCRIPTS = {
   Lecture: "src/lecture/script.ts",
   Multiplication: "src/mult/script.ts",
+  Gears: "src/gears/script.ts",
 };
 
 async function filmTargets() {

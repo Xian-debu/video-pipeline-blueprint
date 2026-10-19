@@ -17,6 +17,7 @@ import { PresetGallery, PRESET_GALLERY_FRAMES } from "./showcase/PresetGallery";
 import { Multiplication } from "./mult/Multiplication";
 import { TOTAL as MULT_FRAMES, FPS as MULT_FPS } from "./mult/script";
 import { LintAudit } from "./design/lint";
+import { Gears, GEARS_TOTAL, GEARS_FPS } from "./gears/Gears";
 import { LintFixtures } from "./qa/LintFixtures";
 
 /**
@@ -76,6 +77,15 @@ export const RemotionRoot: React.FC = () => {
         width={1920}
         height={1080}
         defaultProps={{ music: "music/score.wav", narration: null }}
+      />
+      <Composition
+        id="Gears"
+        component={withLint(Gears)}
+        durationInFrames={GEARS_TOTAL}
+        fps={GEARS_FPS}
+        width={1920}
+        height={1080}
+        defaultProps={{ music: null, narration: null }}
       />
       <Composition
         id="Multiplication"
