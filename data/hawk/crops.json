@@ -1,0 +1,114 @@
+{
+  "fig8": {
+    "file": "public/hawk/fig8.png",
+    "page": 7,
+    "bbox": [
+      350.95,
+      80.55,
+      524.8,
+      177.82
+    ],
+    "width": 532,
+    "height": 298,
+    "dpi": 220,
+    "shows": "两版 Hawk 硬件原型照片：左侧实验室版采集板，右侧部署版（含电流互感器与采集板）"
+  },
+  "fig9": {
+    "file": "public/hawk/fig9.png",
+    "page": 8,
+    "bbox": [
+      60.76,
+      84.18,
+      286.98,
+      259.67
+    ],
+    "width": 692,
+    "height": 537,
+    "dpi": 220,
+    "shows": "两处野外部署平面图：左侧 103 m² 住宅户型，右侧 25 m² 办公区单元布局，星标为 Hawk 传感器位置"
+  },
+  "fig10": {
+    "file": "public/hawk/fig10.png",
+    "page": 8,
+    "bbox": [
+      339.49,
+      80.58,
+      534.95,
+      191.93
+    ],
+    "width": 598,
+    "height": 341,
+    "dpi": 220,
+    "shows": "同步误差 CDF：TSF 与本文策略在 <1 m / 13 m 下的累积概率曲线"
+  },
+  "fig3": {
+    "file": "public/hawk/fig3.png",
+    "page": 5,
+    "bbox": [
+      88.25,
+      84.18,
+      282.07,
+      155.6
+    ],
+    "width": 593,
+    "height": 219,
+    "dpi": 220,
+    "shows": "总电流 vs 差分电流：左图为背景电水壶下的总电流波形，右图为三组差分对得到的差分电流"
+  },
+  "fig13": {
+    "file": "public/hawk/fig13.png",
+    "page": 10,
+    "bbox": [
+      51.27,
+      80.91,
+      296.47,
+      238.4
+    ],
+    "width": 750,
+    "height": 482,
+    "dpi": 220,
+    "shows": "事件分布热图：电器×背景档位网格，每格上数为训练集事件数、下数为测试集事件数，颜色为占用率"
+  },
+  "fig16": {
+    "file": "public/hawk/fig16.png",
+    "page": 11,
+    "bbox": [
+      320.84,
+      83.53,
+      557.2,
+      205.02
+    ],
+    "width": 723,
+    "height": 372,
+    "dpi": 220,
+    "shows": "状态识别精度对比：MSDC/CALM/CNN/FFT-XGBoost 原始与稳态差分增强后的平均 F1 柱状图"
+  },
+  "fig7": {
+    "file": "public/hawk/fig7.png",
+    "page": 7,
+    "bbox": [
+      78.11,
+      83.85,
+      270.29,
+      151.67
+    ],
+    "width": 588,
+    "height": 208,
+    "dpi": 220,
+    "shows": "Hawk 数据采集硬件架构框图：电源、路由器/PC、DAQ 板（ESP32 + W5500 + ADC）与 AC-AC 传感器"
+  },
+  "header": {
+    "file": "public/hawk/header.png",
+    "page": 1,
+    "bbox": [
+      75.67,
+      26.6,
+      561.42,
+      194.24
+    ],
+    "width": 1485,
+    "height": 513,
+    "dpi": 220,
+    "shows": "论文首页题头：标题、五位作者、中科院计算所/国科大/大湾区大学三机构与联系邮箱（右上为 ACM 徽标）"
+  }
+}
