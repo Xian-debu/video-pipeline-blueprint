@@ -25,7 +25,7 @@ integrated loudness -15.1 LUFS, true peak -1.8 dBTP, 41 narration lines.
 
 不是库，不是 SaaS，不是一键安装器。目标是：克隆下来，`bash scripts/bootstrap.sh` +
 `npm run verify` 两分钟内得到 PASS，然后照着 `docs/deployment.md` 换成你自己的内容。
-坑都在 `docs/known-issues.md`（K1–K22），没有一条是假设出来的。
+坑都在 `docs/known-issues.md`（K1–K23），没有一条是假设出来的。
 
 ## 1. What this is, and what it is not
 
@@ -96,6 +96,28 @@ actually executing.
 | ![Karatsuba induction](docs/images/still_mult_proof.png) | ![Measured benchmark](docs/images/still_mult_bench.png) |
 | The strengthened induction (guess `c·nᵖ − 2dn`, not `c·nᵖ`, or the step cannot close) | Same-machine benchmark; the CPython bar and the growth table come from one measurement |
 
+### The third film: gears, built rather than imported
+
+`Gears` (composition id `Gears`, doc `docs/gears.md`) is a 5-minute-33 3D-first explainer:
+why a tooth is an involute, why conjugate flanks keep the ratio constant, what a planetary set does
+to that ratio, and where backlash and module come from. It is the first film whose **picture is the
+same arithmetic the gate checks**: `data/gears/params.json` is the only place a number is written,
+`scripts/generate_gear_data.py` derives every table from it, and `profile.ts` builds the tooth
+flanks the film rotates from the same parameters — so `geometry_check.mjs` is not checking a
+description of the picture, it is checking the picture.
+
+| Property | Measured |
+| --- | --- |
+| Runtime | 332.77 s, 30 fps, 1920x1080 (9,983 frames) |
+| 3D share | 86.5 % of the runtime weighted 3D (floor 60 %); flat scenes 18.5 % (ceiling 40 %) |
+| Narration | 64 lines, IndexTTS-2, re-timed against measured speech (0 overruns) |
+| Geometry gate | 8 invariants: involute identity 7.1e-15, contact ratio 1.6558, Willis -2.5000 |
+| Mesh gate | 0 profile crossings over a tooth pitch; the gate proves it can fail (37/37 when half a tooth off) |
+| Audio | aac 48 kHz, I = -15 LUFS, TP = -2 dBTP; narration 64 lines, 0 overruns |
+| Flicker gate | mean\|Δ\| 0.0288, p99 0.1209, max 35.24 across 10 declared hard cuts (threshold 12) |
+| Deliverables | 64 SRT cues (0 wrapped), 11 chapters, cover |
+| sha256 | `458d15f08137e001433810ec1dcdfb8b369383f8eddb16d84c6beb95c4b993ef` |
+
 ## 3. Pipeline at a glance
 
 ```
@@ -125,10 +147,12 @@ Three independent layers, joined only by files:
 ```
 .
 ├─ src/
-│  ├─ Root.tsx                 registered compositions (10)
+│  ├─ Root.tsx                 registered compositions (11)
 │  ├─ storyboard/              generic template: storyboard JSON -> film
 │  ├─ lecture/                 the validated 305 s lecture (script + scenes)
 │  ├─ mult/                    the second film, 591 s: digit-wise multiplication (script + scenes)
+│  ├─ gears/                   the third film, 333 s, 3D-first: gears (script, involute profile,
+│  │                           scene components; the geometry is computed, not imported)
 │  ├─ design/                  design contract loader + derived tokens, palette scope (presets),
 │  │                           scene shell, KaTeX helpers, motion primitives, 3D primitives
 │  │                           (canvas, lights, camera rigs, materials, glTF model), still-lint
@@ -139,7 +163,9 @@ Three independent layers, joined only by files:
 │                              preset gallery (one look per preset)
 ├─ data/                       shared contract only: design.spec.json, type-exceptions.json
 │  ├─ lecture/                 the quicksort film's own facts: trace, counters, source, voice timing
-│  └─ mult/                    the multiplication film's own facts: counts, benchmarks, NTT, code, voice
+│  ├─ mult/                    the multiplication film's own facts: counts, benchmarks, NTT, code, voice
+│  └─ gears/                   the gears film's own numbers: one params.json, then every table
+│                              (centre distance, contact ratio, Willis, backlash) derived from it
 ├─ public/voice/sample.wav     one narration line, kept so the audio path can be tested without TTS
 ├─ public/models/              nailong_v3_15k.glb (262 KB, smoothed, watertight, no normals) and
 │                              prop_{gear,chip,nut}.glb (SDF/CSG, watertight, generated)
@@ -341,6 +367,12 @@ Node — see `docs/known-issues.md` K2), and any cloud TTS.
                         report count == PlateStage duration (skipped with a reason when absent)
 2.9  generated props    lint:props: every prop_*.glb parses, stays under the triangle budget,
                         and is watertight (boundary edges = 0, non-manifold edges = 0)
+2.10 gear geometry      lint:geometry: 8 invariants of the gears film's own tooth profiles
+                        (centre distance, base circle, involute identity, contact ratio, Willis)
+2.11 gear meshing       mesh_check.mjs: no profile crossings over a tooth pitch, and a half-tooth
+                        phase error is still caught (the gate proves it can fail)
+2.12 3D budget          lint:budget: weighted 3D share >= 60%, pure-2D <= 40%, each scene 20-60 s
+2.13 gear 3D frames     three_frame_lint.mjs --composition=Gears: coverage, not black, sha256 twice
 3/6  score              deterministic wav from seed 11 (32 s)
 3.4  music self-test    music_gate.py --self-test: a sub-only bed must still be rejected
 3.5  music gate         music_gate.py: >= 50% of power in 250-4k Hz, <= 20% in 20-120 Hz

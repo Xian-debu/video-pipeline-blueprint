@@ -4,7 +4,10 @@ out/
 public/music/*.wav
 public/voice/narration.wav
 public/voice/mult_narration.wav
+public/voice/gears_narration.wav
+public/voice/gears/
 data/mult/lines.json
+data/gears/lines.json
 public/manim/*.mov
 # Blender plates (P16): rendered artifacts described by report.json, never committed.
 public/plates/

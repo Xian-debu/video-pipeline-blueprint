@@ -657,8 +657,15 @@ export const Gears: React.FC<{ music?: string | null; narration?: string | null 
   <AbsoluteFill style={{ background: C.bg, fontFamily: FONT.sans, color: C.ink }}>
     {music ? <Audio src={staticFile(music)} volume={0.16} /> : null}
     {narration ? <Audio src={staticFile(narration)} volume={1} /> : null}
-    {SCENES.map((s) => (
-      <Sequence key={s.id} from={Math.round(s.start * FPS)} durationInFrames={Math.round(s.dur * FPS)}>
+    {SCENES.map((s, i) => (
+      // Boundaries come from the next scene's start, not from this scene's duration rounded on its
+      // own: two independent roundings leave a one-frame hole wherever the fractional parts differ
+      // (the hole renders as a bare background — a black flash the flicker gate catches, K24).
+      <Sequence
+        key={s.id}
+        from={Math.round(s.start * FPS)}
+        durationInFrames={(i + 1 < SCENES.length ? Math.round(SCENES[i + 1].start * FPS) : TOTAL) - Math.round(s.start * FPS)}
+      >
         {React.createElement(SCENE_COMPONENTS[s.id])}
       </Sequence>
     ))}

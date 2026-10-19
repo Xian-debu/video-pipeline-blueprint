@@ -586,6 +586,57 @@ edges itself and refuses to write a file that fails.
 (34 → 36) and, in doing so, revealed that the type ratchet was already red on the previous commit
 — see the plate section above.
 
+## The third film: `Gears` (3D-first, one command)
+
+The first film whose picture and gate consume the same numbers: `data/gears/params.json` →
+`scripts/generate_gear_data.py` → the JSON tables the components read, and `src/gears/profile.ts`
+→ the tooth flanks `geometry.ts` extrudes. `geometry_check.mjs` therefore checks the object that
+is photographed, not a description of it.
+
+Run on gen24 against the synced tree (`--force-render`, 10 declared cut frames):
+
+```bash
+node scripts/make.mjs --composition=Gears \
+  --narration=public/voice/gears_narration.wav --score=out/package_gears/score.wav \
+  --cut-frames=793,1679,2647,3602,4534,5474,6481,7351,8225,9140 \
+  --out=out/package_gears --force-render
+```
+
+Every stage exit 0, `make: PASS — out/package_gears/Gears.mp4 (332.77 s, -15 LUFS, TP -2 dBFS)`.
+
+| Gate | Measured | Verdict |
+| --- | --- | --- |
+| Duration | 332.77 s in container for 9,983 declared frames (composition and probe agree) | pass |
+| Geometry | 8 invariants: involute identity 7.11e-15, tangent 6.32e-3 < 9.51e-3, contact ratio 1.6558, Willis -2.5000, backlash 0.00e+0 | pass |
+| Meshing | 20/50 over one pitch 0 crossings; planetary 60° 0 crossings; half-tooth error caught 37/37 | pass |
+| 3D budget | 288.49 s weighted = 86.7 % (floor 60 %), flat scenes 60.87 s = 18.3 % (ceiling 40 %) | pass |
+| 3D frames | 10 frames, coverage 3.4–23.5 %, deterministic (repeat hashes equal) | pass |
+| Still lint | 47 frames total (Lecture 9 + Multiplication 10 + Gears 11 + showcase 17), no spill/overlap | pass |
+| Stem | full -25.08 dBFS, audible band -27.87, audible_share 0.631, sub_share 0.068 | pass |
+| Mix | duck 4.5 dB on 60.3 % of the timeline, peak -2.29 dBFS, rms -19.59 | pass |
+| Mix gate | speech -15.39 / gap_full -25.33 / gap_audible -27.90 dB; bed contributes 42.1 dB | pass |
+| Loudness | I = -15 LUFS, TP = -2 dBTP (assertions: I ∈ [-16,-13], TP ≤ -1.5) | pass |
+| Flicker | mean\|Δ\| 0.0288, p99 0.1209, raw max 35.24 with 10 declared cuts masked (threshold 12) | pass |
+| Exports | 64 cues (0 wrapped, longest 26 chars against a 34-char budget), 11 chapters, cover | pass |
+
+Delivered file: 52,793,604 B, sha256
+`458d15f08137e001433810ec1dcdfb8b369383f8eddb16d84c6beb95c4b993ef`.
+
+**The defect this run found (and the gate that found it).** The first render passed coverage,
+determinism, loudness and the mix gate, and failed only the flicker gate: one frame at 216.00 s had
+luma 14.0 with 23.7 before and 59.3 after. The frame was empty — background only. Cause: the
+composition placed scenes with `from=round(start·30)` and `durationInFrames=round(dur·30)`, while
+the segment renderer tiles by the next scene's start; where the two roundings disagree, a frame
+belongs to neither sequence. Three such holes existed (4533, 6480, 7350). The fix is to derive the
+duration from the next boundary (`docs/known-issues.md` K24). A luma check at each declared cut
+now shows no 14.0 frame anywhere in the film.
+
+**Composition notes worth keeping.** `ThreeCanvas` always renders a 1920×1080 camera regardless of
+its CSS box, so the left text column is won by shifting the scene group in camera space, not by
+insetting the canvas (K23). Flat parts need a front fill light or the plate face renders as a
+silhouette; a nearly-metallic material with no environment map renders black. The involute curve is
+a `TubeGeometry`, because `Line`'s `linewidth` is ignored by WebGL.
+
 ## What this report does not prove
 
 Narration quality (needs the TTS model), the Manim overlay (needs that asset), and whether the 3D

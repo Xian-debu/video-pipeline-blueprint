@@ -48,7 +48,17 @@ Ordered by value per unit of work, based on what actually slowed the reference p
    integration of the same field (ΔV ≤ 2.04%). Three props, 39,908–61,088 triangles, ~1 MB each.
    Limits are documented honestly: a feature thinner than one cell tears the mesh, and hard edges are
    rounded at cell scale (K22).
-8. **Score presets** — a few named arrangements (calm/lecture/tutorial) instead of manual BPM/energy.
+8. ~~**A film whose geometry is the source**~~ — **Done** (`src/gears/`, `Gears`, `docs/gears.md`).
+   The third film is 3D-first: every gear is built from one `params.json` through `profile.ts`
+   (involute flanks, backlash thinning, planetary phase), so the arithmetic gates check the same
+   numbers the picture uses. `geometry_check.mjs` proves eight invariants (centre distance, base
+   circle, involute radius identity 7.1e-15, contact ratio, ring closure, Willis, backlash angle);
+   `mesh_check.mjs` sweeps a tooth pitch and proves no two profiles cross — and proves it can fail
+   by shifting the phase half a tooth (37/37 sampled angles collide). `scene_3d_budget.mjs` makes
+   "3D-first" a number: 86.5 % of 350.9 s weighted 3D (floor 60 %), 18.5 % flat scenes (ceiling
+   40 %). Two traps are now written down: a CSS-inset canvas is still a 1920×1080 camera (K23), and
+   flat parts need a front fill light or the plate renders as a silhouette.
+9. **Score presets** — a few named arrangements (calm/lecture/tutorial) instead of manual BPM/energy.
 
 ## Medium term
 

@@ -376,3 +376,60 @@ undirected edge used exactly twice, in opposite directions (and every edge orien
 with the outward normal). If a generator cannot prove that from its own topology, it cannot claim
 watertight in a doc either. The corollary is documented as a limit in `docs/sdf-assets.md`: a
 feature thinner than one cell does not degrade gracefully — it tears the mesh.
+
+## K23 — A 3D canvas inset with CSS is still a 1920×1080 camera
+
+**Symptom.** The gears film put `<Canvas3D>` inside a `div` that started at 46 % of the frame
+width, to leave the left half for text. Frames came back with the subject clipped to the right
+edge, and an involute shot where the whole gear was a thin sliver at 3 % coverage. Nothing errored:
+the composition rendered, the frame gate (coverage ≥ 1.5 %) passed, and only a human could see
+that the composition was wrong.
+
+**Mechanism.** `ThreeCanvas` takes its drawing-buffer width and height from `useVideoConfig()`,
+which is 1920×1080 regardless of the CSS box it is placed in. A 54 %-wide parent therefore
+*stretches* a full-frame projection; the camera does not get a narrower frustum, it gets a
+distorted one. The same mistake has a second form: a flat part (a gear plate, a disc) lit only by
+the three-point rig from above reflects almost nothing on its face — the key light at
+`(5.2, 7.4, 4.6)` is nearly perpendicular to the face normal, so the plate renders as a dark
+silhouette with lit edges. And `THREE.Line`'s `linewidth` is ignored by WebGL, so a 1 px line on
+a 1080p frame is invisible.
+
+**Fix here.** The canvas is full-bleed and transparent; to give the left half to text, the *scene
+graph* is shifted in camera space (`<group position={[shift, 0, 0]}>`), not the DOM. Every flat
+shot adds a front fill light (`position={[1.2, 3.2, 9]}`, intensity 2.2) so the plate face gets
+diffuse light. Curves are drawn as tubes (`TubeGeometry`, 2.4 mm radius), never as lines.
+
+**Lesson for the gate.** A coverage floor proves *something* was drawn in the right region; it
+cannot prove the camera is framed. Two gates that would have caught this cheaply: render one
+full-frame still at the same frame with the 3D layer isolated and compare its bounding box against
+a declared rectangle, and assert the canvas element's aspect ratio equals the composition's. Both
+are cheaper than a human noticing a sliver.
+
+## K24 — Two independent roundings leave a one-frame hole, and the hole is black
+
+**Symptom.** The first delivery of the gears film failed the flicker gate on one frame:
+`frame 6480 (216.00 s) depth=9.7 val=14.0 peak_l=23.7 peak_r=59.3` plus jumps of 24.4 and 44.9
+at two other scene borders. The frames were not dim — they were *empty*: background only, no
+title, no subtitle, no model, luma 14.0 exactly.
+
+**Mechanism.** A scene list has fractional starts (26.43 s, 55.95 s …). The composition placed each
+scene with `from={round(start*30)}` and `durationInFrames={round(dur*30)}`, while the editor
+renders segments on boundaries derived from the *next* scene's start. When the two roundings
+disagree by one, the last frame of a segment belongs to neither scene: every `<Sequence>` has
+ended and the next has not begun. `Gears` had three such holes (frames 4533, 6480, 7350), all of
+which rendered as bare background — which is exactly what a one-frame black flash is.
+
+**Fix here.** Boundaries, not durations: `durationInFrames={nextStart - thisStart}` with
+`TOTAL - start` for the last scene, so consecutive sequences tile the timeline exactly. Re-render
+with the same cut list; the gate goes from three failures to `PASS no luma jump and no blink dip`.
+
+**Lesson for the gate.** A composition can render, pass coverage, pass determinism, and still have a
+one-frame hole, because nothing in the frame gate watches *time*. The flicker gate is the only one
+that sees it, and it only sees it if nobody masks it away: the cut-frame list is a declaration that
+"this frame is supposed to be different", so it must be earned — the first run's list would have
+hidden the black frame too if the gate had been given it before the fix.
+
+**Corollary for the editor.** `render_scenes.mjs` already tiles by boundaries; the composition must
+use the same arithmetic, or the two disagree at the seams. There is now a second reason to keep the
+scene table integer where possible: `start` values that land on a half frame (x.5) round
+inconsistently between the two files.
