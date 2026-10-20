@@ -16,6 +16,7 @@ import path from "node:path";
 import crypto from "node:crypto";
 import { spawnSync } from "node:child_process";
 
+import { FILMS } from "./film_registry.mjs";
 import { treeHashName } from "./qa/tree_hash.mjs";
 
 const argv = process.argv.slice(2);
@@ -31,13 +32,9 @@ for (let i = 0; i < argv.length; i++) {
 
 const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), "..");
 const COMP = args.composition ?? "Lecture";
-/** Which film script backs a composition's subtitles and chapters. */
-const EXPORTS = {
-  Lecture: { script: "src/lecture/script.ts", prefix: "lecture" },
-  Multiplication: { script: "src/mult/script.ts", prefix: "multiplication" },
-  Gears: { script: "src/gears/script.ts", prefix: "gears" },
-  Hawk: { script: "src/hawk/script.ts", prefix: "hawk" },
-};
+/** Which film backs a composition: script, export prefix, generators. One map, shared with the
+ *  still gate — see scripts/film_registry.mjs and docs/known-issues.md K27. */
+const EXPORTS = FILMS;
 const OUT = path.resolve(ROOT, args.out ?? "out/package");
 const NARRATION = args.narration ?? "public/voice/narration.wav";
 // If a person asked for a narration, an absent file is an error, not a quieter film. The default
@@ -158,12 +155,26 @@ const ffprobeDuration = (file) => {
 };
 
 try {
+  // ---- 0. derived numbers come first: a clean clone has no data/hawk/gray.json, and every gate
+  //         below imports them. The map and the tree must also agree, or a gate iterates nothing.
+  if (!SKIP_STATIC) {
+    run("film coverage", "node", ["scripts/qa/film_coverage.mjs"]);
+    if (EXPORTS[COMP]) run("derive data", "node", ["scripts/qa/derive_data.mjs", "--composition=" + COMP]);
+    run("derived check", "node", ["scripts/qa/derived_check.mjs"]);
+  }
+
   // ---- 1. the contract and the type ratchet are cheap; fail here before rendering anything
   if (!SKIP_STATIC) {
     run("design contract", PYTHON, ["scripts/qa/design_check.py"]);
     run("type ratchet", PYTHON, ["scripts/qa/type_ratchet.py"]);
     run("film isolation", "node", ["scripts/qa/film_isolation.mjs"]);
     run("typecheck", "npx", ["tsc", "--noEmit"]);
+    // only a paper film owns a claims ledger, and only a claims ledger can be checked against the
+    // paper it cites; a film without one skips this stage by design, not by accident
+    if (fs.existsSync(path.join(ROOT, "data", COMP.toLowerCase(), "claims.json"))) {
+      run("claims check", "node", ["scripts/qa/claims_check.mjs"]);
+    }
+    run("docs check", "node", ["scripts/qa/docs_check.mjs"]);
   }
 
   // ---- 2. the score is built for the composition's declared duration, gated, and only then
@@ -334,10 +345,13 @@ try {
       exported.push(f);
     }
     report.numbers.exports = exported;
+  } else if (EXPORTS[COMP]) {
+    // A film whose srt/chapters/cover are missing is not a delivery. This used to print a note and
+    // exit 0, which is how the first Hawk make "passed" without them (K27).
+    throw new Error(COMP + " is a film, so it owes srt/chapters/cover, but args.exports=false");
   } else {
-    log("\n! this composition has no delivery export script: skipped for " + COMP
-      + " (pass --exports to force it)");
-    report.numbers.exports = "skipped";
+    log("\n== delivery exports: " + COMP + " is a design demo, no srt/chapters are owed");
+    report.numbers.exports = "not applicable (design demo)";
   }
 
   report.numbers.inputs = { src: fingerprint("src"), data: fingerprint("data"), scripts: fingerprint("scripts") };

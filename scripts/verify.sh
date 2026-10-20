@@ -13,17 +13,20 @@ mkdir -p "$OUT"
 
 step() { printf '\n== %s\n' "$*"; }
 
-# Derived numbers are not committed (data/gears/*.json is ignored): a clean clone only has the
-# two sources, so the generator must run before anything imports the derived files. Keeping the
-# generator in the gate also means a stale hand-edit cannot survive a release.
-step "0.5/6 gear data (derive every number from data/gears/params.json)"
-"$PYTHON" scripts/generate_gear_data.py
-if git rev-parse --git-dir >/dev/null 2>&1; then
-  if git ls-files data/gears | grep -qvE '^data/gears/(params|voice)\.json$'; then
-    echo "FAIL derived gear data is tracked — only params.json and voice.json are sources" >&2
-    exit 1
-  fi
-fi
+# Derived numbers are not committed (see scripts/film_registry.mjs: gears and hawk each name the
+# generator that writes them). A clean clone only has the sources, so the generators must run before
+# anything imports their output. The map is also checked against the tree, because a film missing
+# from the map is a film every gate below silently skips (docs/known-issues.md K27).
+step "0.5/6 derived data (generators named in scripts/film_registry.mjs)"
+node scripts/qa/film_coverage.mjs
+node scripts/qa/derive_data.mjs --all
+node scripts/qa/derived_check.mjs
+
+step "0.6/6 claims ledger (every number has a paper quote)"
+if [ -f data/hawk/claims.json ]; then node scripts/qa/claims_check.mjs; fi
+
+step "0.7/6 docs anchors (counts and step names, not prose)"
+node scripts/qa/docs_check.mjs
 
 step "1/6 typecheck"
 npx tsc --noEmit

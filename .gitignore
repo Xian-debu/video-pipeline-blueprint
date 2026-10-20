@@ -22,3 +22,8 @@ public/voice/hawk/
 public/voice/hawk_narration.wav
 data/hawk/lines.json
 data/hawk/clips.json
+# hawk: eval.json (the hand-written number ledger) and voice.json (measured narration) are the
+# sources; gray.json and wave.json are written by scripts/generate_hawk_data.py — same policy as
+# data/gears, so the generator is in the gate (make.mjs / verify.sh step 0.5) instead of the repo.
+data/hawk/gray.json
+data/hawk/wave.json

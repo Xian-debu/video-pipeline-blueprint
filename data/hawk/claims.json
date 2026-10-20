@@ -1,0 +1,830 @@
+{
+  "meta": {
+    "paper": "Hawk: An Efficient NALM System for Accurate Low-Power Appliance Recognition, SenSys '24",
+    "license": "CC BY 4.0",
+    "source": "data/hawk/paper.txt (pdftotext -layout)",
+    "note": "Each claim's quote is an exact slice of ONE line of paper.txt: the PDF is two-column, and pdftotext -layout interleaves the right column into the same lines, so a quote that crossed a line break would splice in unrelated column text. Every number rendered on screen or spoken in src/hawk/script.ts should have a row here; note=null means the attribution is direct. Entries whose note starts with DERIVED, ILLUSTRATION, SYNTHETIC or UNSOURCED are the ones not backed by a literal paper figure (or not present in eval.json/gray.json/wave.json)."
+  },
+  "claims": [
+    {
+      "id": "hawkdata-state-f1",
+      "scene": "eval",
+      "onScreen": "93.94%",
+      "value": "93.94",
+      "dataset": "HawkDATA",
+      "quote": "a widely used dataset, Hawk achieves an average F1 score of 93.94%",
+      "where": "Abstract (l.28); repeated as Figure 16 label (l.775)",
+      "note": "AMBIGUITY: the abstract's one sentence covers two datasets - 'In HawkDATA and a widely used dataset ... 93.94% for state recognition and 97.07% for event recognition'. Section 1 (l.93-94) gives the exact split: 93.94 is state on HawkDATA (Section 1 prints 93.93; Figure 16 label and eval.json headline both 93.94), 97.07 is event on BLUED. On-screen value = eval.headline.stateAvgF1 (93.94, HawkDATA)."
+    },
+    {
+      "id": "hawkdata-event-f1",
+      "scene": "eval",
+      "onScreen": "92.71%",
+      "value": "92.71",
+      "dataset": "HawkDATA",
+      "quote": "92.71% for event recognition and 93.93% for state identification in",
+      "where": "Section 1 contributions (l.93); Figure 16 label (l.686, l.775)",
+      "note": "Section 1 states event 92.71 / state 93.93 on HawkDATA; the abstract's '97.07% for event recognition' belongs to BLUED (Table 2), not HawkDATA. On-screen value = eval.headline.eventAvgF1 (92.71). Paper is internally inconsistent (93.93 vs 93.94); not corrected here."
+    },
+    {
+      "id": "hawkdata-state-gain",
+      "scene": "eval",
+      "onScreen": "+47.98 个百分点",
+      "value": "47.98",
+      "dataset": "HawkDATA",
+      "quote": "improved state recognition accuracy by 47.98% to 48.07%",
+      "where": "Section 6.3.4 (l.830); Section 1 (l.94)",
+      "note": "Paper words it as a 47.98% accuracy increase over SOTA (and 48.07% on the next line); eval.json records stateGainPct 47.98 and the script renders 'percentage points'. Read as percentage points per eval.json; the paper's own unit is ambiguous."
+    },
+    {
+      "id": "blued-event-f1",
+      "scene": "eval",
+      "onScreen": "97.07%",
+      "value": "97.07",
+      "dataset": "BLUED",
+      "quote": "Average                      -             -             85.50%        97.07%",
+      "where": "Table 2 average row (l.822); Section 1 (l.100)",
+      "note": "Table 2 Average F1 for Hawk on BLUED. The abstract attributes 97.07% to event recognition in 'a widely used dataset' (= BLUED); HawkDATA event F1 is 92.71."
+    },
+    {
+      "id": "blued-mts-shapelet",
+      "scene": "eval",
+      "onScreen": "MTS-Shapelet 85.50%",
+      "value": "85.5",
+      "dataset": "BLUED",
+      "quote": "Average                      -             -             85.50%        97.07%",
+      "where": "Table 2 average row (l.822)",
+      "note": "SOTA baseline column in Table 2 (average F1 85.50%); eval.json blued.mtsShapeletAvg = 85.5. The quote spans the whole Average row (dashes are its empty columns), so it also contains Hawk's 97.07."
+    },
+    {
+      "id": "blued-gain",
+      "scene": "eval",
+      "onScreen": "+11.57 个百分点",
+      "value": "11.57",
+      "dataset": "BLUED",
+      "quote": "outperforms MTS-Shapelet by 11.57%",
+      "where": "Section 6.3.5 (l.850)",
+      "note": "Paper says 'outperforms MTS-Shapelet by 11.57%', i.e. difference between 97.07 and 85.50 (eval.json deltaAvg 11.57); rendered as percentage points."
+    },
+    {
+      "id": "field-residence",
+      "scene": "eval",
+      "onScreen": "96.02%",
+      "value": "96.02",
+      "dataset": "field-residence",
+      "quote": "Average              -            99.01%        96.02%",
+      "where": "Table 4 Average row (l.892); abstract (l.34)",
+      "note": "Table 4 Average column for the 5-appliance residential deployment. Note the paper is inconsistent: abstract says 96.02, Section 1 (l.96) says 96.03; on-screen uses Table 4's 96.02 (eval.field.residenceAvg)."
+    },
+    {
+      "id": "field-office",
+      "scene": "eval",
+      "onScreen": "94.76%",
+      "value": "94.76",
+      "dataset": "field-office",
+      "quote": "Average              -            99.01%        96.02%    94.76%",
+      "where": "Table 4 Average row (l.892)",
+      "note": "Table 4 Average for the 6-appliance office deployment (5 of them low-power); consistent across abstract, Section 1 and Table 4."
+    },
+    {
+      "id": "latency-desktop",
+      "scene": "eval",
+      "onScreen": "3.31 ms",
+      "value": "3.31",
+      "dataset": "hardware",
+      "quote": "Intel i7-10700@2.9GHz       3.31",
+      "where": "Table 3 Desktop row (l.864)",
+      "note": null
+    },
+    {
+      "id": "mem-desktop",
+      "scene": "eval",
+      "onScreen": "42.5 MB",
+      "value": "42.5",
+      "dataset": "hardware",
+      "quote": "Desktop          Intel i7-10700@2.9GHz       3.31        42.50",
+      "where": "Table 3 Desktop row (l.864)",
+      "note": "Table 3 prints 42.50 MB; eval.json rounds to 42.5. Quote spans the Desktop row (3.31 ms / 42.50 MB)."
+    },
+    {
+      "id": "latency-jetson",
+      "scene": "eval",
+      "onScreen": "4.07 ms",
+      "value": "4.07",
+      "dataset": "hardware",
+      "quote": "Cortex-A78AE@2GHz           4.07",
+      "where": "Table 3 Jetson Orin NX row (l.865)",
+      "note": null
+    },
+    {
+      "id": "mem-jetson",
+      "scene": "eval",
+      "onScreen": "40.19 MB",
+      "value": "40.19",
+      "dataset": "hardware",
+      "quote": "Jetson Orin NX       Cortex-A78AE@2GHz           4.07        40.19",
+      "where": "Table 3 Jetson Orin NX row (l.865)",
+      "note": null
+    },
+    {
+      "id": "latency-pi",
+      "scene": "eval",
+      "onScreen": "6.59 ms",
+      "value": "6.59",
+      "dataset": "hardware",
+      "quote": "Cortex-A72@1.8GHz          6.59",
+      "where": "Table 3 Raspberry Pi 4B row (l.866)",
+      "note": null
+    },
+    {
+      "id": "mem-pi",
+      "scene": "eval",
+      "onScreen": "32.6 MB",
+      "value": "32.6",
+      "dataset": "hardware",
+      "quote": "Raspberry PI 4B       Cortex-A72@1.8GHz          6.59        32.60",
+      "where": "Table 3 Raspberry Pi 4B row (l.866)",
+      "note": "Table 3 prints 32.60 MB; eval.json rounds to 32.6. Quote spans the Pi row (6.59 ms / 32.60 MB)."
+    },
+    {
+      "id": "realtime-budget",
+      "scene": "eval",
+      "onScreen": "预算 20 ms",
+      "value": "20",
+      "dataset": "latency",
+      "quote": "average generation delay (20 ms",
+      "where": "Section 6.4.2 (l.850); Table 3 real-time requirement row (l.867)",
+      "note": "The budget is one AC cycle: the average generation delay 20 ms in a 50 Hz setting; Table 3 states the requirement as '< 20' ms. eval.latency.realtimeBudgetMs = 20."
+    },
+    {
+      "id": "sampling-cost",
+      "scene": "eval",
+      "onScreen": "单点 $4.12",
+      "value": "4.12",
+      "dataset": "hardware",
+      "quote": "is reduced to $4.12, about one-third of the",
+      "where": "Section 5.1 (l.506); abstract (l.102)",
+      "note": "UNSOURCED IN LEDGERS: the paper gives $4.12 (per current channel; about 1/3 of an Hz-level board), but none of eval.json/gray.json/wave.json carries the cost. Value checked against paper only."
+    },
+    {
+      "id": "sampling-rate",
+      "scene": "eval",
+      "onScreen": "16 kHz",
+      "value": "16",
+      "dataset": "hardware",
+      "quote": "a sampling frequency of 16 kHz",
+      "where": "Section 5.1 (l.496); Section 1 (l.102)",
+      "note": "NOT A LEDGER MEASUREMENT: 16 kHz sampling is a paper/hardware figure; wave.json only mentions it inside its synthetic meta strings and uses sampleRateHz 16000. Numeric caution: the value 16 also appears in gray.json as code4.stateCount (16 Gray-code states) - unrelated. Paper writes 16 kHz / 16KHz."
+    },
+    {
+      "id": "adc-bits",
+      "scene": "eval",
+      "onScreen": "24-bit",
+      "value": "24",
+      "dataset": "hardware",
+      "quote": "consists of three components: a 24-bit",
+      "where": "Section 5.1 (l.467)",
+      "note": "The 24 in value is the ADC resolution (24-bit ADS131M08), a paper/hardware figure; the only numeric 24 in the ledgers is LEDLamp24W's 24 W (eval.json field row), which is unrelated. Quote keeps the sentence unbroken (no pdf hyphenation)."
+    },
+    {
+      "id": "sync-within-220us",
+      "scene": "spt",
+      "onScreen": "99.65%",
+      "value": "99.65",
+      "dataset": "sync",
+      "quote": "99.65% of the synchronization accuracy is within 220us",
+      "where": "Section 6.1.1 (l.579)",
+      "note": null
+    },
+    {
+      "id": "sync-220us",
+      "scene": "spt",
+      "onScreen": "220 µs",
+      "value": "220",
+      "dataset": "sync",
+      "quote": "accuracy is within 220us",
+      "where": "Section 6.1.1 (l.579)",
+      "note": "Paper writes 220us (no space); rendered as 220 µs. This is the bound holding 99.65% of the error distribution."
+    },
+    {
+      "id": "sync-max-error",
+      "scene": "spt",
+      "onScreen": "61.8 µs",
+      "value": "61.8",
+      "dataset": "sync",
+      "quote": "Our maximum synchronization error is 61.80us",
+      "where": "Section 6.1.1 (l.577)",
+      "note": "Paper prints 61.80us; eval.json stores 61.8 and the scene renders 61.8 (not 61.80)."
+    },
+    {
+      "id": "sync-tsf-ratio",
+      "scene": "spt",
+      "onScreen": "TSF 的 1/17.2",
+      "value": "17.2",
+      "dataset": "sync",
+      "quote": "about 1/17.2 of TSF. We can see a gap",
+      "where": "Section 6.1.1 (l.578); abstract (l.86)",
+      "note": "Max error is 1/17.2 of 802.11 TSF; eval.json vsTsfRatio 17.2."
+    },
+    {
+      "id": "sync-lit2020-5ms",
+      "scene": "spt",
+      "onScreen": "5 ms（LIT2020）",
+      "value": "5",
+      "dataset": "sync",
+      "quote": "precision of less than 5 ms",
+      "where": "Section 2 (l.125-126)",
+      "note": "This is prior work's precision (LIT2020 uses a 433MHz RF clock distributor, deviation < 5 ms), quoted as the comparison baseline; eval.json relatedLIT2020PrecisionMs 5. The citation 'LIT2020 [35]' sits on the previous line, so the quote starts after it."
+    },
+    {
+      "id": "humidifier-power",
+      "scene": "problem",
+      "onScreen": "40 W",
+      "value": "40",
+      "dataset": "HawkDATA",
+      "quote": "40±1W humidifier and a 1500±20W electric kettle",
+      "where": "Section 4.1.1 example (l.354)",
+      "note": "The 40 W is the humidifier in the paper's worked SINR example; eval.json Table 4 also lists Humidifier power 40 W."
+    },
+    {
+      "id": "kettle-power",
+      "scene": "problem",
+      "onScreen": "1500 W",
+      "value": "1500",
+      "dataset": "HawkDATA",
+      "quote": "1500±20W electric kettle",
+      "where": "Section 4.1.1 example (l.354)",
+      "note": null
+    },
+    {
+      "id": "sinr-direct",
+      "scene": "problem",
+      "onScreen": "41 : 1480",
+      "value": "41",
+      "dataset": "HawkDATA",
+      "quote": "SINR is 41/1480 if we identify directly from the total current",
+      "where": "Section 4.1.1 (l.356)",
+      "note": "Maximum SINR of the humidifier when identifying from total current (41 W signal over 1480 W interference). wave.json sinr.direct.target = 41."
+    },
+    {
+      "id": "sinr-direct-others",
+      "scene": "problem",
+      "onScreen": "41 : 1480",
+      "value": "1480",
+      "dataset": "HawkDATA",
+      "quote": "SINR is 41/1480 if we identify directly from the total current",
+      "where": "Section 4.1.1 (l.356)",
+      "note": "Denominator 1480 W = other appliances + background; wave.json sinr.direct.others = 1480."
+    },
+    {
+      "id": "sinr-direct-ratio",
+      "scene": "problem",
+      "onScreen": "2.7%",
+      "value": "0.0277027",
+      "dataset": "HawkDATA",
+      "quote": "SINR is 41/1480 if we identify directly from the total current",
+      "where": "computed from Section 4.1.1 numbers (l.356)",
+      "note": "DERIVED: 41/1480 = 0.02770 (wave.json sinr.direct.ratio); on-screen 2.7% is a rounding of that ratio, not a paper figure."
+    },
+    {
+      "id": "blued-switch-rate",
+      "scene": "problem",
+      "onScreen": "86%",
+      "value": "86",
+      "dataset": "BLUED",
+      "quote": "Most appliances, such as 86% in the BLUED dataset[12],",
+      "where": "Section 1 (l.42-43)",
+      "note": "UNSOURCED IN LEDGERS: '86% of BLUED appliances switched less than ten times a day' exists only in the paper (Section 1); no eval.json/gray.json/wave.json field. Script renders it as 八成 (80%). The sentence continues on l.43 ('are switched less than ten or even zero times a day'), so the quote can only carry the 86% half; the 'ten times' half is the separate blued-switch-threshold row."
+    },
+    {
+      "id": "blued-switch-threshold",
+      "scene": "problem",
+      "onScreen": "一天开关不到 10 次",
+      "value": "10",
+      "dataset": "BLUED",
+      "quote": "are switched less than ten or even zero times a day",
+      "where": "Section 1 (l.43)",
+      "note": "The 'less than ten switches a day' half of the same BLUED sentence; 86% is on the previous line. 10 is a frequency threshold, not a ledger measurement (wave.json's 10 W background is unrelated)."
+    },
+    {
+      "id": "collection-time-ratio",
+      "scene": "paper",
+      "onScreen": "1/71.5",
+      "value": "71.5",
+      "dataset": "dataset",
+      "quote": "appliance state combinations in just 1/71.5 of collection time",
+      "where": "Section 1 (l.89); abstract (l.26)",
+      "note": "Collection time is 1/71.5 of the baseline (SustDataED2, [33]); eval.json collectionTimeRatio 71.5."
+    },
+    {
+      "id": "state-combo-gain",
+      "scene": "paper",
+      "onScreen": "6.34×",
+      "value": "6.34",
+      "dataset": "dataset",
+      "quote": "DATA (like huge and balanced wings) achieves 6.34 times more",
+      "where": "Section 1 (l.88); abstract (l.26)",
+      "note": "6.34x more appliance state combinations than the baseline; eval.json stateComboGain 6.34."
+    },
+    {
+      "id": "state-space",
+      "scene": "concepts",
+      "onScreen": "2¹⁸",
+      "value": "262144",
+      "dataset": "dataset",
+      "quote": "the entire state space of 2𝑛 combinations",
+      "where": "Section 3.1 (l.219); Section 5.2 (l.474: 18 programmable)",
+      "note": "DERIVED: the paper says the state space is 2^n combinations; 18 programmable appliances give 2^18 = 262144 (gray.json grouped.stateUngrouped). The quote's 2^n uses italic math glyphs as extracted."
+    },
+    {
+      "id": "appliances-22",
+      "scene": "limits",
+      "onScreen": "22 台",
+      "value": "22",
+      "dataset": "dataset",
+      "quote": "We build a data collection laboratory to deploy 22 common",
+      "where": "Section 5.2 (l.473)",
+      "note": "22 appliances in the lab collection (18 programmable + 4 always-on background). Line wraps at 'appli-/ances', so the quote stops before the hyphen."
+    },
+    {
+      "id": "programmable-18",
+      "scene": "gray",
+      "onScreen": "18 台可编程",
+      "value": "18",
+      "dataset": "dataset",
+      "quote": "Among these, 18 are programmable",
+      "where": "Section 5.2 (l.474)",
+      "note": "18 of the 22 lab appliances are programmable; the other 4 (router, fridge) are always-on background."
+    },
+    {
+      "id": "dataset-hours",
+      "scene": "limits",
+      "onScreen": "32.2 小时",
+      "value": "32.2",
+      "dataset": "dataset",
+      "quote": "dataset is 32.2 hours, comprising a total of 5,796,650 voltage cycles",
+      "where": "Section 5.2 (l.492)",
+      "note": null
+    },
+    {
+      "id": "state-combination-20s",
+      "scene": "gray",
+      "onScreen": "每个状态组合停 20 秒",
+      "value": "20",
+      "dataset": "dataset",
+      "quote": "for 20 seconds. Ultimately, the effective collection duration",
+      "where": "Section 5.2 (l.491)",
+      "note": "Each planned state combination lasts 20 s (script: 每个状态组合都要停二十秒)."
+    },
+    {
+      "id": "baseline-hours",
+      "scene": "gray",
+      "onScreen": "2304 小时",
+      "value": "2304",
+      "dataset": "dataset",
+      "quote": "in 2,304 hours. HawkDATA records a unique state every 25.43",
+      "where": "Section 6.2 (l.731)",
+      "note": "Baseline SustDataED2 needed 2,304 hours to collect about 718 unique states; quote keeps the baseline hours and the HawkDATA density in one line."
+    },
+    {
+      "id": "state-density",
+      "scene": "gray",
+      "onScreen": "每 25.43 秒一个状态",
+      "value": "25.43",
+      "dataset": "dataset",
+      "quote": "HawkDATA records a unique state every 25.43",
+      "where": "Section 6.2 (l.731)",
+      "note": "Not currently rendered on screen; kept because the ledger covers the dataset-density pair. eval.json uniqueStateEverySec 25.43."
+    },
+    {
+      "id": "switch-density",
+      "scene": "oss",
+      "onScreen": "18.91 秒",
+      "value": "18.91",
+      "dataset": "dataset",
+      "quote": "a switch event every 18.91 seconds during data collection",
+      "where": "Section 6.2 (l.732)",
+      "note": "A switch event every 18.91 s on average; eval.json switchEventEverySec 18.91, rendered on the oss card."
+    },
+    {
+      "id": "br-category",
+      "scene": "gray",
+      "onScreen": "151.4× / 7188.5×",
+      "value": "151.4",
+      "dataset": "dataset",
+      "quote": "the event and state combination by 151.4 and 7188.5 times",
+      "where": "Section 1 (l.91)",
+      "note": "UNSOURCED IN LEDGERS: Section 1 claims category-BR improvements of 151.4 and 7188.5 times (derived from 0.212/0.0014 and 0.877/1.22e-4); neither number is stored in eval.json/gray.json/wave.json, and neither is rendered on screen. Kept for ledger completeness."
+    },
+    {
+      "id": "br-category-state",
+      "scene": "gray",
+      "onScreen": "151.4× / 7188.5×",
+      "value": "7188.5",
+      "dataset": "dataset",
+      "quote": "the event and state combination by 151.4 and 7188.5 times",
+      "where": "Section 1 (l.91)",
+      "note": "UNSOURCED IN LEDGERS: Same quote as br-category: 7188.5x is the state-combination category-BR gain from 0.877 vs 1.22e-4 (l.722). Not in any ledger json."
+    },
+    {
+      "id": "event-br",
+      "scene": "gray",
+      "onScreen": "0.212（基线 0.0014）",
+      "value": "0.212",
+      "dataset": "dataset",
+      "quote": "the event is 0.212, significantly higher than that of SustDataED2",
+      "where": "Section 6.2 (l.720)",
+      "note": "HawkDATA category balance ratio for events 0.212 vs SustDataED2 0.0014; eval.json categoryBR 0.212."
+    },
+    {
+      "id": "event-br-baseline",
+      "scene": "gray",
+      "onScreen": "0.212（基线 0.0014）",
+      "value": "0.0014",
+      "dataset": "dataset",
+      "quote": "which is 0.0014. And the category BR of ON states across appliances",
+      "where": "Section 6.2 (l.721)",
+      "note": "Baseline SustDataED2 category BR 0.0014; eval.json baselineCategoryBR 0.0014."
+    },
+    {
+      "id": "on-state-br",
+      "scene": "oss",
+      "onScreen": "0.877",
+      "value": "0.877",
+      "dataset": "dataset",
+      "quote": "is 0.877, exceeding SustDataED2’s 1.22*10",
+      "where": "Section 6.2 (l.722)",
+      "note": "HawkDATA ON-state category BR 0.877 vs SustDataED2 1.22*10^-4; quote stops before the superscript so no pdf glyph is needed."
+    },
+    {
+      "id": "on-state-br-baseline",
+      "scene": "oss",
+      "onScreen": "基线 1.22e-4",
+      "value": "0.000122",
+      "dataset": "dataset",
+      "quote": "is 0.877, exceeding SustDataED2’s 1.22*10",
+      "where": "Section 6.2 (l.722)",
+      "note": "Paper prints 1.22*10^-4 (superscript minus four); eval.json baselineOnStateBR 0.000122 = 1.22e-4."
+    },
+    {
+      "id": "on-off-br",
+      "scene": "gray",
+      "onScreen": "0.424",
+      "value": "0.424",
+      "dataset": "dataset",
+      "quote": "average ON-OFF BR is 0.424",
+      "where": "Section 6.2 (l.724)",
+      "note": "HawkDATA average ON-OFF balance ratio 0.424 vs SustDataED2 0.338; eval.json onOffBR 0.424."
+    },
+    {
+      "id": "train-rounds",
+      "scene": "gray",
+      "onScreen": "训练 30 轮",
+      "value": "30",
+      "dataset": "dataset",
+      "quote": "Algorithm 1 is executed for 30 rounds, yielding a sequence of 2880",
+      "where": "Section 3.1 (l.245)",
+      "note": "Training set generation runs Algorithm 1 for 30 rounds, yielding 2880 events (quote spans both). gray.json paper.trainRounds 30 / trainEvents 2880."
+    },
+    {
+      "id": "train-events",
+      "scene": "gray",
+      "onScreen": "2880 事件",
+      "value": "2880",
+      "dataset": "dataset",
+      "quote": "Algorithm 1 is executed for 30 rounds, yielding a sequence of 2880",
+      "where": "Section 3.1 (l.245)",
+      "note": null
+    },
+    {
+      "id": "train-states",
+      "scene": "gray",
+      "onScreen": "2584 状态",
+      "value": "2584",
+      "dataset": "dataset",
+      "quote": "events and 2584 unique states",
+      "where": "Section 3.1 (l.246)",
+      "note": null
+    },
+    {
+      "id": "val-rounds",
+      "scene": "gray",
+      "onScreen": "验证 18 轮",
+      "value": "18",
+      "dataset": "dataset",
+      "quote": "the strategy for 18 rounds, resulting in 2112 events",
+      "where": "Section 3.1 (l.247)",
+      "note": "Validation set = 18 rounds, 2112 events (quote spans both); gray.json valRounds 18 / valEvents 2112."
+    },
+    {
+      "id": "val-events",
+      "scene": "gray",
+      "onScreen": "2112 事件",
+      "value": "2112",
+      "dataset": "dataset",
+      "quote": "the strategy for 18 rounds, resulting in 2112 events",
+      "where": "Section 3.1 (l.247)",
+      "note": null
+    },
+    {
+      "id": "val-states",
+      "scene": "gray",
+      "onScreen": "1962 状态",
+      "value": "1962",
+      "dataset": "dataset",
+      "quote": "1962 unique states. This data generation strategy ensures a low",
+      "where": "Section 3.1 (l.248)",
+      "note": null
+    },
+    {
+      "id": "train-val-overlap",
+      "scene": "gray",
+      "onScreen": "重叠 < 17%",
+      "value": "17",
+      "dataset": "dataset",
+      "quote": "overlap between the training and test sets, less than 17%",
+      "where": "Section 3.1 (l.249)",
+      "note": null
+    },
+    {
+      "id": "grouped-events-per-round",
+      "scene": "gray",
+      "onScreen": "6 × 2³ = 48",
+      "value": "48",
+      "dataset": "dataset",
+      "quote": "is reduced from 2𝑛 to 𝑚 ∗ 2𝑛/𝑚 . Such a sequence",
+      "where": "Section 3.1 grouping (l.230)",
+      "note": "ILLUSTRATION, NOT A PAPER NUMBER: the paper only gives the general formula, reducing 2^n to m * 2^(n/m) events; the 6 groups x 3 appliances x 8 = 48 events/round is gray.json's simplified example for n=18, m=6 (marked '示意推导' on screen). Do not conflate with the paper's 2880 train events: 30 rounds x 48 = 1440 != 2880."
+    },
+    {
+      "id": "groups-6",
+      "scene": "gray",
+      "onScreen": "分成 6 组、每组 3 台",
+      "value": "6",
+      "dataset": "dataset",
+      "quote": "is reduced from 2𝑛 to 𝑚 ∗ 2𝑛/𝑚 . Such a sequence",
+      "where": "Section 3.1 grouping (l.230)",
+      "note": "ILLUSTRATION: m=6 groups of 3 appliances (gray.json grouped.m / perGroup), marked on screen as a simplified derivation. The paper's equation uses symbolic m and 2^n/m, not 6. gray.json warns 30 x 48 = 1440 does not equal 2880 train events."
+    },
+    {
+      "id": "circular-buffer-30",
+      "scene": "vote",
+      "onScreen": "30 周期窗口",
+      "value": "30",
+      "dataset": "none",
+      "quote": "from a 30-cycle circular buffer",
+      "where": "Section 4.3.2 (l.402)",
+      "note": "Steady-state differential is computed by cycle-level subtraction from a 30-cycle circular buffer; wave.json window.cycles 30."
+    },
+    {
+      "id": "voting-window",
+      "scene": "vote",
+      "onScreen": "30 个周期",
+      "value": "30",
+      "dataset": "none",
+      "quote": "within an 30-cycle window. The most likely event",
+      "where": "Section 4.3.2 (l.410)",
+      "note": "Paper's own text has the article error ('an 30-cycle window'); quoted verbatim, not corrected. wave.json vote.windowCycles 30."
+    },
+    {
+      "id": "voting-threshold-12",
+      "scene": "vote",
+      "onScreen": "阈值 12 票",
+      "value": "12",
+      "dataset": "none",
+      "quote": "the voting threshold (e.g., 12 for the humidifier turn",
+      "where": "Section 4.3.2 (l.411)",
+      "note": "12 is the humidifier turn-on threshold used as the example; thresholds are per-appliance, set by maximising training F1 (l.400-403). wave.json vote.threshold 12."
+    },
+    {
+      "id": "classifier-classes-37",
+      "scene": "vote",
+      "onScreen": "37 类",
+      "value": "37",
+      "dataset": "none",
+      "quote": "The model outputs 37 states",
+      "where": "Section 4.3.2 (l.407)",
+      "note": "UNSOURCED IN LEDGERS: 37 = 18 appliances x 2 (on/off) + 1 IDLE, stated only in the paper; no eval.json/gray.json/wave.json field carries 37."
+    },
+    {
+      "id": "harmonics-10",
+      "scene": "vote",
+      "onScreen": "前十次谐波",
+      "value": "10",
+      "dataset": "none",
+      "quote": "We take the first ten harmonics",
+      "where": "Section 4.3.2 (l.403)",
+      "note": "First ten harmonics (real, imaginary, magnitude) after FFT; wave.json features.harmonics has 10 bins."
+    },
+    {
+      "id": "differential-gap-30",
+      "scene": "diff",
+      "onScreen": "30 个周期",
+      "value": "30",
+      "dataset": "none",
+      "quote": "Ultimately, we select 30 to minimize the probability of",
+      "where": "Section 6.3.3 (l.818)",
+      "note": "30 is the chosen differential interval / circular-buffer length (swept 10-50). At 50 Hz this is 30 x 20 ms = 0.6 s, which is derived, not printed."
+    },
+    {
+      "id": "differential-gap-seconds",
+      "scene": "diff",
+      "onScreen": "0.6 秒",
+      "value": "0.6",
+      "dataset": "none",
+      "quote": "a voltage cycle of 20 ms",
+      "where": "derived from Section 6.3.3 (l.818) + l.251 (20 ms cycle)",
+      "note": "DERIVED: 0.6 s = 30 cycles x 20 ms (one 50 Hz cycle). The paper never prints 0.6 s; it prints the 20 ms cycle length (here) and the 30-cycle interval (l.818). No literal 0.6 in the ledger jsons."
+    },
+    {
+      "id": "transient-skip-4",
+      "scene": "diff",
+      "onScreen": "跳过前 4 个周期",
+      "value": "4",
+      "dataset": "none",
+      "quote": "can ideally obtain (𝐷 − 𝑡) cycles of differential",
+      "where": "wave.json illustration; paper Section 4.1.2 (l.343: (D - t))",
+      "note": "SYNTHETIC VALUE: the paper parametrises the transient length as t and gives (D - t) usable cycles; 4 transient cycles is wave.json's illustration (window.transientCycles 4), not a paper number."
+    },
+    {
+      "id": "sinr-diff",
+      "scene": "diff",
+      "onScreen": "0.650",
+      "value": "0.65",
+      "dataset": "HawkDATA",
+      "quote": "switching event is 39/(40+20) = 39/60",
+      "where": "Section 4.1.1 (l.358)",
+      "note": "Post-differencing minimum SINR of the humidifier switch: 39/(40+20) = 39/60 = 0.65; wave.json sinr.diff.ratio."
+    },
+    {
+      "id": "sinr-diff-39",
+      "scene": "diff",
+      "onScreen": "39 / 60 W",
+      "value": "39",
+      "dataset": "HawkDATA",
+      "quote": "switching event is 39/(40+20) = 39/60",
+      "where": "Section 4.1.1 (l.358)",
+      "note": null
+    },
+    {
+      "id": "sinr-diff-60",
+      "scene": "diff",
+      "onScreen": "39 / 60 W",
+      "value": "60",
+      "dataset": "HawkDATA",
+      "quote": "switching event is 39/(40+20) = 39/60",
+      "where": "Section 4.1.1 (l.358)",
+      "note": "60 W = 40 W humidifier + 20 W differential noise, the paper's denominator after differencing."
+    },
+    {
+      "id": "sinr-gain-db",
+      "scene": "diff",
+      "onScreen": "+27.4 dB",
+      "value": "27.4078",
+      "dataset": "HawkDATA",
+      "quote": "SINR is 41/1480 if we identify directly from the total current",
+      "where": "computed from Section 4.1.1 ratios (l.356, l.358)",
+      "note": "DERIVED: 20*log10((39/60)/(41/1480)) = 27.4078 dB (wave.json sinr.gainDb); the scene prints one decimal (+27.4 dB) and the script says 二十多分贝. Not a paper number."
+    },
+    {
+      "id": "sync-avg-error",
+      "scene": "spt",
+      "onScreen": "20.6 µs",
+      "value": "20.6",
+      "dataset": "sync",
+      "quote": "accuracy of 20.60us, improved by 59.2%",
+      "where": "Section 6.1.1 (l.576)",
+      "note": "Average SPT sync accuracy 20.60 µs; the same line carries the 59.2% improvement vs TSF, so the quote spans both."
+    },
+    {
+      "id": "sync-improvement",
+      "scene": "spt",
+      "onScreen": "提升 59%",
+      "value": "59.2",
+      "dataset": "sync",
+      "quote": "accuracy of 20.60us, improved by 59.2%",
+      "where": "Section 6.1.1 (l.576)",
+      "note": "UNSOURCED IN LEDGERS: the paper prints 59.2% improvement vs TSF; eval.json stores no improvement percentage (the script rounds it to 59%)."
+    },
+    {
+      "id": "office-desktop",
+      "scene": "limits",
+      "onScreen": "Desktop 40W · 93.19%",
+      "value": "93.19",
+      "dataset": "field-office",
+      "quote": "Desktop            40            99.18%           -      93.19%",
+      "where": "Table 4 row Desktop (l.886)",
+      "note": "Table 4 office column: Desktop 40 W -> 93.19% (HawkDATA 99.18%). The quote keeps power and F1 in one row."
+    },
+    {
+      "id": "office-humidifier",
+      "scene": "limits",
+      "onScreen": "Humidifier 40W · 85.41%",
+      "value": "85.41",
+      "dataset": "field-office",
+      "quote": "Humidifier            40          100.00%           -      85.41%",
+      "where": "Table 4 row Humidifier (l.887)",
+      "note": "Lowest office F1 in Table 4; Section 7 attributes it to the humidifier's high-power LC circuit causing false positives (same line, right column)."
+    },
+    {
+      "id": "led24-residence",
+      "scene": "limits",
+      "onScreen": "LEDLamp24W 24W · 91.42%",
+      "value": "91.42",
+      "dataset": "field-residence",
+      "quote": "LEDLamp24W             24            96.52%        91.42%",
+      "where": "Table 4 row LEDLamp24W (l.889)",
+      "note": "Table 4 LEDLamp24W row: 24 W, HawkDATA 96.52%, residence 91.42%, office 96.83% - all three numbers live on this single table line."
+    },
+    {
+      "id": "led24-office",
+      "scene": "limits",
+      "onScreen": "LEDLamp24W 24W · 96.83%",
+      "value": "96.83",
+      "dataset": "field-office",
+      "quote": "LEDLamp24W             24            96.52%        91.42%    96.83%",
+      "where": "Table 4 row LEDLamp24W (l.889)",
+      "note": null
+    },
+    {
+      "id": "led24-hawkdata",
+      "scene": "limits",
+      "onScreen": "LEDLamp24W · 96.52%",
+      "value": "96.52",
+      "dataset": "HawkDATA",
+      "quote": "LEDLamp24W             24            96.52%",
+      "where": "Table 4 row LEDLamp24W (l.889)",
+      "note": null
+    },
+    {
+      "id": "ultra-low-power-limit",
+      "scene": "limits",
+      "onScreen": "< 10W",
+      "value": "10",
+      "dataset": "none",
+      "quote": "recognizing ultra-low power (<10w), continuously",
+      "where": "Section 7 (l.887 right column)",
+      "note": "Section 7 limitation: pipe still struggles with ultra-low power (<10 W), continuously varying power. wave.json background is 10 W +/- 10 W but that is unrelated; no ledger field for the 10 W threshold."
+    },
+    {
+      "id": "raw-size",
+      "scene": "oss",
+      "onScreen": "原始版 127.8 GB",
+      "value": "127.8",
+      "dataset": "dataset",
+      "quote": "raw-version file size is 127.8GB",
+      "where": "Section 5.2 (l.496)",
+      "note": "UNSOURCED IN LEDGERS: raw HawkDATA file size 127.8 GB appears only in the paper (and is spoken in the oss narration); no eval.json/gray.json/wave.json field. Quote stops before the hyphenated 'an-notated'."
+    },
+    {
+      "id": "total-cycles",
+      "scene": "oss",
+      "onScreen": "5796 万周期",
+      "value": "5796650",
+      "dataset": "dataset",
+      "quote": "comprising a total of 5,796,650 voltage cycles",
+      "where": "Section 5.2 (l.492)",
+      "note": "UNSOURCED IN LEDGERS: 5,796,650 cycles (32.2 h at 50 Hz) is paper-only; narration rounds it to 五千七百九十六万 (57.96 M)."
+    },
+    {
+      "id": "oss-appliances-22",
+      "scene": "oss",
+      "onScreen": "22 台",
+      "value": "22",
+      "dataset": "dataset",
+      "quote": "We build a data collection laboratory to deploy 22 common",
+      "where": "Section 5.2 (l.473)",
+      "note": "Repeated on the oss card ('22 台'): same paper sentence as appliances-22."
+    },
+    {
+      "id": "oss-programmable-18",
+      "scene": "oss",
+      "onScreen": "其中 18 台可编程",
+      "value": "18",
+      "dataset": "dataset",
+      "quote": "Among these, 18 are programmable",
+      "where": "Section 5.2 (l.474)",
+      "note": null
+    },
+    {
+      "id": "oss-hours",
+      "scene": "oss",
+      "onScreen": "32.2 小时",
+      "value": "32.2",
+      "dataset": "dataset",
+      "quote": "dataset is 32.2 hours, comprising a total of 5,796,650 voltage cycles",
+      "where": "Section 5.2 (l.492)",
+      "note": null
+    },
+    {
+      "id": "outro-cost",
+      "scene": "outro",
+      "onScreen": "4.12 美元",
+      "value": "4.12",
+      "dataset": "hardware",
+      "quote": "is reduced to $4.12, about one-third of the",
+      "where": "Section 5.1 (l.506); abstract (l.102)",
+      "note": "Outro caption '4.12 美元一路的采样' restates the same per-channel cost as sampling-cost (there is no separate paper figure for it). UNSOURCED IN LEDGERS: the cost is paper-only."
+    }
+  ]
+}

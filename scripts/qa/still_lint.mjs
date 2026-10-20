@@ -23,6 +23,7 @@ import fs from "node:fs";
 import { build } from "esbuild";
 import { bundle } from "@remotion/bundler";
 import { renderStill, selectComposition } from "@remotion/renderer";
+import { FILMS } from "../film_registry.mjs";
 
 const EDGE_PX = 24;
 const OVERLAP_RATIO = 0.25;
@@ -56,12 +57,9 @@ const DEFAULT_TARGETS = [
  * single scene still fails the gate. A hard-coded frame list was wrong the moment the timeline
  * moved (and was clamped silently before that), so the list is computed from the source of truth.
  */
-const FILM_SCRIPTS = {
-  Lecture: "src/lecture/script.ts",
-  Multiplication: "src/mult/script.ts",
-  Gears: "src/gears/script.ts",
-  Hawk: "src/hawk/script.ts",
-};
+const FILM_SCRIPTS = Object.fromEntries(
+  Object.entries(FILMS).map(([id, film]) => [id, film.script]),
+);
 
 async function filmTargets() {
   const out = [];

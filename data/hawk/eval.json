@@ -1,13 +1,13 @@
 {
   "meta": {
     "source": "Hawk: An Efficient NALM System for Accurate Low-Power Appliance Recognition (SenSys '24)",
-    "note": "所有数值逐条摘自论文正文与 Table 1–4 / Figure 16，未做二次计算；field.rows 是 Table 4 全部 9 行，avg 行原样保留。基线值均标注 baseline 前缀，勿混用。"
+    "note": "所有数值逐条摘自论文正文与 Table 1–4 / Figure 16，未做二次计算；field.rows 是 Table 4 全部 9 行，avg 行原样保留。基线值均标注 baseline 前缀，勿混用。",
+    "attribution": "摘要把两个数据集合成一句「93.94% 状态 / 97.07% 事件」，容易读成同一数据集；§1 的贡献列表给的是精确归属：HawkDATA 事件 92.71、状态 93.94（Table 3 亦为 93.94），BLUED 事件 97.07 且 11.57 个百分点是相对 MTS-Shapelet 的提升。headline 只放 HawkDATA；BLUED 自己的值一律读 blued。"
   },
   "headline": {
     "stateAvgF1": 93.94,
-    "eventAvgF1": 97.07,
-    "stateGainPct": 47.98,
-    "eventGainPct": 11.57
+    "eventAvgF1": 92.71,
+    "stateGainPct": 47.98
   },
   "hawkdata": {
     "appliances": 22,

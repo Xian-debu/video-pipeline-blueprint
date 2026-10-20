@@ -1,0 +1,1039 @@
+        Hawk: An Efficient NALM System for Accurate Low-Power
+                         Appliance Recognition
+                  Zijian Wang1,2 , Xingzhou Zhang1,2 , Yifan Wang1,2 , Xiaohui Peng1,2 , Zhiwei Xu1,2,3
+                             1 Institute of Computing Technology, Chinese Academy of Sciences, Beijing, China
+                                             2 University of Chinese Academy of Sciences, Beijing, China
+                                                           3 Great Bay University, Dongguan, China
+
+                                  {wangzijian19z,zhangxingzhou,wangyifan2014,pengxiaohui,zxu}@ict.ac.cn
+
+Abstract                                                                                Recognition. In The 22nd ACM Conference on Embedded Networked Sensor
+Non-intrusive Appliance Load Monitoring (NALM) aims to recog-                           Systems (SENSYS ’24), November 4–7, 2024, Hangzhou, China. ACM, New
+                                                                                        York, NY, USA, 14 pages. https://doi.org/10.1145/3666025.3699359
+nize individual appliance usage from the main meter without indoor
+sensors. However, existing systems struggle to balance dataset con-
+struction efficiency and event/state recognition accuracy, especially                   1   INTRODUCTION
+for low-power appliance recognition. This paper introduces Hawk,                        Indoor human activity recognition (HAR) is an attractive issue.
+an efficient and accurate NALM system that operates in two stages:                      Appliance usage, as an essential part of indoor activities, reflects
+dataset construction and event recognition. In the data construc-                       people’s daily routines and impacts household energy consumption.
+tion stage, we efficiently collect a balanced and diverse dataset,                      Accurate detection of appliance usage enables various applications,
+HawkDATA, based on balanced Gray code and enable automatic                              such as detecting hazardous appliances (e.g. chargers for flammable
+data annotations via a sampling synchronization strategy called                         lithium batteries), elderly care[39], building energy management[28,
+shared perceptible time. During the event recognition stage, our al-                    48], and optimizing operating plans for residential[43] and indus-
+gorithm pipeline integrates steady-state differential pre-processing                    trial users[30]. Non-intrusive appliance load monitoring (NALM)[16]
+and voting-based post-processing for accurate event recognition                         detects the usage of individual appliances by monitoring the main
+from the aggregate current. Experimental results show that Hawk-                        circuit without indoor sensors. Due to its ease of deployment, pri-
+DATA takes only 1/71.5 of the collection time to collect 6.34x more                     vacy protection, and low hardware cost, NALM is very attractive[32,
+appliance state combinations than the baseline. In HawkDATA and                         38] and is considered vital for smart meters[14, 42].
+a widely used dataset, Hawk achieves an average F1 score of 93.94%                          Despite its potential, existing NALM systems struggle to bal-
+for state recognition and 97.07% for event recognition, which is a                      ance algorithm accuracy with the efficiency of dataset construction.
+47.98% and 11.57% increase over SOTA algorithms. Furthermore,                           NALM is a typical single-channel blind source separation (SCBSS)
+selected appliance subsets and the model trained from HawkDATA                          problem[52], which is highly underdetermined[19]. Current algo-
+are deployed in two real-world scenarios with many unknown                              rithms mainly focus on recognizing a few noticeable appliances[4,
+background appliances. The average F1 scores of event recognition                       19, 52] and are hard to identify low-power ones from the total cur-
+are 96.02% and 94.76%. Hawk’s source code and HawkDATA are                              rent. Moreover, long-term data collection is necessary to capture
+accessible at https://github.com/WZiJ/SenSys24-Hawk.                                    diverse real-world samples for model training[24, 45], and manual
+                                                                                        inspection is essential for accurate data annotation[12], which be-
+CCS Concepts                                                                            comes a burden for supervised NALM algorithms[55]. Therefore,
+• Human-centered computing → Ubiquitous and mobile com-                                 building a NALM system that accurately identifies all household
+puting systems and tools; • Hardware → Sensor applications and                          appliances, especially low-power ones, faces three challenges:
+deployments; • Computing methodologies → Supervised learning                                Inefficiency of dataset collection. Like most HAR scenarios,
+by classification; Feature selection.                                                   NALM data collection suffers from data scarcity[45] and imbal-
+                                                                                        ance[29, 53]. Most appliances, such as 86% in the BLUED dataset[12],
+Keywords                                                                                are switched less than ten or even zero times a day. In addition,
+NALM, human activity recognition, sampling synchronization,                             the distribution of the usage of different appliances is highly imbal-
+dataset construction, feature extraction                                                anced. The distribution of usage varies over time and in different
+                                                                                        households, making it difficult for the training sets collected to
+ACM Reference Format:
+                                                                                        represent various real-world conditions[45]. Therefore, traditional
+Zijian Wang, Xingzhou Zhang, Yifan Wang, Xiaohui Peng, Zhiwei Xu. 2024.
+Hawk: An Efficient NALM System for Accurate Low-Power Appliance
+                                                                                        NALM data collection involves long-term data acquisition in differ-
+                                                                                        ent households[24], which is time consuming and error prone[8].
+                                                                                        Imbalanced appliance usage leads to redundant samples[40, 47, 53]
+                                                                                        and insufficient usage data for some appliances[12, 50], which bur-
+                                                                                        dens feature extraction and model training[40].
+This work is licensed under a Creative Commons Attribution International 4.0 License.       Inefficiency of dataset annotation. Traditional NALM sys-
+SENSYS ’24, November 4–7, 2024, Hangzhou, China                                         tems collect the aggregated current and individual appliance status
+© 2024 Copyright held by the owner/author(s).
+ACM ISBN 979-8-4007-0697-4/24/11                                                        for data labeling during the dataset construction phase. Sampling
+https://doi.org/10.1145/3666025.3699359                                                 synchronization in such typical distributed acquisition scenarios
+SENSYS ’24, November 4–7, 2024, Hangzhou, China                                                                                           Z. Wang et al.
+
+
+     Dataset Construction Stage                         Sampling Sync.           more reasonable. This is because the electric signature of an ap-
+                                                                                 pliance is primarily determined by its front-end circuitry[18] and
+      BGCode-based Planned Programmable Data                             Model
+     Event Generation Sequence Appliances Label
+                                                         HawkDATA
+                                                                         Input   power consumption, rather than by a strong mapping to the type of
+                                                                                 appliance. Thus, two appliances of the same type may have different
+                                                            Model
+     Event Recognition Stage                               Training              electrical signatures, and two appliances with identical electrical
+                                                                                 signatures may be of entirely different types. Consequently, pre-
+                         SsDiff Current     Event
+                         Preprocessing    Recognition
+                                                            Postprocessing       vious studies that validate the recognition accuracy in the same
+                                                                                 appliance type in different households[24] always result in a low
+                                                                                 recognition accuracy[4, 52], which complicates the evaluation of
+       Figure 1: The methodological pipeline of Hawk.                            the effectiveness of the algorithm[19].
+                                                                                    To our knowledge, Hawk is the first NALM system to accurately
+                                                                                 recognize low-power appliances from aggregated current using the
+affects the accuracy of the labeling[12, 35]. Traditional synchro-               model trained in the laboratory and inference in the wild. Full-stack
+nization methods[27, 35] are two-step processes: synchronizing the               optimizations of the Hawk system contribute to the final recogni-
+sensor nodes’ clocks to a standard clock, followed by responding                 tion accuracy. The Hawk sampling synchronization strategy (like
+and timestamping the sensor data. This two-step sync introduces                  the coordinated claws) reduces the maximum error bound to a
+high upper-bound cumulative errors. Thus, manual inspection[12]                  sampling interval, 1/17.2 of 802.11 TSF. It enables automated data
+is essential for accurate event timestamps, which is time-consuming              annotation to reduce labor costs and potential deviation. Hawk-
+and error-prone, especially for low-power appliances.                            DATA (like huge and balanced wings) achieves 6.34 times more
+    Inaccuracy of the low-power appliances recognition: NALM                     appliance state combinations in just 1/71.5 of collection time com-
+is a typical SCBSS task that separates individual source signals from            pared to baseline[33]. It also improves the category balance ratio of
+a single aggregated signal (typically total current or total power).             the event and state combination by 151.4 and 7188.5 times. Hawk’s
+The identification of target appliances is affected by other appli-              algorithm (like the sharp eyes) achieves an average F1 score of
+ance currents and electrical fluctuations. Inspired by the Signal-to-            92.71% for event recognition and 93.93% for state identification in
+Interference-plus-Noise Ratio (SINR) for assessing the separability              HawkDATA. The F1 score of state identification increases by 47.98%
+of SCBSS[54], lower-power appliances are generally more difficult                compared to [19, 46]. With the same model trained on HawkDATA,
+to recognize with the same level of interference. Thus, many SOTA                Hawk achieves an average F1 score of 96.03% with five appliances
+algorithms[19, 52] only identify a few apparent appliances and have              in a residential area and 94.76% with six appliances, including five
+a high computational overhead[46], which become key obstacles                    low-power ones, in an official area, both with many unknown back-
+for using one sensor for all household appliances.                               grounds appliances. In the BLUED dataset[12], Hawk’s average F1
+    To summarize the above challenges, we pose the following ques-               score for event classification reaches 97.07%, improved by 11.57% to
+tion: can we efficiently train a model capable of accurately recog-              SOTA[50]. In addition, Hawk’s average cost of single-point, high-
+nizing (F1 score > 90%) low-power (< 50w) appliances from aggregate              frequency (16Khz, 24-bit) stabilized sampling is reduced to $4.12,
+current in real world with low computational overhead? To this                   about 1/3 of Hz-level sampling board[9].
+end, we propose Hawk, an efficient NALM system for accurate low-                    The rest of the paper is organized as follows: Section 2 introduces
+power appliance recognition. As illustrated in Figure 1, Hawk’s                  related work. Section 3 and Section 4 detail dataset construction
+methodological pipeline is divided into two stages: dataset con-                 scheme and algorithm pipeline. Section 5 describes hardware pro-
+struction and event recognition. First, Hawk generates diverse and               totype, evaluation settings and in-the-wild deployment. Section 6
+balanced event sequences using grouped randomized balanced Gray                  presents full-stack evaluation results. Section 7 discuss limitation
+code (BGCode). Programmable appliances execute schedules while                   and failure scenario of Hawk. Section 8 concludes the paper.
+their current is recorded to label the aggregated current. Then,
+high-frequency sampled data from distributed sensors are synchro-
+nized using a shared perceptible time strategy, which eliminates                 2   RELATED WORK
+the intermediate clock in the two-stage sync process. During the                 NALM Sampling Synchronization. The NALM datasets capture
+event recognition stage, a steady-state differential (SsDiff) current            the current or power consumption in the main circuit as input
+pre-processing method enhances the SINR of appliances events,                    to the model and collect the current or power consumption of
+especially low-power ones, from the aggregated current.The post-                 the individual appliances for data annotation. In such a typical
+processing stage reports events after a popularity-based voting                  distributed data sampling scenario, accurate clock synchronization
+method to improve the algorithm’s robustness to false predictions.               is the foundation of accurate automated annotation. [5] and [44]
+    The application scenario of the Hawk system is also illustrated              rely on hardware voltage zero crossing detectors to synchronize
+in Figure 1. Model developers efficiently construct datasets with a              sampling and clocks. However, such hardware-based methods are
+set of appliances and train the corresponding models to recognize                vulnerable to voltage fluctuation due to hardware error[24] or some
+these appliances of the same models. Users may be interested in any              appliances events (e.g., some low-end fans). Most works adopt
+subset of the collected appliances and download the corresponding                network-based synchronization methods. BLOND [27] employs
+models to recognize the usage of the appliances against unknown                  NTP with one deviation tested as 6.8 ms, while LIT2020 [35] uses a
+background appliances. Identifying appliances by appliance model                 wireless clock distributor based on a 433MHz RF transmitter with a
+imposes stronger constraints than recognition by type, but it is                 precision of less than 5 ms. BLUED[12] uses a collision-free wireless
+Hawk: An Efficient NALM System for Accurate Low-Power Appliance Recognition                               SENSYS ’24, November 4–7, 2024, Hangzhou, China
+
+
+protocol but still needs visual inspections to realign the annotation            (abcd) (abcd)        (ab|cd)          (ab|cd)             (ab|cd)
+of events. Other fields include [6] achieving 1us-accuracy PTP-like               0000 d 1100 b        00 00 d -        00 00 d -           11 10 d -
+protocol in WiFi networks via TSF. However, the performance of                    0001 c 1000 d        00 01 c -        00 01 - b           11 11 c -
+such wireless methods varies with the network jitters[41].                        0011 b 1001 c        00 11 d -        01 01 c -           11 01 d -
+                                                                                  0111 a 1011 d        00 10 c -        01 11 - a           11 00 c -
+   NALM Dataset Construction. Like many HAR scenarios, NALM                                                             11 11 d -           11 10 - b
+                                                                                  1111 c 1010 b        00 00 - b
+suffers from data scarcity[8]. Thus, traditional NALM dataset con-                                     01 00 - a        11 10 - b           10 10 - a
+                                                                                  1101 a 1110 a
+struction extend data collection periods and scenarios to capture                 0101 d 0110 b        11 00 - b        10 10 c -           00 10 - b
+diverse, authentic electricity usage behaviors. REDD[26] and UK-                  0100 a 0010 c        10 00 - a        10 00 - a           01 10 - a
+DALE[24] collect data from numerous residential houses over long                                          Grouped          Alternative     Randomized
+periods. BLOND[27] collects a high-frequency dataset in office set-              (a) 4-bit BGCode   (b)              (c)               (d)
+                                                                                                          BGCode           execution       initialization
+tings. However, such long-period data collection is time-consuming
+and error-prone[8]. What is worse, the scarce and imbalanced usage
+of appliances always results in an imbalanced dataset: redundant              Figure 2: Four-bit balanced Gray code and our proposed vari-
+samples for certain state combinations[40, 47, 53], or absence of             ant for four appliances (a/b/c/d).
+several appliances’ activity[12, 55]. Some datasets[21, 21] choose
+controlled laboratory conditions to automate the data collection
+process, which consists of many appliances. However, they lack                executes an events sequence 𝑆. Hawk makes the process efficient by
+modeling for balanced state combinations and only capture current             automating the execution of balanced and diverse sequences using
+from individual appliances, missing aggregate current in NALM                 programmable appliances. Additionally, Hawk synchronizes the dis-
+settings. Moreover, it is challenging to generate reliable synthetic          tributed sampling by shared perceptible time, enabling automated
+data[35, 45] since the appliance current is an analog variable with           data annotation and significantly reducing labor costs.
+multiple influences and complex interference between appliances.
+   NALM State/Event Identification. Existing NALM systems                     3.1     Grouped Randomized Balanced Gray Code
+try to identify the state or event of appliances from aggregated cur-
+                                                                              Hawk aims to efficiently collect a NALM dataset that satisfies the
+rent or power. State identification algorithms recognize appliance
+                                                                              balance and diversity demands of two primary tasks: event and state
+statuses, basic operational states[19], and power consumption[52].
+                                                                              recognition. This goal comes from Hawk’s application scenarios,
+Event recognition algorithms detect and classify state transitions[17,
+                                                                              where users are interested in recognizing any subset of 𝐴 with
+32, 48]. Previous studies have used features at various frequen-
+                                                                              arbitrary background appliances. Therefore, there should be no
+cies for NALM systems. [17] pioneers the use of low-frequency
+                                                                              assumed background currents and priority among appliances.
+features through an unsupervised learning pipeline. HMMs and
+                                                                                 However, in traditional NALM dataset construction[24, 26], ap-
+their variants are prevalent [25, 37] and are used in industrial
+                                                                              pliance sets 𝐴real are chosen from a limited number of volunteer
+cases [30]. Deep learning based on low-frequency features also
+                                                                              households, and event sequences 𝑆 real are executed naturally by
+demonstrates promise[4, 11, 19, 23, 51, 52]. To address the diver-
+                                                                              the household residents. The 𝑆 real is naturally temporally sparse
+sity in dataset formats and algorithm design, NILMTK[2] provides
+                                                                              and biased according to the number of residents, their appliance
+a unified dataset parsing interface and integrates several classic
+                                                                              usage habits, and exogenous conditions. This leads to long-term
+low-frequency NALM algorithms for algorithm comparison. [22]
+                                                                              data collection periods for diverse but imbalanced samples, requir-
+validates NALM different algorithms in industrial settings. While
+                                                                              ing additional software preprocessing over TB-level volumn of raw
+low-frequency features require less computation and economic in-
+                                                                              data, which burdens algorithm users. Thus, some works[21, 34, 35]
+frastructure, these approaches may struggle to detect low-power
+                                                                              collect datasets in a controlled laboratory to bridge appliance event
+appliances, distinguish similar-power ones, and perform poorly in
+                                                                              execution sequence with demands of model training. However, they
+energy consumption trace disaggregation[3]. Some works[15, 32]
+                                                                              lack an abstraction of appliance event execution to satisfy the di-
+adopt ultra-high-frequency noise sampling (over 1 MHz) to iden-
+                                                                              verse and balanced demands of event/state-based algorithm model
+tify electrical events and recognize devices equipped with SMPS.
+                                                                              training, and most only collect individual currents[21, 34].
+However, noise is attenuated along the cable[32, 48], limiting the
+                                                                                 Therefore, we model appliance OFF-ON states as 0-1 and propose
+distance between the sensor and appliances. Additionally, the hard-
+                                                                              an event generation strategy based on a variant of balance Gray
+ware infrastructure required for ultra-high-frequency sampling is
+                                                                              code (BGCode). As shown on the (a) of Figure 2, the BGCode has
+much more expensive, and a considerable computational overhead
+                                                                              the following properties that make it ideal for generating event
+exists. Recent work [46, 48, 50] utilize high-frequency (1 kHz to
+                                                                              sequence that guides the execution of appliance events.
+1 MHz) currents with DNNs and achieve promising results. [14]
+utilizes EMI to recognize server-level power consumption, even                      • Balance: BGCode ensures a nearly balanced flip count for
+distinguishing between different servers of the same model.                           each bit, balancing switch counts among appliances.
+                                                                                    • One-bit clipping: BGCode differs only one bit among adja-
+                                                                                      cent states, aligning with independent appliance switches.
+3    Dataset construction stage                                                     • No duplicate travel: BGCode travels the entire state space
+The NALM dataset consists of two stages: dataset collection and                       with no duplicate state, minimizing switching operation.
+data annotation. The collection process can be simplified as collect-               • Scalability: BGCode can be extended to present any even
+ing aggregated and individual signals while a set of appliances 𝐴                     number of appliances’ OFF-ON states[36].
+SENSYS ’24, November 4–7, 2024, Hangzhou, China                                                                                       Z. Wang et al.
+
+
+   Traversing the entire state space of 2𝑛 combinations becomes ex-         ms) to enable timely feedback of the appliance status. When the
+tremely time-consuming when the number of appliances becomes                appliance is turned on or off due to a malfunction or timed switch,
+large. Additionally, each state combination must stay for sufficient        the abnormal event will be reported and automatically corrected.
+time intervals to collect adequate samples. Thus, we introduce
+grouping and randomization strategies in event generation to re-            3.3    Shared Perceptible Time
+duce the size of event sequences while maintaining a diverse and            Clock synchronization accuracy is crucial for NALM data anno-
+balanced property. Grouping aims to reduce the scale of execution           tation, especially for datasets with larger granularity annotations,
+of balanced Gray code sequences. Given that we have n (4 in (a)             such as the 20-ms cycle level for HawkDATA and the 6s level for
+of Figure 2) appliances divided evenly into m groups (2 in (b) of           UK-DALE[24]. Given a synchronization strategy with a maximum
+Figure 2), each group is selected to execute complete balanced Gray         deviation of 𝐸, events occurring within 𝐸 around the label bounds
+code sequences internally. Then, the number of events required              may cause a label-level bias, which misguides model training and
+is reduced from 2𝑛 to 𝑚 ∗ 2𝑛/𝑚 . Such a sequence still meets the            data analysis. Traditional NALM data acquisition suffer from the cu-
+requirement of balance, but limits the range of traversal. Therefore,       mulative error of the two-step sync. Clock synchronization protocols
+the grouped strategy will be executed in multiple rounds to achieve         in cyberspace are always influenced by network jitters. Addition-
+a more diverse combination of states. In each round, one or more            ally, the delay in CPU/MCU data response can be unstable. For
+groups of appliances will be activated and events within the groups         example, using FPGA for high-frequency ADC data buffering may
+will be alternated as (c) of Figure 2. To reduce the probability of state   cause fluctuations in event timestamping[27].
+combination collisions in multiple generation rounds, we introduce             NALM dataset construction focuses more on internal synchro-
+Randomization in terms of grouping, execution sequences and                 nization than on external synchronization. Hence, we propose a
+initial state within groups, as shown in (d) of Figure 2.                   sampling synchronization strategy called shared perceptible time
+   In addition, this strategy comes with certain constraints. For           (SPT) to synchronize sampling directly. The core of the strategy is
+example, the number of groups activated per round is limited to             that time can be represented not only as counters driven by crystal
+ensure safe automated execution of electricity usage without su-            oscillators in cyberspace but also by continuously varying physical
+pervision. Additionally, to maintain the balance of the overall data        signals. In the context of NALM dataset construction, most appli-
+set, the activation frequency of each group must be maintained              ances are connected in parallel and share the same voltage within
+throughout the process. Finally, in the training set generation phase,      a household. We can utilize multichannel simultaneous ADCs to
+Algorithm 1 is executed for 30 rounds, yielding a sequence of 2880          capture current alongside the voltage and timestamp each sample
+events and 2584 unique states. As for the validation set, we per-           with (cycle number, phase value) from the voltage value. Cycle ID
+formed the strategy for 18 rounds, resulting in 2112 events and             is confirmed by the TSF value of the first sample in the voltage
+1962 unique states. This data generation strategy ensures a low             cycle. The phase value is assigned a continuous distance to the first
+overlap between the training and test sets, less than 17%, requiring        zero-crossing point, which is quantified by the sampling interval.
+the model to learn the underlying data patterns. The generated              We assume that the sampling interval remains stable over a short
+sequences are stored in a file and executed by the programmable             period, such as a voltage cycle of 20 ms, so the interval can be used
+appliances described in the following subsection.                           to quantify the phase position. Ultimately, we construct the global
+                                                                            current sequence by constructing the global voltage sequence.
+3.2    Programmable Appliance                                               4     Event Recognition Stage
+In the actual dataset collection process, it is necessary to implement      NALM algorithms suffer from low signal-to-interference-plus-noise
+programmable appliances that execute generated event sequences              ratios (SINR), where signals and fluctuations from other appliances
+automatically without ambiguity and maintain the consistency                influence targeted appliance recognition. Hawk’s enhances the tar-
+of the appliance’s state in cyberspace and physical space. Hence,           get events’ SINR by steady-state differential current pre-process and
+the following two requirements must be satisfied: accurate event            improves the algorithm’s robustness by a popularity-based voting
+execution and timely feedback of the appliance state.                       post-processing method. Thus, some basic classifiers can achieve
+   The programmable appliance is a logical entity implemented               high accuracy and robustness in recognition while maintaining low
+with an event executor, an individual current sensor, and a con-            computational overhead.
+troller. The event executors consist of esp32-controlled servos and
+relays to simulate human operations, and ESP32s provide interfaces          4.1    Steady-state Differential Current
+as Restful servers. Each executor is assigned a static address and
+                                                                            Unlike previous work that directly applies traditional signal process-
+pre-calibrated to ensure accurate event execution. The controller
+                                                                            ing methods[50] or relies on model learning capabilities[48], we aim
+detects the state from the cycle-level root mean squared (RMS)
+                                                                            to enhance the SINR of target appliances through pre-processing by
+current collected by the individual current sensor. However, some
+                                                                            leveraging the stability and periodicity of appliance currents. We
+appliances exhibit continual variations in the RMS current. Hence,
+                                                                            propose a feature extraction called steady-state differential (SsDiff)
+we denoised the RMS current waveform by averaging values in
+                                                                            current, which has two key advantages.
+a window of length 𝑙, specific for each appliance, excluding the 𝑛
+largest and the 𝑚 smallest values. And we switch the appliances mul-        4.1.1 Enhanced SINR from Differential Current. To calculate SINR,
+tiple times in advance to determine these parameters corresponding          we express the signal power as the power consumption of the
+to specific appliances. We keep 𝑙 as short as possible (averaged 60         appliance. Given the power of the 𝑖th appliance at time 𝑡 is 𝑃𝑖,𝑡 . The
+Hawk: An Efficient NALM System for Accurate Low-Power Appliance Recognition                                    SENSYS ’24, November 4–7, 2024, Hangzhou, China
+
+
+                                                       Kettle + Humidifier
+                                                       Differential current
+                                                       Humidifier’s
+                                                       individual current
+
+
+
+
+             OFF     ON        OFF     ON1      ON2
+
+
+Figure 3: Comparison between aggregated current and dif-                            Figure 4: The incandescent lamp’s individual current changes
+ferential current. The right subplots show the humidifier’s                         around turning on. When background currents are stable,
+current and the differential current calculated from three                          the steady-state differential operation on total current is
+differential pairs: both before the event, at the two ends of                       supposed to get changes in the incandescent lamp’s current.
+the event (ON1), and both after the event(ON2).
+                                                                                    current change from the aggregated current. As seen in Figure 3,
+background noise is 𝑁𝐵,𝑡 . The SINR for the 𝑘th targeted appliance                  the waveform corresponding to ON1 matches the current values of
+from raw data at time 𝑡 is expressed as:                                            the target appliance and makes it more distinguishable. Conversely,
+                                                                                    only electrical noise remains if the differential pair is in the same
+                                         𝑃𝑘,𝑡
+                      𝑆𝐼 𝑁 𝑅𝑘,𝑡 = Í𝑛                                          (1)   appliance state combination (such as OFF and ON2 in Figure 3).
+                                         𝑃 + 𝑁𝐵,𝑡
+                                     𝑖!=𝑘 𝑖,𝑡
+                                                                                    4.1.2 Enhanced Robustness from Windowed Voting. As shown in
+   Therefore, smaller power appliances are generally more difficult
+                                                                                    Figure 3, differential total current can extract the individual current
+to recognize directly from the aggregated current when running
+                                                                                    of switching appliances while background appliances are running
+concurrently with larger ones. However, the differential current
+                                                                                    steadily. Moreover, most appliances undergo a transient state be-
+offers a different perspective. Differential current’s effectiveness
+                                                                                    tween stable on and off states[34], as shown in Figure 4. Such
+relies on Kirchhoff’s current law, simplified as 𝐼𝑠𝑢𝑚 = 𝐼𝑡𝑎𝑟𝑔𝑒𝑡 +
+                                                                                    transient current waveforms are more random and easily confused
+𝐼𝑏𝑎𝑐𝑘𝑔𝑟𝑜𝑢𝑛𝑑 . When background appliance currents remain relatively
+                                                                                    with waveforms from other background appliances. Therefore, we
+stable over short durations, turning on or off the target appliances
+                                                                                    insert a fixed interval between differential current pairs, allowing
+should result in a proportionate change at the main meter. Given
+                                                                                    us to bypass the transient state and directly capture the differential
+that a switch event of kth appliance occurs within the range of
+                                                                                    current between stable on and off states.
+(t-d, t), one of 𝑃𝑘,𝑡 −𝑑 and 𝑃𝑘,𝑡 corresponds to the power of the ON
+                                                                                       Unlike previous work that expects models to learn differential
+stage, 𝑃𝑘,ON , while the other corresponds to 𝑃𝑘,OFF . And 𝑃𝑘,OFF is
+                                                                                    information from raw inputs[48] or extract steady-state differential
+approximately zero for most appliances. Therefore, the SINR of the
+                                                                                    currents for classification after detecting events[10], we employ
+kth appliance event from the differential current waveform with
+                                                                                    an one-step sliding window approach for streaming steady-state
+differential pair (t-d, t) can be expressed as follows:
+                                                                                    differentials, as shown in Figure 4. Additionally, we leverage an-
+                     |𝑃𝑘,𝑡 − 𝑃𝑘,𝑡 −𝑑 | 𝑃𝑘,ON − 𝑃𝑘,OFF                               other observed characteristic of the differential currents to enhance
+          SINR𝑘,𝑡 = Í𝑛      ′ + 𝑁 ′ = Í𝑛 𝑁 ′ + 𝑁 ′
+                          𝑁                                                         our algorithm’s robustness further. Given a differential interval
+                                                                              (2)
+                      𝑖≠𝑘 𝑖,𝑡      𝐵,𝑡  𝑖≠𝑘 𝑖,𝑡    𝐵,𝑡
+                             𝑃𝑘,ON                                                  of 𝐷 and an appliance transient length of 𝑡, the steady-state dif-
+                    ≈ Í𝑛                                                            ferential current can ideally obtain (𝐷 − 𝑡) cycles of differential
+                             𝑁 ′ + 𝑁𝐵,𝑡
+                                    ′
+                          𝑖≠𝑘 𝑖,𝑡                                                   current signature corresponding to the event (as illustrated by the
+                                                                                    three pairs of differential currents in Figure 4). In other words, the
+     ′
+   𝑁𝑖,𝑡 represents the power of differential noise from the 𝑖th appli-
+ance. Since background appliances always remain relatively stable                   classifier will output the event (𝐷 − 𝑡) times. Thus, we propose a
+                        ′
+for a short period, 𝑁𝑖,𝑡 is significantly smaller compared to the                   voting-based post-processing method that reports events when the
+original power. For example, assume an indoor environment with a                    report number of the classifier greater or equal to a threshold 𝑇 .
+40±1W humidifier and a 1500±20W electric kettle working together,                   Such a process can tolerate (𝐷 −𝑡 −𝑇 ) false negatives and 𝑇 −1 false
+with a background noise of 10±10W. The humidifier’s maximum                         positives caused by background interference, which will effectively
+SINR is 41/1480 if we identify directly from the total current. How-                enhance the robustness of the model predictions.
+ever, after applying differential current, the minimum SINR for the
+humidifier’s switching event is 39/(40+20) = 39/60.                                 4.2    Considerations of Model Design
+   To demonstrate differential current’s benefits more vividly, we                  Problem Definition. Different from appliance state recognition,
+present an example in Figure 3. The left subplot shows the total                    we define appliance event recognition in as a time-series multi-class
+current for the humidifier’s on and off state when the background                   classification problem instead of a multi-label classification problem.
+appliance is a kettle. Due to the high-power background kettle,                     In SustDataED2, out of 12,252 events involving 18 appliances, only
+the total current waveform indistinguishable changes before and                     two human-related events occurring within a specific second. Out
+after the humidifier switch. On the other hand, when background                     of the 799 events for the eight appliances in the BLUED dataset, also
+appliances are relatively stable (often the case), and the differen-                only two events occur in the same 1-second interval. The statistics
+tial current pairs are distributed around the switching events, the                 indicate a low collision probability for human-related events and
+differential current will capture the waveform of the individual                    set reference for maximum differential gap length.
+SENSYS ’24, November 4–7, 2024, Hangzhou, China                                                                                                        Z. Wang et al.
+
+
+  I-rms                                                                                                                                 1               VoteHum ≥ 12
+                 ①                                                                                                                        Humidifier
+  Screen on!                  …                                                                                                         0
+                                                                                                                                        …                    …
+                                                                                                   0       320
+  Turn on!                                                                                                                              0 IDLE
+                       Time                                     If pass!    Model
+                                           FFT    ③: Filter                                 …        SsDiff      Dimensionality                         Vote-based
+               [] []                                                       training                                               Classification
+  Aggregated           ②                                      Annotation                           Preprocess      Reduction                           postprocessing
+   current       (2500,320)
+
+
+                                                                                      Figure 6: The algorithm pipeline of the event recognition.
+Figure 5: Training data preparation pipeline. The smart
+                                                                                      The pipeline’s input is read from main meter. When vote
+screen is a multi-component appliance and undergoes two
+                                                                                      number is over threshold, the event is reported.
+events after switch on: system boot and screen on, the second
+one is more noticeable since the screen costs more energy.
+                                                                                      Hawk’s algorithm pipeline reads the aggregated current, organized
+                                                                                      by voltage cycles, from the smart meter to detect and classify ap-
+   Determination of crucial parameters. Differential interval
+                                                                                      pliance events. Our algorithm pipeline based on FFT-XGBoost is
+and voting threshold are critical parameters in the algorithm pipeline.
+                                                                                      shown in Figure 6, while the pipelines based on CNN and CNN-
+The differential interval for calculating SsDiff current should be
+                                                                                      LSTM use the raw current waveform as input.
+long enough to jump over transient features but reasonable to avoid
+simultaneous events and rising risk of background noise. Moreover,                        (1) Differential Current Calculation: We compute Steady-
+specific thresholds for each appliances directly affect recognition ac-                       state Differential currents by direct cycle-level current sub-
+curacy, which is determined during model training by maximizing                               traction from a 30-cycle circular buffer.
+the F1-score of event predictions on the training set.                                    (2) Dimensional Reduction: We take the first ten harmonics,
+   Classifier Selection. We conducted preliminary experiments                                 including the real part, imaginary part, and magnitude, of
+with various deep neural networks for time series classification[20]                          differential current as model inputs after FFT transformation.
+and found that CNN and CNN-LSTM achieve higher accuracy and                               (3) Classification: Reduced features are fed into a big XGBoost
+better computational efficiency. Different appliances show varying                            model to identify events. The model outputs 37 states, in-
+power ranges and harmonic content in their current waveforms.                                 cluding OFF-ON states of 18 appliances and an IDLE state.
+Hence, we combined FFT with XGBoost[7], which empirically per-                            (4) Post-processing: A post-processing strategy involves vot-
+forms better on unsmooth target functions[13]. We ultimately se-                              ing within an 30-cycle window. The most likely event, sur-
+lected these three classifiers for comparison in our evaluation.                              passing the voting threshold (e.g., 12 for the humidifier turn
+                                                                                              on event), is reported eventually.
+4.3       Algorithm Pipelines                                                            We can use the second step to reduce the dimensionality of fea-
+The differential currents of events of low-power appliances are                       tures while preserving sufficient information of the raw waveform
+vulnerable to fluctuations caused by background appliances, so the                    because most of the current waveform energy of appliances is more
+pipeline design for model training and inference must account for                     concentrated in the low-frequency region. Such an operation can
+noise interference with recognition.                                                  also eliminate the effect of high-frequency noise. Because Hawk
+                                                                                      performs continuous inference, the classifier includes an IDLE state,
+4.3.1 Training Data Preparation. To reduce the effect of contami-                     indicating no events detected. The results of the streaming classifi-
+nated data on training and achieve data augmentation. We propose                      cation are buffered in a queue of length the same as the differential
+a three-step pipeline (depicted in Figure 5) to automatically extract                 gap. Each time, we count the occurrences of each category in the
+and filter a sufficient number of SsDiff currents with corresponding                  queue, and when the count of a specific category exceeds its cor-
+labels for model training.                                                            responding threshold, the classifier outputs that category. This
+   (1) Obvious Event Localization: Unlike strictly accurate dataset                   postprocessing efficiently reduces false predictions caused by noise.
+        annotation, we choose more noticeable current change points
+        during inevitable stages as their on/off events to predict (such              5     Prototype And Validation Settings
+        as Smart Screen’s screen on event in Figure 5). Therefore, we                 In this section, we first present the design of our sampling hardware
+        raise the RMS-current thresholds to automatically locate                      prototype and then introduce different settings: laboratory, in-the-
+        more apparent event positions to prepare training data.                       wild study in the residual and office area with a brief description of
+   (2) Data Augmentation: Steady-state differential currents are                      the collected dataset.
+        obtained by performing pairwise differential operations on
+        the current from 50 stable ON and 50 stable OFF states on                     5.1    Hardware Prototype
+        either side of appliance switches, generating 2500 pairs of
+                                                                                      Hawk hardware architecture, depicted in Figure 7, integrates three
+        differential current differences for each appliance event.
+                                                                                      primary elements: the data acquisition board for high-frequency
+   (3) Sample Filtering: The enhanced samples are filtered by
+                                                                                      data capture, AC-(to)-AC sensors for current and voltage sensing,
+        comparing the fundamental frequency harmonics with the
+                                                                                      and a data recording infrastructure. This fundamental hardware
+        individual appliances’, reducing contaminated samples.
+                                                                                      architecture design is shared between the development and deploy-
+4.3.2 Inference pipeline. Hawk’s inference pipeline follows a ba-                     ment stages. We developed two versions of the prototype corre-
+sic preprocess-classifier-postprocess structure. During inference,                    sponding to two stages, as shown in Figure 8.
+Hawk: An Efficient NALM System for Accurate Low-Power Appliance Recognition                              SENSYS ’24, November 4–7, 2024, Hangzhou, China
+
+
+          Power
+         supplier                      ESP 32
+                      Beacon    WiFi                        AC-AC
+         Router
+                     W5500
+                                TSF
+                                        Core0 Core1   ADC    …
+                                                            AC-AC
+         PC          DAQ                 OK
+                     Board         N*
+
+
+
+Figure 7: Hardware architecture of Hawk data acquisition.
+Voltage and current are collected by data acquisition boards
+through AC-AC sensors and transmitted via Ethernet to a                       Figure 8: Two version of hardware prototypes. The left sub-
+data logging PC.                                                              plot shows the laboratory version powered by an external
+                                                                              shared power supply. The deployed version in real environ-
+                                                                              ments will extend an AC-DC power module to avoid the need
+   The data acquisition board consists of three components: a 24-bit          for battery maintenance.
+ADS131M08 ADC for 16KHz simultaneous 8-channel sampling, an
+ESP32 MCU offering dual-core processing with integrated WiFi for
+TSF counter queries, and a W5500 Ethernet controller to transmit
+                                                                              5.2    Laboratory Setting and HawkDATA
+data reliably during dataset construction stage. To ensure stable and
+continuous sampling at 16KHz, as depicted in Figure 7, we assign              We build a data collection laboratory to deploy 22 common appli-
+the task of responding to ADC interrupts to Core1, which is free of           ances for data collection. Among these, 18 are programmable for
+default interrupts. Core1 reads and packages data by voltage cycles           future algorithms to recognize, as listed in Table 1. The other 4 ap-
+(the yellow squares in Figure 7). Conversely, Core0 is responsible            pliances, such as a wireless router and refrigerator, are constantly
+for querying packet status and transmitting the cycle’s data from             on, free of human activity, and used as background appliances.
+the shared memory to the logging PC.                                          We select diverse appliance representations, including those with
+   The AC-AC sensor unit comprises voltage and current sensors.               similar functions but with different electronic circuits (e.g., LED,
+Current sampling has three typical types of sensors[56]: shunt                incandescent, and fluorescent bulbs for lighting). The electrical char-
+resistors, Hall effect sensors, and current transformers. We opted for        acteristics of these appliances span a wide range, from a 5W camera
+contactless current transformers for their circuit non-intrusiveness,         to a 2160W air heater and coverage of most front-end circuits[18].
+ease of deployment, and electrical safety.                                    Besides diversity, recognition challenges are also considered, and
+   The collected data are streamed through a wireless router. The             we also choose appliances with the same working principle but
+wireless router facilitates the Ethernet connection between the data          varying power ratings and appliances with close power rates. This is
+logging PC and the sampling boards via the MQTT protocol. It                  also an advantage of HawkDATA over others from real households
+also synchronizes the TSF in each MCU for the sampling synchro-               with biased collections of appliances.
+nization strategy. We utilize a desktop as the data logger in the                 HawkDATA is collected in the laboratory environment, with pro-
+laboratory environment. In real-household conditions, we employ               grammable appliances executing the event schedules mentioned in
+an embedded computer as the collector to reduce disruption to the             Subsection 3.1. Each appliance state combination is planned to last
+household’s current and reduce costs. Additionally, the collected             for 20 seconds. Ultimately, the effective collection duration of our
+data is stored on an external hard drive.                                     dataset is 32.2 hours, comprising a total of 5,796,650 voltage cycles
+   The current transformer selected for the prototype at the main             for a 50Hz AC circuit. HawkDATA includes both raw and annotated
+meter is rated at 4000:1, with a shunt resistor value of 10 ohms. The         versions stored in NPZ file format. The raw data version records
+ADC reference voltage is 1.25V, featuring a resolution of 24 bits             the total current, voltage, and individual current of 18 appliances,
+and a sampling frequency of 16 kHz. Ignoring sampling deviation,              all sampled at 16kHz. The raw-version file size is 127.8GB. The an-
+the theoretical resolution of the sampling is 59.6 µA. However, the           notated version organizes and labels the data according to voltage
+sampling accuracy is constrained by the effective number of bits              cycles. For a 50Hz AC circuit, each cycle contains 320 points.
+of high-frequency sampling and is also affected by the nonlinear
+conversion of the current transformer. Therefore, in the evaluation           5.3    In-the-wild Settings
+section, we assess the linearity of the current conversion.                   The field experiment aims to validate the Hawk system and ensure
+   The hardware design is designed to maximize component utiliza-             that it aligns with the application scenarios. The Hawk system,
+tion, with multiple AC-AC sensors sharing a single data acquisition           with a single sensor for inference (shown on the left of Figure 9),
+board and taking full advantage of dual-core performance. As a                was tested in residential and office spaces, and target appliances
+result, the average sampling cost per current channel based on the            subsets from HawkDATA were repurchased and deployed without
+data acquisition board is reduced to $4.12, about one-third of the            affecting the original appliances. Including data collection labora-
+cost of the Hz-level sampling board[9]. This is remarkable, as the            tory, three places were selected from three different regions, with a
+high cost of large-scale training data collection is a key obstacle for       total distance exceeding 2000 km between the points. All three re-
+supervised method of NALM[55]. Even in the deployment phase,                  gions operate under a 220V, 50Hz AC standard, but there are slight
+this optimized design can be taken in environments with multiple              differences due to different electrical infrastructures and varying
+smart meters, such as green communities.                                      electricity consumption trends.
+SENSYS ’24, November 4–7, 2024, Hangzhou, China                                                                                                            Z. Wang et al.
+
+
+                      7m                                              3.7m
+                              ×7                                      ×6
+                          Kitchen                               Public Area
+              ×1                ×4                           ×4
+           Bedroom           Dining                                      Cubicle 2
+                                                           Cubicle 1    (unoccupied)
+                             Room
+                                                               ×4              ×8 24
+
+
+
+
+                                                    6.8m
+                                                           Cubicle3          Cubicle4
+             ×5      24
+
+
+         Bathroom               ×7                           ×6                 ×4
+                          Living Room
+                                                           Cubicle5          Cubicle6
+  15m
+
+
+
+
+             Hall    ×1                                       ×10              ×6 36
+                                                           Cubicle7          Cubicle8
+                ×5               ×5                             Official area
+            Bedroom          Bedroom                                                             Figure 10: CDF of synchronization error of our strategy and
+                                                     Microwave Oven                Kettle
+                36                                                                               TSF. Our CDF is smoother due to continuous timestamp.
+                                               24
+                                                     LED Lamp 24w                  Desktop
+                                  ×1           36
+                                                     LED Lamp 36w                  Humidifier
+                              Balcony
+                                                     Electric Cooker               Air Heater
+              Residential space                                                                  6.1.1 Sampling synchronization evaluation.
+                                        Hawk         Fluorescent Lamp              Backgrounds
+                                                                                                 Baseline. The baseline selected for comparison is the Time Synchro-
+                                                                                                 nization Function (TSF) of the 802.11 protocol, which can achieve
+        Figure 9: Deploy details of two in-the-wild settings.
+                                                                                                 microsecond synchronization accuracy[6, 31]. Additionally, ESP32
+                                                                                                 provides a TSF interface, making it a suitable baseline for our low-
+                                                                                                 cost distributed solution.
+   For the residential environment, we selected a 103-m2 three-                                      Evaluation method. We assess synchronization error by compar-
+bedroom apartment with three inhabitants and 36 unknown back-                                    ing the timestamps of the same current surge point recorded by
+ground appliances, of which more than 40% were lighting devices,                                 two nodes. Incandescent lamps experience a current surge when
+totaling more than 42 operating states. We deployed five represen-                               switched on. Such transient current surge is simultaneously de-
+tative appliances from the HawkDATA set: two LED lights (24W                                     tectable by the main meter and the submeter attached to the incan-
+and 36W), an electric cooker, an electric kettle, and a microwave                                descent lamp. We switch on and off the incandescent bulb using a
+oven, for seven days. Observations revealed the use of 35 of 36 back-                            relay to collect the synchronization deviation. Two meters for test-
+ground appliances during this period. For the office environment,                                ing are placed less than 1 meter from the accessed wireless router to
+we chose a 25-m2 graduate student office with seven occupants                                    test the best performance of TSF synchronization. In addition, a dis-
+and 48 appliances, totaling more than 51 operating states. Since                                 tance of around 13m is set to evaluate the impact of electrical circuit
+most office appliances are less than 150W, we selected low-power                                 length on SPT. The wireless router used for the experiment is an
+appliances from HawkDATA, including a desktop, two 24W and                                       Asus AC66U-B1. The deviation of the SPT synchronization strategy
+36W LED lights, a humidifier, a fluorescent lamp, and a high-power                               is a continuous phase value, while the TSF-based synchronization
+air heater as a background appliance when few appliances were                                    strategy has a resolution of 1 microsecond.
+used. Observations showed that 44 of 48 background appliances                                        Result Analysis. The result in Figure 10 shows that Hawk’s syn-
+were used during this period.                                                                    chronization strategy based on SPT can achieve an average synchro-
+   The deployment of the Hawk model is in a manner of applica-                                   nization accuracy of 20.60us, improved by 59.2% compared to TSF,
+tion scenarios mentioned in the Introduction section, which are                                  averaging 32.8us. Our maximum synchronization error is 61.80us,
+deployed without modification. The inference program is imple-                                   about 1/17.2 of TSF. We can see a gap in the error distribution of
+mented in C and is attached to a physical core of embedded com-                                  TSF; 99.65% of the synchronization accuracy is within 220us, while
+puters (Jetson Orin NX 16GB) to enable real-time inference. It                                   the other 0.35% are distributed from 980us to 1060us. This gap is due
+uses the MQTT protocol to subscribe to continuous data generated                                 to the 1-ms WiFi packet jitter[41]. Our experiments show that the
+by a single sensor node at the main meter, as shown in Figure 9.                                 jitter ratio of beacon packets is affected by wireless channel inter-
+Targeted appliances are manually switched on and off, with both                                  ference and the distance between the AP and the STA. In our testing
+switch actions and model recognition results recorded, including                                 scenario, several wireless APs in the office area are the sources of
+false positive samples when no switch action occurs. The switching                               interference. On the other hand, our proposed SPT strategy is more
+frequency is adjusted according to the number of occupants, set to                               robust. When the two sensor nodes are 13 meters apart, the overall
+15, 30, or 60-minute intervals. In addition, the deployed appliances                             accuracy improves. This is due to introduced random quantification
+do not interfere with the operation of original appliances, ensuring                             errors, by equating the switch events of a continuous position of
+realistic and diverse background current.                                                        the events to a sampling point. The more comprehensive analysis
+                                                                                                 of our synchronization error will be presented in future work.
+6 EVALUATION
+                                                                                                 6.1.2 Current conversion linearity evaluation.
+6.1 Data Acquisition Quality Evaluation                                                          Evaluation method. One of the challenges for sampling accuracy
+As a typical distributed data collection, the quality of NALM data is                            evaluation experiments is that we lack an ideal measurement for
+evaluated from two dimensions: sample synchronization accuracy                                   high-frequency current sampling instruments as a standard. Such
+between sensor nodes and single-point current conversion linearity.                              standards invariably have their deviation ranges and come with
+Hawk: An Efficient NALM System for Accurate Low-Power Appliance Recognition                                                           SENSYS ’24, November 4–7, 2024, Hangzhou, China
+
+
+                                                                                                                      Deviation
+                                           App1 ON2                                                             +4%
+
+
+
+
+                                                             Digital Readout
+        Digital Readout
+
+
+                          App2 ON                                                                               +2%
+                                                                                      App1
+                          App1 ON1                     ΔD2                            ON2                        0%
+                          App1 OFF               ΔI2                           App1
+                                                                                                                -2%
+                                           ΔD1                                 ON1             Δd2
+                                     ΔI1                                                Δd1                     -4%
+
+
+
+
+                                                                                …
+                                                                                 ΔI
+                                                                                 …1      ΔI2                    -6%
+                            Main Meter Current                                      Sub-Meter Current                                                    Background Irms(A)
+                                                                                                                          ]    ]    ]    ]    0]    2]    4]    6]       2]
+                                                                                                                      [0,2 (2,4 (4,6 (6,8 (8,1 (10,1 (12,1 (14,1 (16,2
+
+Figure 11: Current conversion differential linearity of differ-
+ent events with different background current. The ratios are                                            Figure 12: Differential linearity of current conversion in
+calculated from diverse situations.                                                                     HawkDATA.
+
+                                                                                                        Table 1: The number of events and on-state cycles for the
+prohibitive costs. Inspired by a commonly used evaluation metric of                                     appliance in the HawkDATA.
+ADC/DAC, differential linearity, we designed an assessment method.
+Differential linearity of ADC refers to the stable relationship be-                                           Appliances    Event On-state   Appliances     Event On-state
+tween the digital output changes and the analog input variations at                                            Monitor       302 1,774,054   SmartScreen     294 1,780,251
+                                                                                                              Humidifier     278 1,694,105 FluorescentLamp 292 1,798,803
+different starting points. As shown in Figure 11, we evaluated the
+                                                                                                             LEDLamp24w      278 1,666,026    Television     290 1,707,688
+differential linearity of HawkDATA by comparing the stability of                                           IncandescentBulb 296 1,856,095       Washer       288 1,693,044
+the ratio between the total meter reading differences and current                                           ElectricCooker   296 1,656,548 MicrowaveOven 1310 1,628,551
+differences before and after switching events for different appli-                                         InductionCooker 288 1,705,172       AirHeater     282 1,712,366
+                                                                                                             LEDLamp36w      280 1,718,433   ElectricKettle  286 1,687,541
+ances under varying background currents. The current difference
+                                                                                                                Stirrer      290 1,651,833 PhoneCharger      294 1,793,826
+is presented as sub-meter reading differences. Since most appli-                                               Desktop       286 1,827,268 SweepingRobot     292 1,695,928
+ances operate within a more stable and lower current range when
+compared with aggregated current, we assume that the current
+differences maintain a consistent ratio with the reading differences.                                   like the timed switching or operational failures; for instance, the
+Finally, we organize different appliance switches’ average normal-                                      microwave oven in Table 1 exhibits more frequent switching.
+ized linearity rates within the same range of background currents                                           Baseline. Our baseline is SustDataED2[33], a high-frequency
+into a box and show their changes along the change of background                                        NALM dataset collected from a real household. SustDataED2 com-
+currents in Figure 12.                                                                                  prises the same number of appliances as the programmable appli-
+   Ensuring the differential linearity of our sampled values also                                       ances in Hawk, making it a reasonable baseline as representative
+enables our proposed steady-state differential current-based fea-                                       of the traditional NALM dataset construction schema.
+ture extraction. Though not guaranteeing that the acquired data                                             Metrics. The metric to measure dataset balance is balance ratio
+represents exact values, differential linearity ensures a stable pro-                                   (BR), the inverse of a commonly used imbalance ratio (IR)[49], to
+portional relationship. Such deviations are often deemed inconse-                                       avoid the minimal value of zero[12]. The category BR is defined as,
+quential after typical pre-processing steps like normalization.                                                                              𝑁𝑚𝑖𝑛
+   Result. According to Figure 12, both mean and median values                                                                        𝐵𝑅 =                                  (3)
+                                                                                                                                             𝑁𝑚𝑎𝑥
+deviate by no more than 2% from the ideal unity, substantiating                                         where 𝑁𝑚𝑖𝑛 is the sample size of the minoriest category and 𝑁𝑚𝑎𝑥
+the stability of our data conversion process. Since this metric is                                      is the sample size of the majoriest category. What’s more, there are
+statistics of raw HawkDATA, the final results ensure that within                                        different balance requirements for state and event recognition algo-
+the HawkDATA, the average reading deviation of the same cur-                                            rithms. The balance requirement of the event recognition algorithm
+rent variation, influenced by background current, does not exceed                                       entails a uniform distribution of switch events across different ap-
+2%. The data visualized in Figure 12 reveals two phenomena with                                         pliances, maximizing the category BR. In contrast, state recognition
+increased background current. The first observation is a slight re-                                     algorithms require balance in two aspects[40]. First, the number
+duction in the average normalized linearity rate which may related                                      of ON and OFF state samples for each type of appliance should
+to property of current transformer. The second observation is the                                       be as close as possible. Second, the number of ON states between
+widening spread of the linearity rate distribution as the background                                    different appliances should be balanced.
+current intensifies. The broadening is likely a consequence of the                                          As for the metrics of dataset diversity, we use the number of state
+increased electrical noise and interference associated with a more                                      combinations to represent the diversity of states and qualitatively
+significant number of active background appliances, affecting the                                       represent event diversity by a heatmap of the appliance on/off
+calculation of differential linearity rates.                                                            distributions with different levels of background RMS current.
+                                                                                                            Result Analysis. Table 1 records the distribution of our event and
+6.2    Dataset Construction Evaluation                                                                  state combinations. Most appliances have a consistent number of
+Although the sequence generated from group randomized bal-                                              collected events and ON states, except that the microwave oven’s
+anced Gray code guarantees balance, the practical execution of                                          timed shutdown feature caused many unplanned switch events
+programmable appliances may deviate from this due to factors                                            during data collection. Ultimately, HawkDATA’s category BR of
+SENSYS ’24, November 4–7, 2024, Hangzhou, China                                                                                                               Z. Wang et al.
+
+
+                                                                                                                                CNN      CNN-LSTM      FFT-XGBoost
+                                                                                           Microwave                      94%
+                                                                                                                                                               92.71%
+                                                                                                                          92%                       91.19%
+                                                                                    Others
+
+
+
+
+                                                                                                       Average F1 score
+                                                                                                                          90%                            89.47%
+                                                                              Original HawkDATA
+                                                                                                                          88%
+                                                                                                                                      86.31%
+                                                                                                                          86%   84.98%
+                                                                               Others                                                      84.62%
+                                                                                           Monitor
+                                                                                                                          84%
+                                                                              Desktop                                     82%
+                                                                                           Washer
+                                                                               Microwave
+                                                                                                                          80%
+                                                                             Imbalanced HawkDATA                                   Imbalanced            Original
+
+
+
+                                                                         Figure 14: Comparison of different classifier trained on dif-
+                                                                         ferent dataset.
+
+
+                                                                         states from the raw high-frequency current. MTS-Shapelet[50] em-
+Figure 13: Each cell contains two numbers: the top number                ploys a multi-time-scale shapelet to process high-frequency current
+denotes the count of events occurring in the training set, and           waveforms. It provides detailed accuracy results for appliance clas-
+the bottom number corresponds to the testing set.                        sification events, facilitating the comparison of different appliances.
+                                                                             Datasets. HawkDATA, as previously discussed in Subsection 5.2,
+                                                                         is collected in a laboratory environment with 220V, 50Hz AC power.
+the event is 0.212, significantly higher than that of SustDataED2,       The average power is calculated from the total current and voltage
+which is 0.0014. And the category BR of ON states across appliances      to generate a labeled dataset for MSDC based on low-frequency sig-
+is 0.877, exceeding SustDataED2’s 1.22*10 −4 . We use the average        nals. The imbalanced HawkDATA is resampled based on the relative
+ON-OFF BR as the evaluation metric of the overall balance between        proportions of appliance usage in actual households ([12, 33], as
+ON and OFF states. HawkDATA’s average ON-OFF BR is 0.424,                shown in the left part of Figure 14), keeping the total event count
+surpassing SustDataED2’s 0.338.                                          constant. We add differential current during periods without appli-
+   As for event diversity evaluation, all appliances exhibit switch      ance events to increase the sample size for underrepresented types,
+events across all current ranges in Figure 13. As for state diversity,   based on Kirchhoff’s current law. BLUED[12] is a high-frequency
+HawkDATA records 4,558 unique state combinations across data             (12KHz) NALM dataset collected in a residential environment with
+collection of 32.2h. As a comparison, SustDataED2, a dataset col-        240/120V, 60Hz AC power over seven days. Some of collected appli-
+lected from real households, acquired only about 718 unique states       ances (such as fridge) are multi-state appliances.
+in 2,304 hours. HawkDATA records a unique state every 25.43 sec-             Metrics. We use the F1 score to evaluate recognition accuracy
+onds and a switch event every 18.91 seconds during data collection.      and average F1 score to evaluate overall performance on balanced
+The number of unique state combinations collected per unit of time,      HawkDATA. For the imbalanced BLUED dataset, we also employed
+which we refer to as the diversity density or information density        the weighted average F1 score[50]. However, we still prefer the
+of the dataset, is much higher than others, reflecting the efficiency    average F1 score. This is because the weighted F1 score dispropor-
+of Hawk dataset construction.                                            tionately emphasizes appliances like fridge, which have frequent
+                                                                         automatic switches but are less related to human behavior.
+6.3    Algorithm Pipeline Evaluation
+                                                                         6.3.2 Impact of classifier and dataset balance. Taking advantage of
+6.3.1 Overall Setup. The evaluation of our algorithm pipeline con-
+                                                                         the enhanced SINR and robustness of the steady-state differential
+sists of two parts: first, a set of ablation experiments targeting the
+                                                                         current algorithm pipeline, these basic network structures achieve
+three key designs of the Hawk system; second, a comparison of
+                                                                         high-accuracy event recognition, yielding similar final results. As
+event classification accuracy on the BLUED dataset, which includes
+                                                                         shown in Figure 14, we choose FFT-XGBoost as our classifier, as it
+multiple multi-state appliances under different AC settings.
+                                                                         exhibited the highest recognition accuracy on the balanced dataset
+   We design three ablation experiments focusing on the data bal-
+                                                                         while maintaining minimal algorithmic overhead, enabling real-
+ance, classifier performance, and steady-state differential current of
+                                                                         time recognition on embedded CPU platforms.
+the Hawk system. The first experiment compares event recognition
+                                                                            Regarding the impact of dataset balance, all classifiers demon-
+accuracy across different classifiers trained on balanced and imbal-
+                                                                         strated decreased recognition accuracy on the imbalanced dataset,
+anced HawkDATA. The second experiment adjusts the differential
+                                                                         even though most HawkDATA appliances are commonly used and
+interval to evaluate its impact on recognition accuracy. The last
+                                                                         the sample sizes are not significantly reduced. Additionally, differ-
+experiment evaluates the effect of differential current processing
+                                                                         ent classifiers exhibited varying tolerances to dataset imbalance,
+on state recognition accuracy and compares it with open-source
+                                                                         with CNN-LSTM showing the least impact.
+state recognition algorithms[19, 46].
+   Baselines. MSDC[19] uses CNN to recognize appliance OFF-ON            6.3.3 Impact of differential distance. As illustrated in Figure 4, the
+states from low-frequency power signals, followed by state cor-          distinction between steady and transient state differential current
+rections with conditional random fields (CRF). CALM[46] is based         lies in the differential distance, which is consistent with the length
+on high-frequency signals and takes BiLSTM to infer appliance            of the voting window. A smaller differential distance results in a
+Hawk: An Efficient NALM System for Accurate Low-Power Appliance Recognition                                                                                     SENSYS ’24, November 4–7, 2024, Hangzhou, China
+
+
+                        100%                                                                                                  100%
+                                                                       92.71%         92.35%   92.70%                                                                                            94.03%      93.94%
+                                                         92.43%
+                                            90.05%
+                                                                                                                               90%
+                        90%
+     Average F1 Score
+
+
+
+
+                                   81.05%            90.91%
+                                                                                                                               80%
+                        80%
+
+
+
+
+                                                                                                           Average F1 Score
+                                                                                                                               70%                                                   66.87%
+                        70%
+                                                                                                                               60%
+                        60%
+                                     54.89%                                                                                    50%     45.96%
+                                                                                                                                                       43.28%         43.28%
+                        50%
+                                                                                                                               40%
+                               0              10              20         30            40       50
+                                                                                                                               30%
+                               Transient                      Differential Distance              Steady                                MSDC            CALM           CNN       FFT-XGBoost      CNN      FFT-XGBoost
+
+                                                                                                                                                SOTA                        Original                SsDiff-based
+                           Figure 15: Impact of differential distance.
+                                                                                                          Figure 16: Accuracy comparison of state identification on
+                                                                                                          HawkDATA. Original classifiers take raw data as input.
+higher proportion of transient features within the voting window
+that cover events, while a larger differential distance increases the                                     Table 2: Comparison of event classification accuracy on
+proportion of steady-state features. Moreover, the voting length                                          BLUED. Hawk is based on FFT-XGBoost.
+affects the model’s tolerance to false predictions; a larger differential
+interval increases the model’s tolerance for errors. However, larger                                                                 Appliances             Power (w) Number MTShapelet[50] Hawk
+intervals also raise the likelihood of random noise interference and                                                                Hair Dryer                   1600            8             80.00%      100.00%
+the occurrence of multiple events. Consequently, average accuracy                                                              Kitchen Aid Chopper               1500           16             80.00%       93.75%
+exhibits fluctuations in Figure 15 when the interval is between                                                                   Air Compressor                 1130          20              67.00%      100.00%
+                                                                                                                                  Bedroom Lights                  190          19              86.00%       90.91%
+30 and 50. Ultimately, we select 30 to minimize the probability of                                                                     Fridge                     120          616             97.00%       99.67%
+multiple events occurring in the difference interval.                                                                             Washroom light                  110            6            100.00%      100.00%
+                                                                                                                              Bathroom upstairs lights             65           98             85.00%       98.46%
+6.3.4 State Identification Accuracy on HawkDATA. Figure 16 evalu-                                                                 Backyard lights                  60           16             89.00%       93.75%
+ates the impact of integrating steady-state differential current into                                                                Average                      -             -             85.50%        97.07%
+the algorithm pipeline on state recognition accuracy and compares                                                                Weighted average                 -             -             95.00%        99.13%
+it with SOTA performance.
+   The results in Figure 16 show that the same XGBoost classifier,
+and CNNs with identical parameter sizes, significantly improve                                            6.4                        In-The-Wild Evaluation
+state recognition accuracy when integrating differential current                                          6.4.1 Overall Setup. In the field experiments, our objective is to
+processing. Additionally, compared to the best SOTA performance,                                          validate the effectiveness of the Hawk system in real world scenar-
+our simple classifier based on steady-state differential processing                                       ios, which includes computational overhead, real-time performance,
+improved state recognition accuracy by 47.98% to 48.07%.                                                  and recognition accuracy in various unknown background appli-
+   We observe that the previous two SOTA works performed poorly                                           ance settings. The Hawk model was deployed without modification
+on HawkDATA. The evaluation results of the low-frequency signal-                                          in two real scenarios that align with the application scenario.
+based MSDC align with earlier observations[21, 34], behaving poorly                                          Computational Platforms. To validate Hawk run-time perfor-
+in power trace decomposition. In contrast, the high-frequency                                             mance, we performed real-time streaming inference performance
+signal-based CALM was evaluated on a single-appliance dataset.                                            assessments on three CPU-based platforms, as listed in Table 3.
+                                                                                                             Metrics. We use the F1 score to evaluate the accuracy of Hawk
+6.3.5 Event Classification Accuracy on BLUED Dataset. To validate
+                                                                                                          system recognition, with the average F1 score used to assess overall
+the effectiveness of the Hawk algorithm pipeline for multi-state
+                                                                                                          performance. For runtime performance, we measure the Hawk’s av-
+appliances and different AC standards, we trained the Hawk recog-
+                                                                                                          erage streaming inference latency and the actual memory footprint
+nition model on the BLUED dataset for event classification. The
+                                                                                                          (Residential Set Size, RSS) of the entire program.
+event recognition of Hawk for multi-state appliances is similar to
+OFF-ON appliances, requiring pre-labeling all possible events for                                         6.4.2 Run-time Performance Evaluation. This section aims to eval-
+target appliances. The final recognition results are summarized in                                        uate the performance of streaming inference, which processes indi-
+Table 2, compared with SOTA published results.                                                            vidual samples sequentially. The real-time requirement for stream-
+   According to Table 2, Hawk event classification average F1 score                                       ing inference is that the average inference latency must be less than
+outperforms MTS-Shapelet by 11.57%, and the weighted average F1                                           the average generation delay (20 ms in our AC settings). This is
+score improved by 4.13%. Moreover, higher recognition accuracy                                            a stringent performance criterion and are proved valuable in real
+is achieved across all appliances, with three appliances achieving                                        application scenarios[1]. Performance on the three platforms is
+F1 scores of 100%. MTS-Shapelet and Hawk achieve 100% classi-                                             summarized in Table 3.
+fication accuracy on the Washroom light appliance, which only                                                Table 3 shows that our model satisfies the real-time requirement
+has six samples in total, indicating a potential issue of insufficient                                    of immediate inference upon data generation on all three platforms.
+validation and highlighting the importance of data balance.                                               For future application developers, we recommend using buffered
+SENSYS ’24, November 4–7, 2024, Hangzhou, China                                                                                        Z. Wang et al.
+
+
+Table 3: Average streaming inference latency and memory                      Future work could reduce this overhead through multimodal unsu-
+footprint of Hawk on three distinct platforms.                               pervised approaches [55] and few-shot learning, and our proposed
+                                                                             algorithm pipeline design will benefit these efforts.
+          Platform                   CPU             Latency (ms) Mem (MB)      Limitations of Appliance Selection: Despite careful selection, the
+           Desktop          Intel i7-10700@2.9GHz       3.31        42.50    number of appliances in the HawkDATA collection is still limited
+       Jetson Orin NX       Cortex-A78AE@2GHz           4.07        40.19    compared to the variety of background appliances. For instance,
+       Raspberry PI 4B       Cortex-A72@1.8GHz          6.59        32.60    the humidifier with the highest-power LC circuit suffers numerous
+    Real-time Requirement          Single core          < 20          -      false positive results in field experiments. Expanding the variety of
+                                                                             appliance types and usage periods will be a future effort.
+                                                                                Failures Due to Voltage Variations: Voltage fluctuations in residen-
+data for batch processing, parallel programming, and filter samples          tial areas contribute to most false-negative results of electric kettle
+based on differential power for performance optimization.                    recognition. In real-world environments, the voltage of the appli-
+6.4.3 Event Recognition Accuracy Evaluation. The event recogni-              ances fluctuates over time and shows different trends in different
+tion accuracy in two real environments is summarized in Table 4.             areas. Moreover, different types of appliances exhibit different cur-
+                                                                             rent responses to the changes: resistive appliances show a positive
+                                                                             correlation between current and voltage, while capacitive appli-
+    Table 4: Event recognition accuracy in two real settings.
+                                                                             ances (e.g., LED light) with AC-DC front ends show a negative
+                                                                             correlation to keep output power stable. Future work will further
+        Appliances       Power (w)       HawkDATA       Residence   Office
+                                                                             analyze the impact of voltage on recognition results and incorporate
+          AirHeater          2160          100.00%           -      98.00%   voltage waveforms for more precise appliance identification.
+        ElectricKettle       1500          100.00%        96.29%       -
+      MicrowaveOven          1315          100.00%        98.82%       -
+                                                                                Falures Due to Complex Appliances: Hawk achieves its goals and
+       ElectricCooker         500           99.60%        98.71%       -     performs well with low-power appliance events recognition in
+           Desktop            40            99.18%           -      93.19%   selected two real scenarios. However, the algorithm pipeline still
+         Humidifier            40          100.00%           -      85.41%   struggles with recognizing ultra-low power (<10w), continuously
+       LEDLamp36W             36            99.58%        94.88%    98.81%
+       LEDLamp24W             24            96.52%        91.42%    96.83%
+                                                                             varying power, and among identical appliances. Future work will
+      FluorescentLamp          19           96.20%           -      96.30%   focus on reducing background noise interference and distinguishing
+          Average              -            99.01%        96.02%    94.76%   between different appliances of the same model[14].
+
+                                                                             8   CONCLUSION
+   As shown in Table 4, all appliances except for the humidifier
+                                                                             Non-intrusive appliance load monitoring (NALM) faces the chal-
+experienced less than a 10% decline in F1 score compared with accu-
+                                                                             lenges of high dataset construction overhead and low appliance
+racy on HawkDATA. The recognition accuracy of some low-power
+                                                                             identification accuracy. This paper presents Hawk, an efficient
+appliances is even improved in office environments. This experi-
+                                                                             NALM system for accurate low-power appliance recognition. To
+ment meets our initial goals and demonstrates the effectiveness of
+                                                                             improve the efficiency of dataset construction, we propose an auto-
+the Hawk system. Notably, even with many continuously changing
+                                                                             matic dataset construction scheme based on grouped randomized
+background appliances, such as laptops and desktops, low-power
+                                                                             balanced Gray codes and a sampling synchronization strategy based
+appliances are still accurately recognized. However, the accuracy
+                                                                             on shared perceptible time to enable automatic data annotation.
+drop for the humidifier is significant. We analyze the reasons for
+                                                                             Taking advantage of the enhanced SINR and robustness provided
+this performance decline in the next section.
+                                                                             by our steady-state differential current-based algorithm pipeline,
+                                                                             some basic classifiers show high accuracy and low computational
+7     Discussion And Future work                                             overhead in real-time recognition across different tasks, even with
+In this section, we discuss some limitations of the Hawk system              low-power appliances. To our knowledge, Hawk is the first NALM
+and analysis of recognition failures.                                        system to accurately and in real time identify low-power appliance
+   Limitations of Binary Modeling: The balanced Gray code-based              usages in real-world scenarios, with an average cost of stable high-
+strategy models appliance OFF-ON states as binary bit value, which           frequency current sampling of only $4.12. A balanced and diverse
+does not accommodate multi-state appliances. OFF-ON appliances               NALM dataset, HawkDATA, has been published.
+can be considered a particular case of multi-state appliances. The
+performance of Hawk’s algorithm pipeline on the BLUED dataset,               9   Acknowledgement
+which includes multi-state appliances, proves that the processes             We are grateful to anonymous reviewers for their constructive
+of recognizing OFF-ON events and multi-state events are inter-               suggestions. We sincerely thank Xingwu Liu, Shun Lu, Zheming
+connected. However, this characteristic limits the diversity of the          Yang, and Xiaoyu Wang for their valuable suggestions on this pa-
+current HawkDATA appliance collection. A new balanced abstrac-               per. We also appreciate the Nanjing Institute of InfoSuperBahn
+tion to model multi-state appliances is needed.                              for providing the data collection environment. This research was
+   Limitations of Application Scenarios: Recognizing appliances based        partly supported by the National Natural Science Foundation of
+on their model rather than their type is more practical but more             China under Grant Nos. 62402475 and 62072434, and the Innovation
+restrictive. The current Hawk model still requires data collection           Funding of ICT, CAS under Grant No. E361050.
+from specific appliance sets, which remains a significant overhead.
+Hawk: An Efficient NALM System for Accurate Low-Power Appliance Recognition                                                   SENSYS ’24, November 4–7, 2024, Hangzhou, China
+
+
+References                                                                                  [23] Jack Kelly and William Knottenbelt. 2015. Neural nilm: Deep neural networks
+ [1] K Carrie Armel, Abhay Gupta, Gireesh Shrimali, and Adrian Albert. 2013. Is                  applied to energy disaggregation. In Proceedings of the 2nd ACM international
+     disaggregation the holy grail of energy efficiency? The case of electricity. Energy         conference on embedded systems for energy-efficient built environments. 55–64.
+     policy 52 (2013), 213–234.                                                             [24] Jack Kelly and William Knottenbelt. 2015. The UK-DALE dataset, domestic
+ [2] Nipun Batra, Rithwik Kukunuri, Ayush Pandey, Raktim Malakar, Rajat Kumar,                   appliance-level electricity demand and whole-house demand from five UK homes.
+     Odysseas Krystalakos, Mingjun Zhong, Paulo Meira, and Oliver Parson. 2019.                  Scientific Data 2, 1 (2015), 1–14.
+     Towards reproducible state-of-the-art energy disaggregation. In Proceedings of         [25] J Zico Kolter and Tommi Jaakkola. 2012. Approximate inference in additive
+     the 6th ACM international conference on systems for energy-efficient buildings,             factorial hmms with application to energy disaggregation. In Artificial intelligence
+     cities, and transportation. 193–202.                                                        and statistics. PMLR, 1472–1482.
+ [3] Nipun Batra, Amarjeet Singh, and Kamin Whitehouse. 2015. If you measure it,            [26] J Zico Kolter and Matthew J Johnson. 2011. REDD: A public data set for energy
+     can you improve it? exploring the value of energy disaggregation. In Proceedings            disaggregation research. In Workshop on data mining applications in sustainability
+     of the 2nd ACM international conference on embedded systems for energy-efficient            (SIGKDD), San Diego, CA, Vol. 25. Citeseer, 59–62.
+     built environments. 191–200.                                                           [27] Thomas Kriechbaumer and Hans-Arno Jacobsen. 2018. BLOND, a building-level
+ [4] Gissella Bejarano, David DeFazio, and Arti Ramesh. 2019. Deep latent generative             office environment dataset of typical electrical appliances. Scientific Data 5, 1
+     models for energy disaggregation. In Proceedings of the AAAI Conference on                  (2018), 1–14.
+     Artificial Intelligence, Vol. 33. 850–857.                                             [28] Wenjin Jason Li, Xiaoqi Tan, and Danny HK Tsang. 2015. Smart home energy
+ [5] Bradford Campbell, Ye-sheng Kuo, and Prabal Dutta. 2018. From Energy Audits to              management systems based on non-intrusive load monitoring. In 2015 IEEE
+     Monitoring Megawatt Loads: A Flexible and Deployable Power Metering System.                 International Conference on Smart Grid Communications (SmartGridComm). IEEE,
+     In 2018 IEEE/ACM Third International Conference on Internet-of-Things Design and            885–890.
+     Implementation (IoTDI). IEEE, 189–200.                                                 [29] Ziwei Liu, Zhongqi Miao, Xiaohang Zhan, Jiayun Wang, Boqing Gong, and
+ [6] Paizhuo Chen and Zhice Yang. 2021. Understanding Precision Time Protocol in                 Stella X. Yu. 2024. Open Long-Tailed Recognition in a Dynamic World. IEEE
+     Today’s Wi-Fi Networks: A Measurement Study. In USENIX Annual Technical                     Transactions on Pattern Analysis and Machine Intelligence 46, 3 (2024), 1836–1851.
+     Conference. 597–610.                                                                   [30] Wenpeng Luan, Fan Yang, Bochao Zhao, and Bo Liu. 2022. Industrial load disag-
+ [7] Tianqi Chen and Carlos Guestrin. 2016. Xgboost: A scalable tree boosting system.            gregation based on hidden Markov models. Electric Power Systems Research 210
+     In Proceedings of the 22nd ACM SigKDD International Conference on Knowledge                 (2022), 108086.
+     Discovery and Data Mining. 785–794.                                                    [31] Aneeq Mahmood, Reinhard Exel, and Thilo Sauter. 2014. Impact of hard-and
+ [8] Wenqiang Chen, Shupei Lin, Elizabeth Thompson, and John Stankovic. 2021.                    software timestamping on clock synchronization performance over IEEE 802.11.
+     Sensecollect: We need efficient ways to collect on-body sensor-based human ac-              In 2014 10th IEEE Workshop on Factory Communication Systems (WFCS 2014).
+     tivity data! Proceedings of the ACM on Interactive, Mobile, Wearable and Ubiquitous         IEEE, 1–8.
+     Technologies 5, 3 (2021), 1–27.                                                        [32] Shwetak N. Patel, Thomas Robertson, Julie A. Kientz, Matthew S. Reynolds, and
+ [9] Samuel DeBruin, Branden Ghena, Ye-Sheng Kuo, and Prabal Dutta. 2015.                        Gregory D. Abowd. 2007. At the flick of a switch: detecting and classifying
+     Powerblade: A low-profile, true-power, plug-through energy meter. In Proceed-               unique electrical events on the residential power line. In Proceedings of the 9th
+     ings of the 13th ACM Conference on Embedded Networked Sensor Systems (SenSys).              International Conference on Ubiquitous Computing. Springer, 271–288.
+     17–29.                                                                                 [33] Lucas Pereira, Donovan Costa, and Miguel Ribeiro. 2022. A residential labeled
+[10] Shaokang Ding and Hongwei Zhu. 2020. Non-intrusive load monitoring based                    dataset for smart meter data analytics. Scientific Data 9, 1 (2022), 134.
+     on deep neural network and differential current. In IOP Conference Series: Earth       [34] Thomas Picon, Mohamed Nait Meziane, Philippe Ravier, Guy Lamarque, Clarisse
+     and Environmental Science, Vol. 474. IOP Publishing, 052103.                                Novello, Jean-Charles Le Bunetel, and Yves Raingeaud. 2016. COOLL: Con-
+[11] Anthony Faustine, Lucas Pereira, Hafsa Bousbiat, and Shridhar Kulkarni. 2020.               trolled on/off loads library, a public dataset of high-sampled electrical signals for
+     UNet-NILM: A deep neural network for multi-tasks appliances state detection                 appliance identification. arXiv preprint arXiv:1611.05803 (2016).
+     and power estimation in NILM. In Proceedings of the 5th International Workshop         [35] Douglas Paulo Bertrand Renaux, Fabiana Pottker, Hellen Cristina Ancelmo, An-
+     on Non-Intrusive Load Monitoring. 84–88.                                                    dré Eugenio Lazzaretti, Carlos Raiumundo Erig Lima, Robson Ribeiro Linhares,
+[12] Adrian Filip et al. 2011. Blued: A fully labeled public dataset for event-based non-        Elder Oroski, Lucas da Silva Nolasco, Lucas Tokarski Lima, Bruna Machado
+     intrusive load monitoring research. In 2nd workshop on data mining applications             Mulinari, et al. 2020. A dataset for non-intrusive load monitoring: Design and
+     in sustainability (SustKDD), Vol. 2012.                                                     implementation. Energies 13, 20 (2020), 5371.
+[13] Léo Grinsztajn, Edouard Oyallon, and Gaël Varoquaux. 2022. Why do tree-based           [36] John P Robinson and Martin Cohn. 1981. Counting sequences. IEEE Trans.
+     models still outperform deep learning on typical tabular data? Advances in Neural           Comput. 100, 1 (1981), 17–23.
+     Information Processing Systems 35 (2022), 507–520.                                     [37] Kiarash Shaloudegi, András György, Csaba Szepesvári, and Wilsun Xu. 2016.
+[14] Pranjol Sen Gupta, Zahidur Talukder, Tasnim Azad Abir, Phuc Nguyen, and                     SDP relaxation with randomized rounding for energy disaggregation. Advances
+     Mohammad A Islam. 2023. Enabling Low-Cost Server-Level Power Monitoring                     in Neural Information Processing Systems 29 (2016).
+     in Data Centers Using Conducted EMI. In Proceedings of the 21st ACM Conference         [38] Wei Sun, Tuochao Chen, Jiayi Zheng, Zhenyu Lei, Lucy Wang, Benjamin Steeper,
+     on Embedded Networked Sensor Systems (SenSys). 237–250.                                     Peng He, Matthew Dressa, Feng Tian, and Cheng Zhang. 2020. Vibrosense:
+[15] Sidhant Gupta, Matthew S Reynolds, and Shwetak N Patel. 2010. ElectriSense:                 Recognizing home activities by deep learning subtle vibrations on an interior
+     single-point sensing using EMI for electrical event detection and classification in         surface of a house from a single point using laser doppler vibrometry. Proceedings
+     the home. In Proceedings of the 12th ACM international conference on Ubiquitous             of the ACM on Interactive, Mobile, Wearable and Ubiquitous Technologies 4, 3 (2020),
+     computing. 139–148.                                                                         1–28.
+[16] George W Hart. 1985. Prototype nonintrusive appliance load monitor. In MIT             [39] Nagender Kumar Suryadevara, Subhas C Mukhopadhyay, Ruili Wang, and RK
+     Energy Laboratory Technical Report, and Electric Power Research Institute Technical         Rayudu. 2013. Forecasting the behavior of an elderly using wireless sensors data
+     Report.                                                                                     in a smart home. Engineering Applications of Artificial Intelligence 26, 10 (2013),
+[17] George William Hart. 1992. Nonintrusive appliance load monitoring. Proc. IEEE               2641–2652.
+     80, 12 (1992), 1870–1891.                                                              [40] Adane Nega Tarekegn, Mario Giacobini, and Krzysztof Michalak. 2021. A review
+[18] Dawei He, Liang Du, Yi Yang, Ronald Harley, and Thomas Habetler. 2012. Front-               of methods for imbalanced multi-label classification. Pattern Recognition 118
+     end electronic circuit topology analysis for model-driven classification and mon-           (2021), 107965.
+     itoring of appliance loads in smart buildings. IEEE Transactions on Smart Grid 3,      [41] Minh-Thuyen Thi, Sosthène Guédon, Siwar Ben Hadj Said, Michael Boc, David
+     4 (2012), 2286–2293.                                                                        Miras, Jean-Baptiste Dore, Marc Laugeois, Xavier Popon, and Benoit Miscopein.
+[19] Jialing He, Jiamou Liu, Zijian Zhang, Yang Chen, Yiwei Liu, Bakh Khoussainov,               2022. IEEE 802.1 TSN time synchronization over Wi-Fi and 5G mobile networks.
+     and Liehuang Zhu. 2023. MSDC: exploiting multi-state power consumption in                   In 2022 IEEE 96th Vehicular Technology Conference (VTC2022-Fall). IEEE, 1–7.
+     non-intrusive load monitoring based on a dual-CNN model. In Proceedings of the         [42] Naveen Kumar Thokala, Spoorthy Paresh, and M Girish Chandra. 2022. An
+     AAAI Conference on Artificial Intelligence, Vol. 37. 5078–5086.                             effective electrical load disaggregation approach for low-sampled smart meter
+[20] Hassan Ismail Fawaz, Germain Forestier, Jonathan Weber, Lhassane Idoumghar,                 data. In Proceedings of the 9th ACM International Conference on Systems for Energy-
+     and Pierre-Alain Muller. 2019. Deep learning for time series classification: a              Efficient Buildings, Cities, and Transportation. 149–158.
+     review. Data mining and knowledge discovery 33, 4 (2019), 917–963.                     [43] Mark Valovage, Akshay Shekhawat, and Maria Gini. 2018. Model-free iterative
+[21] Matthias Kahl, Anwar Ul Haq, Thomas Kriechbaumer, and Hans-Arno Jacobsen.                   temporal appliance discovery for unsupervised electricity disaggregation. In
+     2016. Whited-a worldwide household and industry transient energy data set. In               Proceedings of the AAAI Conference on Artificial Intelligence, Vol. 32.
+     3rd International Workshop on Non-Intrusive Load Monitoring. 1–4.                      [44] Sreejaya Viswanathan, Rui Tan, and David KY Yau. 2016. Exploiting power grid
+[22] Florian Kalinke, Pawel Bielski, Snigdha Singh, Edouard Fouché, and Klemens                  for accurate and secure clock synchronization in industrial IoT. In 2016 IEEE
+     Böhm. 2021. An evaluation of nilm approaches on industrial energy-consumption               Real-Time Systems Symposium (RTSS). IEEE, 146–156.
+     data. In Proceedings of the twelfth ACM international conference on future energy      [45] Tianshi Wang, Jinyang Li, Ruijie Wang, Denizhan Kara, Shengzhong Liu, Davis
+     systems. 239–243.                                                                           Wertheimer, Antoni Viros i Martin, Raghu Ganti, Mudhakar Srivatsa, and Tarek
+SENSYS ’24, November 4–7, 2024, Hangzhou, China                                                                                                                  Z. Wang et al.
+
+
+     Abdelzaher. 2024. SudokuSens: Enhancing Deep Learning Robustness for IoT            [51] Zhenrui Yue, Camilo Requena Witzig, Daniel Jorde, and Hans-Arno Jacobsen.
+     Sensing Applications using a Generative Approach. In Proceedings of the 21st             2020. Bert4nilm: A bidirectional transformer model for non-intrusive load mon-
+     ACM Conference on Embedded Networked Sensor Systems (SenSys). Association                itoring. In Proceedings of the 5th International Workshop on Non-Intrusive Load
+     for Computing Machinery, New York, NY, USA, 15–27.                                       Monitoring. 89–93.
+[46] XiaoYu Wang, Hao Zhou, Nikolaos M Freris, Wangqiu Zhou, Xing Guo, and               [52] Chaoyun Zhang, Mingjun Zhong, Zongzuo Wang, Nigel Goddard, and Charles
+     Xiang-Yang Li. 2021. CALM: Contactless Accurate Load Monitoring via Modal-               Sutton. 2018. Sequence-to-point learning with neural networks for non-intrusive
+     ity Distillation. In 2021 18th Annual IEEE International Conference on Sensing,          load monitoring. In Proceedings of the AAAI conference on artificial intelligence,
+     Communication, and Networking (SECON). IEEE, 1–9.                                        Vol. 32.
+[47] XiaoYu Wang, Hao Zhou, Nikolaos M Freris, Wangqiu Zhou, Xing Guo, Zhi Liu,          [53] Jianjun Zhang, Xuanqun Chen, Wing WY Ng, Chun Sing Lai, and Loi Lei Lai. 2019.
+     Yusheng Ji, and Xiang-Yang Li. 2021. LCL: Light Contactless Low-delay Load               New appliance detection for nonintrusive load monitoring. IEEE Transactions on
+     Monitoring via Compressive Attentional Multi-label Learning. In 2021 IEEE/ACM            Industrial Informatics 15, 8 (2019), 4819–4829.
+     29th International Symposium on Quality of Service (IWQOS). IEEE, 1–6.              [54] Shujie Zhang, Tianyue Zheng, Hongbo Wang, Zhe Chen, and Jun Luo. 2022.
+[48] Qian Wu and Fei Wang. 2019. Concatenate convolutional neural networks for                Quantifying the Physical Separability of RF-Based Multi-Person Respiration
+     non-intrusive load monitoring across complex background. Energies 12, 8 (2019),          Monitoring via SINR. In Proceedings of the 20th ACM Conference on Embedded
+     1572.                                                                                    Networked Sensor Systems (SenSys). 47–60.
+[49] Han-Jia Ye, De-Chuan Zhan, and Wei-Lun Chao. 2021. Procrustean Training             [55] Guanzhou Zhu, Dong Zhao, Kuo Tian, Zhengyuan Zhang, Rui Yuan, and Huadong
+     for Imbalanced Deep Learning. In Proceedings of the IEEE/CVF International               Ma. 2023. Combining Smart Speaker and Smart Meter to Infer Your Residential
+     Conference on Computer Vision (ICCV). 92–102.                                            Power Usage by Self-supervised Cross-modal Learning. Proceedings of the ACM
+[50] Heyang Yu, Chongjun Xu, Guangchao Geng, and Quanyuan Jiang. 2024. Multi-                 on Interactive, Mobile, Wearable and Ubiquitous Technologies 7, 3 (2023), 1–26.
+     Time-Scale Shapelet-Based Feature Extraction for Non-Intrusive Load Monitoring.     [56] Silvio Ziegler, Robert C Woodward, Herbert Ho-Ching Iu, and Lawrence J Borle.
+     IEEE Transactions on Smart Grid 15, 1 (2024), 1116–1128. https://doi.org/10.1109/        2009. Current sensing techniques: A review. IEEE Sensors Journal 9, 4 (2009),
+     TSG.2023.3285117                                                                         354–376.
+
