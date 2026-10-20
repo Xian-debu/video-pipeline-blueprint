@@ -26,7 +26,7 @@ integrated loudness -15.1 LUFS, true peak -1.8 dBTP, 41 narration lines.
 
 不是库，不是 SaaS，不是一键安装器。目标是：克隆下来，`bash scripts/bootstrap.sh` +
 `npm run verify` 在参考机上约十分钟得到 PASS（25 道门，含 59 帧静帧渲染），然后照着 `docs/deployment.md` 换成你自己的内容。
-坑都在 `docs/known-issues.md`（K1–K31），没有一条是假设出来的。
+坑都在 `docs/known-issues.md`（K1–K32），没有一条是假设出来的。
 
 ## 1. What this is, and what it is not
 
@@ -485,7 +485,7 @@ looking at rendered frames. Treat "human reviews stills" as a required stage, no
 
 ## 9. Known issues
 
-Full detail in `docs/known-issues.md` (K1–K31); the short list, oldest first:
+Full detail in `docs/known-issues.md` (K1–K32); the short list, oldest first:
 
 - **K1 cross-fade flicker**: `TransitionSeries` keeps both scenes visible for the overlap and
   multiplies two opacities, producing a visible dip. Fixed by hard cuts + per-scene content fades.
@@ -546,6 +546,15 @@ Full detail in `docs/known-issues.md` (K1–K31); the short list, oldest first:
 - **K28 a .gitignore rule that matched nothing**: the previous line had no trailing newline, so
   `*.logpublic/voice/hawk/` was a rule nobody could match and 26 MB of wav files showed up as
   untracked. Ask git (`git check-ignore -v`), do not read the file.
+- **K29 documentation as a cache with no invalidation**: the README described 11 compositions while
+  the tree registered 15, and no gate read it. Counts in prose now have a checker (`docs_check`).
+- **K30 a two-column PDF extracted into one line**: `pdftotext -layout` merges columns, so a claim's
+  quote has to be a single-physical-line slice — which is also why the claims gate can verify it.
+- **K31 a metric that measured the wrong thing**: pacing first called "average frame difference < 0.5"
+  static, which scores a line slowly being drawn as a freeze; fix the measurement before the film.
+- **K32 a deployment package that was never deployed**: every gate ran in the working copy, so
+  `public/music/` was present locally and absent from `git archive HEAD`. A package is verified
+  only as a package: archive -> empty directory -> `npm run verify`.
 
 ## 10. Choosing an environment (and lower-tier substitutes)
 

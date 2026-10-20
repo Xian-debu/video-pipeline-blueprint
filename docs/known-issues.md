@@ -580,3 +580,40 @@ still worth doing: vote went 13.0 → 4.6 s, concepts 12.4 → 5.2 s, limits 10.
 **Lesson.** A measurement is a model of the viewer, and it can be wrong in the direction that wastes
 work. When a metric says "fix this", open the file it measured and look at the frames before rewriting
 the animation — and if the metric cannot tell two different defects apart, fix the metric first.
+
+## K32. A clean clone is the only test that a deployment package actually deploys
+
+**What happened.** After three commits the tree looked finished: every gate green on the render
+machine. Unpacking `git archive HEAD` into an empty directory and running `npm run verify` there
+got twelve steps in and then died:
+
+```
+Error: ENOENT: no such file or directory, open 'public/music/demo.wav'
+    at writeWav (scripts/audio/engine.mjs:194)
+```
+
+`public/music/` exists on the developer machine because every run has written wav files into it.
+Git cannot track an empty directory, `.gitignore` only listed `public/music/*.wav`, and
+`writeWav` called `fs.writeFileSync` without creating the parent. So the score stage of a fresh
+clone failed on a missing *directory* that had never been in the repository.
+
+**Root cause.** Verification ran in the working copy, where generated files hide the fact that
+their directory is not part of the deliverable. "It works here" and "the package works" are two
+different claims, and only one of them was being tested.
+
+**Hard rule.** A deployment package is not verified until it has been verified as a package:
+`git archive HEAD` -> empty directory -> `npm run verify`. No `cp -r` of the working tree
+(that copies the very files that mask the bug), no symlinked `data/`, no reused `out/`.
+
+**Guards.** `scripts/audio/engine.mjs` now creates the parent directory of every wav it writes
+(`fs.mkdirSync(path.dirname(path.resolve(path)), { recursive: true })`), so no writer depends on a
+directory existing; `public/music/.gitkeep` keeps the directory in the tree. Both are cheap; the
+mkdir alone would have been enough, and the two together mean a future writer that forgets its
+directory still fails loudly instead of being papered over.
+
+**Second trap, worth writing down.** The first attempt at this check extracted the archive on the
+*host* distro and ran `npm run verify` in the *render* distro: `/tmp/bp-clean` exists in both, so
+the command looked right and the run reproduced the old failure with the fix "present". Host name
+and machine name are not an argument. Check `pwd`/distro inside the same shell that runs the
+gate, or pipe the archive into the render distro (`cat pkg.tar.gz | wsl ... tar xzf -`) and verify
+in one place.

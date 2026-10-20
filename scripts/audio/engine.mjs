@@ -1,6 +1,7 @@
 // 程序化配乐引擎（node-web-audio-api，确定性：同 seed 同输出）
 import { OfflineAudioContext } from "node-web-audio-api";
 import fs from "node:fs";
+import * as nodePath from "node:path";
 
 export const SR = 48000;
 
@@ -191,6 +192,9 @@ export function writeWav(path, buffer) {
       b.writeInt16LE(Math.round(v * 32767), off); off += 2;
     }
   }
+  // A clean clone has no public/music/ (empty directories are not tracked), so the writer
+  // owns its output directory; failing here used to kill verify.sh step 3 in a fresh checkout.
+  fs.mkdirSync(nodePath.dirname(nodePath.resolve(path)), { recursive: true });
   fs.writeFileSync(path, b);
 }
 export function peakOf(buffer) {
