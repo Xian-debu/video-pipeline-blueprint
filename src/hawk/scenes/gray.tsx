@@ -86,7 +86,7 @@ export const SGray: React.FC = () => {
                 <Mono size={FT.tiny} color={C.inkFaint} style={{ width: 34 }}>{"g" + gi}</Mono>
                 {Array.from({ length: 12 }, (_, r) => {
                   const on = sched[r] ? sched[r].active.indexOf(gi) >= 0 : false;
-                  const shown = pct(f, gridAt + r * Math.max(2, Math.round((D - gridAt - 40) / 14)), gridAt + r * Math.max(2, Math.round((D - gridAt - 40) / 14)) + 6);
+                  const shown = pct(f, gridAt + r * Math.max(2, Math.round((D - gridAt - 36) / 5)), gridAt + r * Math.max(2, Math.round((D - gridAt - 36) / 5)) + 6);
                   return (
                     <div key={r} style={{
                       width: 24, height: 15, borderRadius: 3,

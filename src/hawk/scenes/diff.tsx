@@ -45,7 +45,7 @@ export const SDiff: React.FC = () => {
         </Card>
         <Card label="稳态差分：与 30 个周期前的自己相减（纵轴放大到 ±90 W）" style={{ width: w + 40, padding: 22, marginTop: 16 }} accent={C.cyan}>
           <div style={{ position: "relative" }}>
-            <Line values={d30} w={w} h={hDif} lo={zLo} hi={zHi} color={C.cyan} at={beatAt("diff", 1, 5)} dur={sceneFrames("diff") * 0.22} />
+            <Line values={d30} w={w} h={hDif} lo={zLo} hi={zHi} color={C.cyan} at={Math.round(sceneFrames("diff") * 0.17)} dur={sceneFrames("diff") * 0.2} />
             {plateau.a >= 0 ? (
               <div style={{
                 position: "absolute", left: (plateau.a / N) * 100 + "%", width: ((plateau.b - plateau.a) / N) * 100 + "%",

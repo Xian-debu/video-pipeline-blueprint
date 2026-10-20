@@ -15,6 +15,9 @@ export const SVote: React.FC = () => {
   const mixed: string[] = [];
   const n = 30;
   for (let i = 0; i < n; i++) mixed.push(labels[Math.floor((i * 13) % n)]);
+  const D = sceneFrames("vote");
+  /** 一票一个周期：30 个方块按旁白的节拍逐个落位，而不是开场两秒内全部亮完。 */
+  const voteStep = Math.max(2, Math.round((D * 0.62 - 14) / 30));
   const colOf = (c: string) => (c === v.decided ? C.cyan : c === "noise" ? C.amber : C.inkFaint);
   return (
     <Scene id="vote">
@@ -23,7 +26,7 @@ export const SVote: React.FC = () => {
         <Card label="30 个周期的分类结果（每个方块 = 一个周期）" style={{ width: 980, padding: 26 }}>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(10, 1fr)", gap: 10 }}>
             {mixed.map((c, i) => {
-              const o = pct(f, 12 + i * 1.3, 20 + i * 1.3);
+              const o = pct(f, 14 + i * voteStep, 14 + i * voteStep + 10);
               return (
                 <div key={i} style={{
                   height: 42, borderRadius: 6, opacity: 0.25 + 0.75 * o,

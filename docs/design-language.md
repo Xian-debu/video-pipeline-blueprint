@@ -202,9 +202,9 @@ icons / none) and two disciplines: one family per document and one stroke width 
 lecture uses **none**, and that is the first rule here — a 305 s film has no toolbar, so an icon has
 to earn its place as a diagram element, not as decoration.
 
-If one is needed:
+If one is ever needed (none is today):
 
-- **Inline JSX, committed**: `src/design/icons.tsx`, `viewBox="0 0 24 24"`, `strokeWidth={2}`,
+- **Inline JSX, committed**: a new `src/design/icons.tsx`, `viewBox="0 0 24 24"`, `strokeWidth={2}`,
   `stroke="currentColor"`, size taken from the text role it labels (an icon next to a caption is
   24 px, never a new number). No icon font, no CDN sprite, no package dependency — an icon font is a
   font, and fonts at render time are both a determinism hazard and a licence to track.

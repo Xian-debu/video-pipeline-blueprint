@@ -17,7 +17,7 @@ export const SEval: React.FC = () => {
       <Head kicker="08 / 实测" title="实验室之外还准不准" goal="两个公开/自建数据集，加两个真实场景" />
       <div style={{ position: "absolute", left: PAD, top: 258, width: CW, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
         {stats.map((s, i) => (
-          <Build key={s.k} at={beatAt("eval", i, 5)}>
+          <Build key={s.k} at={i === 0 ? 8 : beatAt("eval", i, 5)}>
             <Card style={{ padding: 26 }} accent={s.col}>
               <Body size={FT.meta} color={C.inkFaint}>{s.k}</Body>
               <div style={{ marginTop: 8 }}><Mono size={FT.num} color={C.ink}>{s.v}</Mono></div>

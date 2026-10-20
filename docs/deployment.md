@@ -238,7 +238,7 @@ node scripts/render_scenes.mjs --composition=Multiplication --script=src/mult/sc
 node scripts/render_scenes.mjs ... --only=magic                  # smoke test one scene, no concat
 ```
 
-`npm run make` uses this path for every film in its `EXPORTS` table and records `numbers.segments`
+`npm run make` uses this path for every film in `scripts/film_registry.mjs` and records `numbers.segments`
 (`reused`, `rendered`, `scenes`, `frames`) in `report.json`. The score is reused when its sidecar
 `score.meta.json` has the same `seed`/`energy`/`bpm`/`prog` and a bed at least as long as the
 programme; regenerate it with `--regen-score`. Measured cost, same machine: ten segments in 176 s

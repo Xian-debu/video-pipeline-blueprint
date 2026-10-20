@@ -560,3 +560,23 @@ the file is committed: a gate that cannot quote the text it checks is decoration
 
 **Lesson.** Extraction is part of the evidence chain. When the artefact is a text dump, say which
 tool produced it and what it mangles; then shape the checker around the mangling instead of hoping.
+
+## K31 a "how much did the picture move" metric can hide motion, not just reveal it
+
+**Symptom.** `pacing.py` reported a 16 s still run inside the Hawk diff scene, and three scenes
+above 12 s. Two of those numbers were artefacts: the metric was the **mean** absolute difference over
+the whole frame, so a line being drawn slowly across 12 s changed too little on average to register,
+while a genuinely dead card and a crawling line were indistinguishable in the output. Chasing the
+number would have meant speeding up a plot that was already readable.
+
+**Fix.** Judge on **how many pixels changed** (`>2/255`, ≥ 0.4 % of the frame counts as movement)
+instead of the frame mean. Slow drawing now counts, a static card still does not. Re-measured, the
+worst run in the film is 5.8 s, not 16 s.
+
+**What remained real.** The beats change (`beatAt` / `beatFrames` in `src/hawk/shared.tsx`) was
+still worth doing: vote went 13.0 → 4.6 s, concepts 12.4 → 5.2 s, limits 10.0 → 4.8 s, gray
+13.8 → 5.6 s. That part was a real dead-zone list, not a metric artefact.
+
+**Lesson.** A measurement is a model of the viewer, and it can be wrong in the direction that wastes
+work. When a metric says "fix this", open the file it measured and look at the frames before rewriting
+the animation — and if the metric cannot tell two different defects apart, fix the metric first.

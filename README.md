@@ -25,8 +25,8 @@ integrated loudness -15.1 LUFS, true peak -1.8 dBTP, 41 narration lines.
 脚本、环境说明、失败模式和验收关卡。四部片子共用一套门禁，片单只有一处真源：`scripts/film_registry.mjs`。
 
 不是库，不是 SaaS，不是一键安装器。目标是：克隆下来，`bash scripts/bootstrap.sh` +
-`npm run verify` 两分钟内得到 PASS，然后照着 `docs/deployment.md` 换成你自己的内容。
-坑都在 `docs/known-issues.md`（K1–K30），没有一条是假设出来的。
+`npm run verify` 在参考机上约十分钟得到 PASS（25 道门，含 59 帧静帧渲染），然后照着 `docs/deployment.md` 换成你自己的内容。
+坑都在 `docs/known-issues.md`（K1–K31），没有一条是假设出来的。
 
 ## 1. What this is, and what it is not
 
@@ -303,7 +303,7 @@ node scripts/render_scenes.mjs --composition=Multiplication --script=src/mult/sc
 # after nothing changed: RENDER reused=10 rendered=0 scenes=10 frames=17636
 ```
 
-`npm run make` uses it for every film in its `EXPORTS` table and records the counts in
+`npm run make` uses it for every film in `scripts/film_registry.mjs` and records the counts in
 `report.json` (`numbers.segments`). The score is reused the same way, keyed on its generation
 parameters in `score.meta.json`, because a 10-minute bed costs 19 minutes to synthesize. Only
 `--force-render` ignores the segment cache.
@@ -349,7 +349,7 @@ npx remotion render Storyboard out/paper.mp4 --props='{"preset":"paper"}'
 git clone <this repo> && cd video-pipeline-blueprint
 bash scripts/bootstrap.sh        # apt libs + CJK fonts + node + npm + headless Chromium
 bash scripts/doctor.sh           # must print "all checks passed"
-npm run verify                   # ~10 min on the reference machine: 24 steps, 59 still-lint frames,
+npm run verify                   # ~10 min on the reference machine: 25 steps, 59 still-lint frames,
                                  # a 30 s film, loudness + flicker gates (it used to be 2 min when
                                  # there was one film and no 3D/plate/prop gates)
 ```
@@ -485,7 +485,7 @@ looking at rendered frames. Treat "human reviews stills" as a required stage, no
 
 ## 9. Known issues
 
-Full detail in `docs/known-issues.md` (K1–K30); the short list, oldest first:
+Full detail in `docs/known-issues.md` (K1–K31); the short list, oldest first:
 
 - **K1 cross-fade flicker**: `TransitionSeries` keeps both scenes visible for the overlap and
   multiplies two opacities, producing a visible dip. Fixed by hard cuts + per-scene content fades.
