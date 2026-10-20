@@ -730,3 +730,23 @@ Delivered file: 33,663,610 B, sha256
 The audio stems are byte-identical to the previous Hawk delivery (the mix stage made no decision), so
 the 2.1 % size difference is picture only: the beat-driven entrances remove several seconds of
 unchanged frames, which is exactly what h264 spends bits on.
+
+## Deployment-package check: the tree as a package (2026-10-20, `8197f76`)
+
+Every run above executed in a working copy. This one did not: `git archive HEAD` was piped into
+an empty directory on the render machine, `node_modules` symlinked from the shared install (the
+only allowed shortcut), and `npm run verify` run there.
+
+| Step | Result |
+| --- | --- |
+| 0.5-0.7 film coverage / derive data / derived check / claims / docs anchors | PASS (4 films, 2 generators, 82 claims, 15 compositions, 25 steps, K1–K32) |
+| 1-1.3 typecheck / film isolation / design contract / type ratchet | PASS |
+| 1.5 browser | PASS |
+| 2-2.13 stills / still lint (59) / model / three-frame / plate / props / geometry / mesh / 3D budget | PASS |
+| 3-3.5 programmatic score + music gate | **FAIL first (K32)**, PASS after the fix |
+| 4-6 showreel render / loudnorm / flicker | PASS (-15.0 LUFS, TP -2.0, mean\|d\| 0.0459, max 6.56, 900 frames) |
+
+The first run earned its keep: `public/music/` was missing because git cannot track empty
+directories, and `writeWav` did not create its parent directory. Fix: `fs.mkdirSync` in
+`scripts/audio/engine.mjs` + `public/music/.gitkeep` (K32). After that, the same archive verified
+end to end without touching the tree.
