@@ -53,7 +53,7 @@ Here: `palette.families.*.roles[*]` declares `on[]` (the real backgrounds) and `
 rule becomes structural: since all colours are contract entries, a failing ratio can only be fixed by
 editing the contract, which is a separate, reviewable commit (`docs/engineering-standards.md` §4, §8).
 
-Measured worst cases at v1 of the contract (`design_check.py`, 13 contrast targets, all pass):
+Measured worst cases at v1 of the contract (`design_check.py`; 13 targets then, 35 today, all pass):
 
 | family | role | on (worst) | ratio | required |
 |---|---|---|---|---|
@@ -162,7 +162,7 @@ can prove* from *what a human must look at*. Mapping:
 
 | ppt-master rule | This pipeline's gate |
 |---|---|
-| H1 out of bounds, H2 text overflow, H3 text overlap, H6 collision | still-frame review; automated still lint is on the roadmap |
+| H1 out of bounds, H2 text overflow, H3 text overlap, H6 collision | `qa/still_lint.mjs` (gate 2.5): 59 frames measured from the DOM, plus fixtures that must fail |
 | H4 readability / contrast | `design_check.py` (contract level) — the only one mechanised so far |
 | H7 declared chrome displaced | `ChapterBar` is the declared chrome; it is outside every scene's content flow |
 | H9 missing key element | still review of every scene at one representative frame |

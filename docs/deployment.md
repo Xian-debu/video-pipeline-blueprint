@@ -17,7 +17,7 @@ the first still.
 It also downloads Node 22.21.1 into `.tools/node` (a tarball, not the distro package — the distro
 Node is too old for Remotion 4). `NODE_MIRROR` and `SKIP_APT=1` are supported.
 
-Then `npm install` (280 packages, ~400 MB) and `npm run browser` (headless Chromium, 99 MB).
+Then `npm install` (306 packages, ~400 MB) and `npm run browser` (headless Chromium, 99 MB).
 
 Verify the environment read-only:
 
@@ -191,7 +191,8 @@ npm run make -- --composition Lecture --narration public/voice/narration.wav
 
 | Stage | What fails the run |
 |---|---|
-| contract | `design_check`, `type_ratchet`, `tsc --noEmit` (`--skip-static` skips the first two) |
+| derived data | `qa/film_coverage.mjs`, `qa/derive_data.mjs`, `qa/derived_check.mjs`: every film is registered, its generators run, derived JSON is not tracked |
+| contract | `design_check`, `type_ratchet`, `tsc --noEmit`, and `qa/claims_check.mjs` when the film has a claims ledger (`--skip-static` skips the first two) |
 | score | deterministic stem from `--seed` (11) and `--energy` (0.8) |
 | score gate | `music_gate --music`: a bed whose power is not in 250-4k Hz |
 | render | picture only: `--props '{"music":null,"narration":null}' ` |

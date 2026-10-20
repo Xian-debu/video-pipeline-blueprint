@@ -20,12 +20,13 @@ integrated loudness -15.1 LUFS, true peak -1.8 dBTP, 41 narration lines.
 
 这是一个**经过实测验证**的代码驱动视频管线部署包：分镜是数据（JSON/TS），画面是代码（Remotion/React），
 声音是本地合成的（IndexTTS-2 旁白 + 种子确定性配乐），验收靠测量而不是靠嘴（EBU R128 响度、逐帧亮度
-闪烁检测、静帧人工复核）。本仓库收录的是两份完整生产案例——一台 8 GB 笔记本显卡机器上产出的 305 秒
-快速排序教学片，以及 591 秒的「逐位乘法演进」科普片——以及让它们跑起来所需的脚本、环境说明、失败模式和验收关卡。
+闪烁检测、静帧人工复核）。本仓库收录的是四部完整生产案例——305 秒快速排序教学片、588 秒「逐位乘法演进」科普片、
+333 秒齿轮 3D 解析片、757 秒「别人论文的解读片」（SenSys '24 的 Hawk）——以及让它们跑起来所需的
+脚本、环境说明、失败模式和验收关卡。四部片子共用一套门禁，片单只有一处真源：`scripts/film_registry.mjs`。
 
 不是库，不是 SaaS，不是一键安装器。目标是：克隆下来，`bash scripts/bootstrap.sh` +
 `npm run verify` 两分钟内得到 PASS，然后照着 `docs/deployment.md` 换成你自己的内容。
-坑都在 `docs/known-issues.md`（K1–K23），没有一条是假设出来的。
+坑都在 `docs/known-issues.md`（K1–K30），没有一条是假设出来的。
 
 ## 1. What this is, and what it is not
 
@@ -108,8 +109,8 @@ description of the picture, it is checking the picture.
 
 | Property | Measured |
 | --- | --- |
-| Runtime | 332.77 s, 30 fps, 1920x1080 (9,983 frames) |
-| 3D share | 86.5 % of the runtime weighted 3D (floor 60 %); flat scenes 18.5 % (ceiling 40 %) |
+| Runtime | 332.8 s, 30 fps, 1920x1080 (9,983 frames) |
+| 3D share | 86.7 % of the runtime weighted 3D (floor 60 %); flat scenes 18.3 % (ceiling 40 %) |
 | Narration | 64 lines, IndexTTS-2, re-timed against measured speech (0 overruns) |
 | Geometry gate | 8 invariants: involute identity 7.1e-15, contact ratio 1.6558, Willis -2.5000 |
 | Mesh gate | 0 profile crossings over a tooth pitch; the gate proves it can fail (37/37 when half a tooth off) |
@@ -138,6 +139,7 @@ board, the latency table.
 | Scenes | 12: problem, paper, four concepts, dataset, sync, difference, vote, evaluation, limits, OSS, outro |
 | Narration | 149 lines, IndexTTS-2, content-addressed clips (13 re-synthesised after the fact-check, 136 reused), 0 overruns |
 | Source ledger | `data/hawk/eval.json`, hand-written, every value carries the table it came from; 11 corrections recorded in `docs/hawk.md` §5 |
+| Claims gate | `data/hawk/claims.json`: 82 rows, each with the verbatim sentence from `paper.txt`; `claims_check.mjs` proves the quote occurs in the extracted text and the value occurs in a ledger (7 paper-only values are marked as such, in writing) |
 | Paper plates | 2 of 8 crops used; `page.get_pixmap(annots=False)` + a yellow-pixel count of 0 |
 | Synthetic data | `wave.json` is flagged `synthetic: true` and says so on screen; the Gray-code sequence is derived, labelled as such |
 | Audio | aac 48 kHz, I = -15 LUFS, TP = -2 dBTP; mix gate speech -15.42, gap -25.20 |
@@ -179,12 +181,14 @@ Three independent layers, joined only by files:
 ```
 .
 ├─ src/
-│  ├─ Root.tsx                 registered compositions (11)
+│  ├─ Root.tsx                 registered compositions (15)
 │  ├─ storyboard/              generic template: storyboard JSON -> film
 │  ├─ lecture/                 the validated 305 s lecture (script + scenes)
-│  ├─ mult/                    the second film, 591 s: digit-wise multiplication (script + scenes)
+│  ├─ mult/                    the second film, 588 s: digit-wise multiplication (script + scenes)
 │  ├─ gears/                   the third film, 333 s, 3D-first: gears (script, involute profile,
 │  │                           scene components; the geometry is computed, not imported)
+│  ├─ hawk/                    the fourth film, 757 s, paper reading: shared.tsx (scene furniture,
+│  │                           beat helpers) + scenes/ (one file per scene) + script.ts (timeline)
 │  ├─ design/                  design contract loader + derived tokens, palette scope (presets),
 │  │                           scene shell, KaTeX helpers, motion primitives, 3D primitives
 │  │                           (canvas, lights, camera rigs, materials, glTF model), still-lint
@@ -196,8 +200,12 @@ Three independent layers, joined only by files:
 ├─ data/                       shared contract only: design.spec.json, type-exceptions.json
 │  ├─ lecture/                 the quicksort film's own facts: trace, counters, source, voice timing
 │  ├─ mult/                    the multiplication film's own facts: counts, benchmarks, NTT, code, voice
-│  └─ gears/                   the gears film's own numbers: one params.json, then every table
-│                              (centre distance, contact ratio, Willis, backlash) derived from it
+│  ├─ gears/                   the gears film's own numbers: one params.json, then every table
+│  │                           (centre distance, contact ratio, Willis, backlash) derived from it
+│  └─ hawk/                    the paper film's ledgers: eval.json (hand-copied from the PDF, with
+│                              the table it came from), claims.json (one row per number, with the
+│                              verbatim sentence), paper.txt (the extracted text the gate quotes),
+│                              crops.json; gray.json + wave.json are derived and never committed
 ├─ public/voice/sample.wav     one narration line, kept so the audio path can be tested without TTS
 ├─ public/models/              nailong_v3_15k.glb (262 KB, smoothed, watertight, no normals) and
 │                              prop_{gear,chip,nut}.glb (SDF/CSG, watertight, generated)
@@ -206,9 +214,14 @@ Three independent layers, joined only by files:
 │  ├─ doctor.sh                read-only environment report (PASS/FAIL)
 │  ├─ verify.sh                end-to-end smoke test: typecheck -> stills -> render -> QA
 │  ├─ make.mjs                 one command for one delivery: every gate, in order, into report.json
+│  ├─ film_registry.mjs        the only list of films: script, export prefix, data generators,
+│  │                           derived (uncommitted) data. make.mjs and still_lint.mjs both import it
 │  ├─ render_scenes.mjs        scene-by-scene picture render: hash the inputs, reuse, concat
 │  ├─ generate_data.py         regenerates data/lecture/*.json from instrumented implementations
 │  ├─ generate_mult_data.py    the same for the multiplication film: counts, benchmarks, trace
+│  ├─ generate_gear_data.py    every gears table from data/gears/params.json (derived, not committed)
+│  ├─ generate_hawk_data.py    the paper film's Gray-code schedule and synthetic waveform (seeded)
+│  ├─ assets/hawk_paper.py     crops the paper's figures with PyMuPDF (annots=False, --fail-on-annots)
 │  ├─ audio/render_music.mjs   deterministic score renderer
 │  ├─ audio/mix.mjs            narration + score mix: ducking, fades, peak guard (no re-render)
 │  ├─ audio/loudnorm.sh        two-pass EBU R128 normalisation (video stream untouched)
@@ -225,24 +238,44 @@ Three independent layers, joined only by files:
 │  │                           number, report.json with a sha256 per frame (Blender is optional)
 │  ├─ qa/plate_lint.mjs        plate set integrity: contiguous frames, byte/sha match, duration
 │  ├─ qa/film_isolation.mjs    one film may not read another film's data or source (layout rule)
+│  ├─ qa/film_coverage.mjs     every src/*/script.ts is registered, every registered film exists
+│  ├─ qa/derive_data.mjs       runs the generators a film names, so a clean clone has its data
+│  ├─ qa/derived_check.mjs     derived JSON must not be tracked by git
+│  ├─ qa/claims_check.mjs      every number in the paper film has a quote that is really in paper.txt
 │  ├─ qa/tree_hash.mjs         one hash for the tree that a run is about to measure
-│  ├─ export/publish.mjs       SRT + chapters + cover, all derived from the lecture script
+│  ├─ export/publish.mjs       SRT + chapters + cover, all derived from a film's script
 │  └─ tts/                     local TTS: batch synthesis, re-timing, torchaudio patch
 ├─ docs/                       architecture, engineering standards, design language (provenance of
-│                              the contract), deployment, verification, known issues, roadmap
+│                              the contract), deployment, verification, known issues, roadmap, and
+│                              one file per film (lecture, multiplication, gears, hawk) plus 3d.md,
+│                              blender-plates.md, sdf-assets.md, environments.md
 ├─ AGENTS.md                   rules for AI agents working in this repo
 ├─ CONTRIBUTING.md             how to change things, and what "done" means here
 ├─ package-lock.json           pinned dependency tree (306 packages, installed with npm ci)
 └─ THIRD_PARTY_NOTICES.md      licences: npm packages, system tools, TTS models, reference reading
 ```
 
-Compositions: `Storyboard` (generic, 20 s), `Showreel` (30 s), `Lecture` (305 s demo),
-`Multiplication` (591 s demo, the second film), `Transitions`, `Typesetting`, `ThreeCube`,
-`ManimOverlay` (single-capability samples), `ThreeStage` (30 s: procedural geometry, an imported
-`.glb`, and a transparent 3D layer over 2D text), `PlateStage` (3 s: consumes a Blender-rendered
-plate sequence; needs `npm run plates` first, and says so when the plates are missing), `PropStage`
-(5 s: three props that exist only as CSG expressions, built by `npm run props`) and `Presets`
-(9 s: the same title scene in each palette preset, for judging a look).
+**Docs, all of them:** [3d](docs/3d.md) · [architecture](docs/architecture.md) · [blender-plates](docs/blender-plates.md) · [deployment](docs/deployment.md) · [design-language](docs/design-language.md) · [engineering-standards](docs/engineering-standards.md) · [environments](docs/environments.md) · [gears](docs/gears.md) · [hawk](docs/hawk.md) · [known-issues](docs/known-issues.md) · [multiplication](docs/multiplication.md) · [roadmap](docs/roadmap.md) · [sdf-assets](docs/sdf-assets.md) · [verify-report](docs/verify-report.md).
+
+**Source data vs derived data.** Some JSON under `data/` is written by hand and is the only place a
+number exists (the design contract, each film's `params.json`/`eval.json`/`crops.json`, the measured
+`voice.json`). The rest is a pure function of those files (`data/gears/*.json` except params/voice,
+`data/hawk/gray.json` + `wave.json`) and is **not committed** — `scripts/film_registry.mjs` names the
+generator for each, `make` and `verify` run it before anything imports the output, and
+`derived_check.mjs` fails when a derived file is tracked by git. The rule exists because a stale
+committed table is a table nobody regenerates: the number on screen and the number in the file drift
+apart silently. `data/hawk/paper.txt` is the exception that proves the rule — it is committed (CC BY
+4.0, 125 KB) because `claims_check.mjs` has to be able to quote it; a ledger that cannot be checked
+is decoration.
+
+Compositions (15): the four films `Lecture` (305 s), `Multiplication` (588 s), `Gears` (333 s),
+`Hawk` (757 s); the template and the verify artefact `Storyboard` (20 s) and `Showreel` (30 s);
+the single-capability samples `Transitions`, `Typesetting`, `ThreeCube`, `ManimOverlay`,
+`ThreeStage` (30 s: procedural geometry, an imported `.glb`, and a transparent 3D layer over 2D
+text), `PlateStage` (3 s: consumes a Blender-rendered plate sequence; needs `npm run plates` first,
+and says so when the plates are missing), `PropStage` (5 s: three props that exist only as CSG
+expressions, built by `npm run props`), `Presets` (9 s: the same title scene in each palette preset),
+and `LintFixtures` (dev only: frames that are *supposed* to fail the DOM rules).
 
 One command runs the whole delivery. `npm run make` walks the stages in the order that makes a
 failure cheapest to fix — contract, score, score gate, picture-only render, review stills, still
@@ -280,10 +313,12 @@ everything that can change rendered bytes (`src/`, `data/`, `scripts/`, render c
 gates run on a copy of the repo somewhere else, pass the original's hash: `--expect-tree <hash>`
 makes the run fail in the first second instead of after a stale long render.
 
-The film's delivery set is `npm run publish`: `out/export/` gets an SRT (41 cues, wrapped to the
-contract's 34-character line budget), human-readable and ffmpeg-sidecar chapter files (9 chapters,
-summing to the film's duration) and a cover rendered from frame 180. Nothing in that folder is
-authored by hand, so it cannot drift from the picture.
+The film's delivery set is `npm run publish` (or the last stage of `make`): `out/export/` gets an
+SRT wrapped to the contract's 34-character line budget, human-readable and ffmpeg-sidecar chapter
+files summing to the film's duration, and a cover. Everything is derived from the film's script, so
+nothing in that folder can drift from the picture. Per film: 41 cues / 9 chapters / cover 180
+(lecture), 106 / 10, 64 / 11, 149 / 12 (Hawk). The flags are `--composition`, `--script`,
+`--prefix`, `--cover-frame`.
 
 Type is a contract question, not a scene one. The storyboard template reads `SB.*` and `SB_T.*`
 (sizes, tracking) from `type.families.storyboard`, the multiplication film reads `FT.*` from
@@ -314,7 +349,9 @@ npx remotion render Storyboard out/paper.mp4 --props='{"preset":"paper"}'
 git clone <this repo> && cd video-pipeline-blueprint
 bash scripts/bootstrap.sh        # apt libs + CJK fonts + node + npm + headless Chromium
 bash scripts/doctor.sh           # must print "all checks passed"
-npm run verify                   # ~2 min: typecheck, 3 stills, 30 s film, loudness + flicker gates
+npm run verify                   # ~10 min on the reference machine: 24 steps, 59 still-lint frames,
+                                 # a 30 s film, loudness + flicker gates (it used to be 2 min when
+                                 # there was one film and no 3D/plate/prop gates)
 ```
 
 Expected tail of `npm run verify`:
@@ -386,13 +423,23 @@ Node — see `docs/known-issues.md` K2), and any cloud TTS.
 ## 8. Verification: what `npm run verify` actually proves
 
 ```
+0.5  derived data       film_coverage.mjs (every src/*/script.ts is registered) -> derive_data.mjs
+                        (run the generators a film names) -> derived_check.mjs (derived JSON is
+                        not tracked by git)
+0.6  claims ledger      claims_check.mjs: every number in data/hawk/claims.json has a quote that
+                        really occurs in data/hawk/paper.txt, and the value occurs in a ledger
+0.7  docs anchors       docs_check.mjs: the README's own counts (compositions, films, steps, K
+                        index, doc links) agree with the tree
 1/6  typecheck          tsc --noEmit
+1.1  film isolation     film_isolation.mjs: a film may not read another film's data or source
 1.2  design contract    design_check.py: contrast ratios, type ladder + families, tracking
                         ratios, motion budgets
-1.25 type ratchet       type_ratchet.py: no new hard-coded fontSize/letterSpacing literals
-1.3  still lint         still_lint.mjs: 24 frames measured from the DOM (off-frame, edge,
-                        spill, overlap) + a fixture that proves the rules still fire
-2/6  stills             Storyboard f60, Lecture f2500, Typesetting f60  -> human review
+1.3  type ratchet       type_ratchet.py: no new hard-coded fontSize/letterSpacing literals
+1.5  headless browser   remotion browser ensure (downloads once)
+2/6  still frames       Storyboard f60, Lecture f2500, Typesetting f60  -> human review
+2.5  still lint         still_lint.mjs: 59 frames measured from the DOM (12 Hawk + 11 Gears +
+                        9 Lecture + 10 Mult + 17 showcase; one per scene) + fixtures that prove
+                        the rules still fire
 2.6  model lint         model_lint.mjs: GLB structure, triangle budget, extent, watertight
 2.7  3D frames          three_frame_lint.mjs: coverage floor/ceiling, not black, sha256 twice
 2.8  plate set          plate_lint.mjs: frames contiguous, every PNG byte/sha matches report.json,
@@ -412,6 +459,9 @@ Node — see `docs/known-issues.md` K2), and any cloud TTS.
 5/6  loudness           two-pass loudnorm; asserts I in [-16,-13] and TP <= -1.5
 6/6  flicker            per-frame luma jumps on the whole frame (threshold 12)
 ```
+
+That is 25 steps in `scripts/verify.sh` (a film added to the tree but missing from
+`film_registry.mjs` fails 0.5 rather than silently skipping every gate — that is K27).
 
 The design-contract step is cheap and catches the class of defect that is cheapest to fix before a
 render: a role that fails contrast on one of its real backgrounds, a type size that is not on the
@@ -435,7 +485,7 @@ looking at rendered frames. Treat "human reviews stills" as a required stage, no
 
 ## 9. Known issues
 
-Full detail in `docs/known-issues.md`; the short list:
+Full detail in `docs/known-issues.md` (K1–K30); the short list, oldest first:
 
 - **K1 cross-fade flicker**: `TransitionSeries` keeps both scenes visible for the overlap and
   multiplies two opacities, producing a visible dip. Fixed by hard cuts + per-scene content fades.
@@ -480,6 +530,22 @@ Full detail in `docs/known-issues.md`; the short list:
   `--factory-startup`. Plates therefore render with Cycles, device resolution is reported by the
   probe, and `resolve_engine()` probes by assignment instead of trusting the enum. See
   `docs/blender-plates.md`.
+- **K25 a number under the wrong label**: 71.5× was the baseline's cost, not this system's; 2304
+  hours belonged to the baseline dataset, not this one; 5 ms was another paper's precision. Every
+  gate passed. The fix is not a gate: one hand-written ledger, and reading the paper next to the
+  screen (that ledger is `data/hawk/eval.json`, and K26's cousin `claims.json` now proves the
+  quotes are real).
+- **K26 a pre-computed series that argued the opposite**: the 30-cycle difference of a 1500 W step
+  produces a −1500 W fake step when the step rolls out of the window, which says the reverse of the
+  slide it is drawn on. Compute it in the component, clamp the axis, and let the +40 W plateau be
+  found rather than asserted.
+- **K27 a gate that measured a frame nobody saw**: `Fig` sized itself from the decoded image, but
+  the lint probe measures before decode paints, so two captions "overlapped" on frames that render
+  fine. Give the box an explicit height. Corollary: a film missing from `FILM_SCRIPTS` is a film
+  every still gate silently skips — hence the single `film_registry.mjs` (0.5).
+- **K28 a .gitignore rule that matched nothing**: the previous line had no trailing newline, so
+  `*.logpublic/voice/hawk/` was a rule nobody could match and 26 MB of wav files showed up as
+  untracked. Ask git (`git check-ignore -v`), do not read the file.
 
 ## 10. Choosing an environment (and lower-tier substitutes)
 
@@ -506,9 +572,10 @@ Lower-tier substitutions (documented in `docs/environments.md`):
 
 ## 11. Roadmap
 
-See `docs/roadmap.md` (it also lists the open design-contract debts). Highlights: a single orchestrator (`storyboard.json -> stills -> review
--> render -> QA`), automated still-frame linting (safe-area and overlap checks) so fewer human
-looks are needed, an index of reusable scene components, and optional GPU-free TTS integration.
+See `docs/roadmap.md` (it also lists the open design-contract debts). Highlights: a single
+orchestrator (`storyboard.json -> stills -> review -> render -> QA`), an index of reusable scene
+components, optional GPU-free TTS integration, and pacing as a measured property (the Hawk film's
+`scripts/qa/pacing.py` turned "does it feel slow?" into a number: longest static stretch per scene).
 
 ## 12. Contributing
 

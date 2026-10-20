@@ -48,9 +48,14 @@ without its own `script.ts` fails the build. Adding a film is therefore: `src/<n
 
 ## 3. Repository layout rules
 
-- New scenes live in `src/lecture/scenes/` (typed film) or as a storyboard template in
-  `src/storyboard/` (generic film). Do not add a new top-level directory without documenting it in
+- A film's scenes live either in one `src/<film>/<Film>.tsx` (lecture, multiplication, gears) or in
+  `src/<film>/scenes/<scene>.tsx` when the film is large enough that one file stops being readable
+  (`src/hawk/`: 12 scenes plus `shared.tsx`). A generic film is a storyboard template in
+  `src/storyboard/`. Do not add a new top-level directory without documenting it in
   `docs/architecture.md` and updating the tree in `README.md` §4.
+- **A new film is registered in `scripts/film_registry.mjs` and nowhere else.** That list is what
+  `make`, `verify.sh` and the still-lint gate read; adding a film directory without registering it
+  turns its gates off silently (K27), and `qa/film_coverage.mjs` now fails the run instead.
 - Reusable visual behaviour goes in `src/design/primitives.tsx`; a scene-local effect that is used
   once stays in the scene.
 - QA and tooling live in `scripts/<area>/`. Every script is idempotent, prints what it asserts, and
@@ -93,8 +98,9 @@ The contract is data, so these are checks, not opinions:
 
 - One caption line is at most 34 CJK characters, read at 4.2–4.8 characters per second. A line that
   needs longer is two lines or a shorter sentence — the timing is a hard budget, not a target.
-- Scene durations are declared in `SCENES` and must sum to the intended runtime; `verify` prints the
-  total. Trimming content is preferred over speeding narration up.
+- Scene durations are declared in `SCENES` and must sum to the intended runtime; the total is
+  printed by `dump_script.mjs` and recorded in the delivery `report.json`. Trimming content is
+  preferred over speeding narration up.
 - Every claim visualised on screen must trace to `data/` (recorded) or to a cited source. A drawing
   that illustrates nothing measurable is decoration.
 
@@ -116,7 +122,12 @@ The contract is data, so these are checks, not opinions:
 
 A change is done when all of the following are true and their numbers are written down:
 
-1. `npx tsc --noEmit` passes.
+1. `npx tsc --noEmit` passes, and the film-level gates ran first: `node scripts/qa/film_coverage.mjs`
+   (every `src/*/script.ts` is in `scripts/film_registry.mjs`, every registered film exists),
+   `node scripts/qa/derive_data.mjs --all` (the generators a film names were run) and
+   `node scripts/qa/derived_check.mjs` (no derived JSON is tracked by git — this one needs a git
+   checkout, so on a render box it prints SKIPPED and the checkout run is the evidence). A film with
+   a claims ledger also passes `node scripts/qa/claims_check.mjs`.
 2. `python3 scripts/qa/design_check.py` passes (contract integrity) and
    `python3 scripts/qa/type_ratchet.py` reports the exception list unchanged.
 3. `node scripts/qa/still_lint.mjs` passes (no off-frame box, no text in the safe-area margin, no

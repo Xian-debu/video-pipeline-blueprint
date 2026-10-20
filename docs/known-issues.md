@@ -525,3 +525,38 @@ editor that soft-wraps, and the next `git add -A` would have committed the audio
 **Fix here.** Split the line, then confirm with `git check-ignore -v` rather than by eye
 (`git check-ignore` names the matching rule and its line number). The habit worth keeping: after
 editing an ignore file, ask git what it thinks, not the file.
+
+## K29 documentation drift is invisible because nothing reads the docs
+
+**Symptom.** The README described a 12-composition repo with two films; the tree had 15
+compositions and four films. It quoted 591 s for a 587.9 s film, 86.5 % for an 86.7 % 3D share,
+"24 frames" for a 59-frame still gate, an 11-composition tree without `src/hawk/`, and a
+known-issues index that stopped at K23 while the file reached K28. Every number was true on the day
+it was typed.
+
+**Why the gates missed it.** No gate read a prose file. `tsc` does not care what the README says,
+and `docs/verify-report.md` is a record, not an assertion — so it aged quietly while the code moved.
+
+**Fix.** `scripts/qa/docs_check.mjs` (gate 0.7) checks the anchors a grep can settle: the
+composition count (from `src/Root.tsx`) appears in the README twice, every film in
+`film_registry.mjs` is named, the verify step count quoted in §8 equals the number of `step`
+lines in `verify.sh`, the K index reaches the newest entry and has no gaps, and every
+`docs/*.md` is linked from the README. Prose and measured numbers still need a human — so
+`docs/verify-report.md` is dated per section instead of being rewritten in place.
+
+**Lesson.** A doc that quotes a number is a cache of that number with no invalidation. Either derive
+it (a link, a generated table) or gate the copy.
+
+## K30 a two-column PDF extracted with pdftotext -layout mixes columns inside a line
+
+**Symptom.** `pdftotext -layout` on the Hawk paper produces lines that contain the left column and
+then the right column of the page, so a sentence is intact but its *neighbours* are from another
+column. A quote taken across two lines of that file is a quote that does not exist in the paper.
+
+**Consequence for the claims gate.** Every `quote` in `data/hawk/claims.json` is a contiguous
+slice of **one physical line** of `paper.txt`, of 20-120 characters, and the gate normalises
+whitespace before matching. That is a real constraint on how the ledger is written, and it is why
+the file is committed: a gate that cannot quote the text it checks is decoration.
+
+**Lesson.** Extraction is part of the evidence chain. When the artefact is a text dump, say which
+tool produced it and what it mangles; then shape the checker around the mangling instead of hoping.

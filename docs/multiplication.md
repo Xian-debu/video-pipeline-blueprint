@@ -127,7 +127,7 @@ node scripts/make.mjs --composition Multiplication \
 | 配乐 | full -25.08 / 可听带 -27.86 dBFS，audible_share 0.631，sub_share 0.068 |
 | 混音 | 589.07 s，duck 4.5 dB（65.7% 时间生效），peak -2.00 dBFS，rms -19.12 |
 | 说话/空档 | speech -15.28 / gap_full -25.57 / gap_audible -28.29 dB，bed 贡献 41.7 dB |
-| 静帧 lint | 24 帧 PASS，Multiplication 十帧盒数 27/93/132/111/51/154/38/32/47/26 |
+| 静帧 lint | 24 帧 PASS（当时口径；现在全仓 59 帧），Multiplication 十帧盒数 27/93/132/111/51/154/38/32/47/26 |
 | 交付集 | 106 条 SRT、10 章（FFMETADATA + 人读章节表）、cover.png 92,711 B |
 
 抽检四段音轨（volumedetect，t=120/300/420/560：mean -18.2/-20.4/-18.7/-25.8 dB，峰值

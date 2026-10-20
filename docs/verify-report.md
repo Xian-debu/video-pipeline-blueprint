@@ -1,7 +1,10 @@
 # Verification report — the acceptance run
 
-This file is the actual record of the acceptance run behind the numbers in the README. It was
-produced by `npm run verify` in this repository, on the reference machine, on 2026-10-17.
+This file is the record of the acceptance runs behind the numbers in the README. It is a set of
+dated sections, not one run: each section names the command, the tree and the commit it measured.
+The first sections are the lecture-only runs (2026-10-17); the later ones cover the multiplication,
+gears and Hawk films. Where a number changed between sections, the later section is the current
+state — the earlier one is kept because it is what was true then.
 
 ## Environment used
 
@@ -308,7 +311,7 @@ node scripts/make.mjs --composition Multiplication \
 | Mix gate | speech -15.28 / gap_full -25.57 / gap_audible -28.29 dB; bed contributes 41.7 dB | pass |
 | Loudness | I = -15 LUFS, TP = -2 dBTP (assertions: I ∈ [-16,-13], TP ≤ -1.5) | pass |
 | Flicker | mean\|Δ\| 0.0147, p99 0.1428, max 8.74 with 9 cut frames masked (threshold 12) | pass |
-| Still lint | 24 frames, no off-frame box, no edge text, no spill, no overlap | pass |
+| Still lint | 24 frames at the time (4 films / 59 frames today), no off-frame box, no edge text, no spill, no overlap | pass |
 | Exports | 106 cues, 10 chapters, cover 92,711 B | pass |
 | Caption budget | longest line 34 chars; 0 of 106 SRT cues needed wrapping | pass |
 
@@ -361,12 +364,12 @@ Verified on this tree (gen24, Node v22.21.1):
 
 | Check | Result |
 | --- | --- |
-| `node scripts/qa/film_isolation.mjs` | PASS — 2 films isolated (lecture, mult) |
+| `node scripts/qa/film_isolation.mjs` | PASS — 2 films isolated (lecture, mult) *as of this run*; the current tree has 4 (adds gears, hawk) |
 | same script against a deliberately broken tree | FAIL — 4 issues, exit 1 (unpaired ×2, foreign import, film JSON at root) |
 | `npx tsc --noEmit` | 0 errors (the moved JSON imports type-check) |
-| `scripts/qa/design_check.py` | PASS — 4 colour families, 3 presets, 30 contrast targets |
+| `scripts/qa/design_check.py` | PASS — 4 colour families, 3 presets, 30 contrast targets at the time (now 35) |
 | `scripts/qa/type_ratchet.py` | PASS — 52 grandfathered literals, list unchanged |
-| `node scripts/qa/still_lint.mjs` | PASS — 24 frames (the lecture frames read the moved data) |
+| `node scripts/qa/still_lint.mjs` | PASS — 24 frames at the time (the lecture frames read the moved data); the tree now measures 59 |
 | `bash scripts/verify.sh` | exit 0 — `-15.2 LUFS`, `-1.6 dBTP`, flicker `mean|d|=0.0461`, `max=6.57` |
 
 Two related hardenings landed in the same commit:
@@ -647,7 +650,7 @@ without working headless WebGL remains an optional environment note in `docs/dep
 ## Re-verification of the published tree
 
 After the fixes above were committed, the exact tree that is published here was extracted into an
-empty directory, `npm install` was run into a fresh `node_modules` (289 packages), and
+empty directory, `npm install` was run into a fresh `node_modules` (306 packages), and
 `bash scripts/verify.sh` was executed again - this time with the *system* Python, not a prepared venv.
 Result: `doctor: all checks passed`, then steps 1-6 all PASS with the same numbers as the
 recorded run above (-15.2 LUFS, -1.6 dBTP, max abs delta 6.57).

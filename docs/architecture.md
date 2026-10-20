@@ -21,8 +21,10 @@ Two entry points share one renderer:
 - **Generic**: `storyboard.json` validated by `src/schema.ts` (zod-free plain TS guards).
   A scene is a discriminated union — `title`, `graphic`, `image` — with duration, captions,
   and transition hints. `src/storyboard/Film.tsx` maps it to a `<Sequence>` list.
-- **Per-film**: `src/<film>/script.ts` for each film (the quicksort lecture, the multiplication
-  film). A film owns `src/<film>/` and `data/<film>/` and reads no other film's files — enforced by
+- **Per-film**: `src/<film>/script.ts` for each film (quicksort lecture, multiplication, gears,
+  Hawk). A film's id, script, export prefix and data generators are declared once, in
+  `scripts/film_registry.mjs`; `make.mjs`, `still_lint.mjs` and `verify.sh` all read that list,
+  so a film cannot be in the tree and missing from the gates (`qa/film_coverage.mjs`). A film owns `src/<film>/` and `data/<film>/` and reads no other film's files — enforced by
   `scripts/qa/film_isolation.mjs`. Scenes are written as data
   (`SCENES` with `id`/`dur`/`title`), and every visible string lives in `LINES`, from which
   captions and the TTS script are derived. This keeps the narration, the subtitles and the scene
@@ -34,8 +36,10 @@ state; nothing animates itself. Consequences: any frame is renderable in isolati
 
 ## 2. Render layer
 
-- Compositions are registered in `src/Root.tsx`: `Storyboard`, `Showreel`, `Lecture`,
-  `Transitions`, `Typesetting`, `ThreeCube`, `ManimOverlay`.
+- 15 compositions are registered in `src/Root.tsx`: the four films (`Lecture`, `Multiplication`,
+  `Gears`, `Hawk`), the template and the verify artefact (`Storyboard`, `Showreel`), the samples
+  (`Transitions`, `Typesetting`, `ThreeCube`, `ManimOverlay`, `ThreeStage`, `PlateStage`,
+  `PropStage`, `Presets`) and `LintFixtures` (frames that must fail the DOM rules).
 - Scenes are separated by **hard cuts**; each scene fades its own content in/out
   (`SceneShell` default 12 frames, `fadeFramesFor(deltaLuma, perFrame=10, min=10)`). Do not
   use cross-transitions between scenes with large luminance differences — see
@@ -59,8 +63,11 @@ Two independent tracks, mixed outside the renderer:
    `render_music.mjs` is the CLI (`--key=value` form only).
 2. **Narration** — `scripts/tts/synthesize.py` drives IndexTTS-2 over the same `LINES` array,
    writes one wav per line, then `retime_narration.py` measures each wav with `soundfile` and
-   re-budgets scene durations so speech fits (`lead` 0.55 s, `tail` 0.35 s, gap clamped to
-   [0.30, 1.20] s), writing the new durations back into the script.
+   re-budgets scene durations so speech fits. Two different sets of constants exist and are easy
+   to confuse: `retime_narration.py` uses `lead` 0.55 s / `tail` 0.35 s / gap clamped to
+   [0.30, 1.20] s, while each film's `script.ts` lays out its own timeline with `LEAD` 1.2 s /
+   `TAIL` 2.2 s / `GAP` 0.55 s / `LINE_PAD` 0.35 s / `MIN_LINE` 1.4 s (the script's numbers win
+   for the picture; the retimer only fixes the measured speech).
 
 Mixing and loudness are done with ffmpeg (`amix`, then two-pass `loudnorm`, then `-c:v copy`),
 so the picture is never re-encoded. Target: I = -15 LUFS, TP = -2 dBTP for web delivery.

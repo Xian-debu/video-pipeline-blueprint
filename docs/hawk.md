@@ -4,7 +4,7 @@
 （*Hawk: An Efficient NALM System for Accurate Low-Power Appliance Recognition*，
 SenSys '24，CC BY 4.0），成片做的是"给完全没读过这篇论文的人讲清楚"。
 
-composition id `Hawk`，12 场、757.36 秒（22,721 帧）、1920×1080 / 30 fps。
+composition id `Hawk`，12 场、时间轴 757.36 s / 容器 757.37 s（22,721 帧）、1920×1080 / 30 fps。
 
 ## 1. 这类片子难在哪
 
@@ -58,8 +58,8 @@ composition id `Hawk`，12 场、757.36 秒（22,721 帧）、1920×1080 / 30 fp
                 "baselineHours": 2304, "collectionTimeRatio": 71.5,
                 "onStateBR": 0.877, "baselineOnStateBR": 0.000122,
                 "categoryBR": 0.212, "stateComboGain": 6.34 },
-  "headline":  { "stateAvgF1": 93.94, "eventAvgF1": 97.07,
-                 "stateGainPct": 47.98, "eventGainPct": 11.57 },
+  "headline":  { "stateAvgF1": 93.94, "eventAvgF1": 92.71, "stateGainPct": 47.98 },
+  "blued":     { "hawkAvg": 97.07, "mtsShapeletAvg": 85.50, "deltaAvg": 11.57 },
   "sync":      { "within220usPct": 99.65, "maxSyncErrorUs": 61.8, "vsTsfRatio": 17.2 },
   "latency":   { "rows": [ {"device":"Desktop","ms":3.31,"rssMb":42.5},
                            {"device":"Jetson Orin NX","ms":4.07,"rssMb":40.19},
@@ -81,6 +81,38 @@ composition id `Hawk`，12 场、757.36 秒（22,721 帧）、1920×1080 / 30 fp
 `wave.json` 的 `meta.synthetic: true` 不是免责声明式的自我安慰：第 7 场的差分曲线
 是**在组件里现算**的（`d30[i] = total[i] - total[i-30]`），不是从 JSON 读预计算序列。
 原因见 §5 第 6 条 —— 预计算序列在这张画面里会推出反结论。
+
+**摘要那句不能直接抄。** 论文摘要把两个数据集揉成一句
+（"In HawkDATA and a widely used dataset, …93.94% state and 97.07% event"），真相在 §1 的贡献列表里：
+HawkDATA 状态 93.94 / 事件 92.71；BLUED 事件 97.07（比 MTS-Shapelet 85.50 高 11.57 个百分点）。
+画面里那两张卡原本都写 97.07，是照摘要抄的 —— 现在第 9 场第一行是 HawkDATA 的状态与事件，
+第三行才是 BLUED。"11.57" 也因此从"相对提升"改口径为百分点的差（论文原文写的是 %，两种读法
+差一个量级）。这类错误的共同点是：**每个数字单独看都对，贴错标签就变成另一个结论。**
+
+### 3.1 数字账本：data/hawk/claims.json
+
+`eval.json` 回答"这个数是多少、出自哪张表"，`claims.json` 回答"这句话真的在论文里吗"。
+82 行，每行一个上屏或上口的数字：
+
+```json
+{ "id": "hawkdata-state-f1", "scene": "eval", "onScreen": "93.94%",
+  "value": "93.94", "dataset": "HawkDATA",
+  "quote": "a widely used dataset, Hawk achieves an average F1 score of 93.94%",
+  "where": "Abstract (l.28)", "note": "AMBIGUITY: the abstract's one sentence covers two datasets …" }
+```
+
+`scripts/qa/claims_check.mjs` 机械地证三件事：
+
+1. `quote` 规范化空白后**确实**出现在 `data/hawk/paper.txt`（`pdftotext -layout` 的产物，
+   双栏在行内混排，所以每条引文都是**同一物理行**的连续切片）；
+2. `value` 出现在 `eval.json`/`gray.json`/`wave.json` 的任一处 —— 否则该行的 `note` 必须写明
+   `UNSOURCED IN LEDGERS`，说明它只活在论文里（美元成本、类别比、原始体积这类）。现在有 7 条 row（9 处
+字样，含两条 note 里的重复提及），
+   门禁每次都会把它们念出来；
+3. `scene` 真的存在于 `script.ts`。
+
+它**证不了**什么：证不了 71.5 是 1/71.5（方向），也证不了 2304 小时是基线的。那是语义，靠
+人对着原文读（§5）。一个假装能证的门禁比没有门禁更坏 —— 所以这里只写它能证的一半。
 
 ## 4. 原文图版：只用在画不出来的地方
 
@@ -146,16 +178,23 @@ python3 scripts/tts/build_hawk_narration.py --lines data/hawk/lines.json \
 
 ## 7. 复现
 
+片子已在 `scripts/film_registry.mjs` 注册一次，`make` 会自己跑生成器、自己检查派生数据有没有
+混进 git，所以复现路径只有一条：
+
 ```bash
-python3 scripts/assets/hawk_paper.py --only header,fig10     # 图版
-python3 scripts/generate_hawk_data.py                        # gray/wave
+python3 scripts/assets/hawk_paper.py --only header,fig10     # 图版（p1、p8 裁切，annots=False）
 node scripts/qa/dump_script.mjs src/hawk/script.ts data/hawk/lines.json
 # …… TTS 四步见 §6 ……
+node scripts/qa/claims_check.mjs                             # 82 条引文 + 落账
 node scripts/make.mjs --composition=Hawk \
   --narration=public/voice/hawk_narration.wav \
   --cut-frames=1258,3046,4746,6441,9392,12140,14556,16628,18719,19952,21946 \
   --out=out/hawk-package
 ```
+
+`gray.json` / `wave.json` 不在 git 里：`make` 第一步 `derive data` 会用
+`scripts/generate_hawk_data.py` 现生成（seed 固定，逐字节可复现），随后 `derived_check.mjs`
+确认它们没有被跟踪。手工重跑生成器也安全 —— 它覆盖写，但产物与上次一致。
 
 ## 7.5 交付实测
 

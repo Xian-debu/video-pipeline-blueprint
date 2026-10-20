@@ -4,7 +4,7 @@
 真实的 3D 齿轮，2D 只做标题、字幕、参数面板和两张图版。验收目标不在这个仓库里，而在
 `gen24-admin/docs/30-gears-film-acceptance.md`（A1–A15 是硬指标，C1–C6 是内容要求）。
 
-片名《啮合》，composition id `Gears`，11 场、332.78 秒（9,983 帧）、1920×1080 / 30 fps。
+片名《啮合》，composition id `Gears`，11 场、332.77 秒（9,983 帧，script 侧 332.78）、1920×1080 / 30 fps。
 
 ## 1. 为什么是齿轮
 
