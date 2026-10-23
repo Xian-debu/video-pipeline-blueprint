@@ -26,7 +26,7 @@ integrated loudness -15.1 LUFS, true peak -1.8 dBTP, 41 narration lines.
 
 不是库，不是 SaaS，不是一键安装器。目标是：克隆下来，`bash scripts/bootstrap.sh` +
 `npm run verify` 在参考机上约十分钟得到 PASS（25 道门，含 59 帧静帧渲染），然后照着 `docs/deployment.md` 换成你自己的内容。
-坑都在 `docs/known-issues.md`（K1–K33），没有一条是假设出来的。
+坑都在 `docs/known-issues.md`（K1–K34），没有一条是假设出来的。
 
 ## 1. What this is, and what it is not
 
@@ -522,7 +522,7 @@ looking at rendered frames. Treat "human reviews stills" as a required stage, no
 
 ## 9. Known issues
 
-Full detail in `docs/known-issues.md` (K1–K33); the short list, oldest first:
+Full detail in `docs/known-issues.md` (K1–K34); the short list, oldest first:
 
 - **K1 cross-fade flicker**: `TransitionSeries` keeps both scenes visible for the overlap and
   multiplies two opacities, producing a visible dip. Fixed by hard cuts + per-scene content fades.
@@ -595,6 +595,9 @@ Full detail in `docs/known-issues.md` (K1–K33); the short list, oldest first:
 - **K33 an algorithm read from a text dump**: OCR flattens the `If / else / endif` nesting of Figure 4,
   the reimplementation called `REPLACE` twice per miss, and the hit ratio came out at 1.15 %. Read
   pseudo-code as an image at 300 dpi; the text is an index into the picture, not the picture.
+- **K34 a gate that needs a gitignored file**: `claims_check` passed only where a render had already
+  written the derived ledger, so a clean clone failed on two rows. A check may depend only on tracked
+  files; everything else it regenerates. Verify in a clean clone or the defect stays invisible.
 
 ## 10. Choosing an environment (and lower-tier substitutes)
 
