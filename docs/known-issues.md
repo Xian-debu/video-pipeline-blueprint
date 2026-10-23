@@ -641,3 +641,27 @@ transcription of control flow before suspecting the paper.
 
 **Related.** K30 (two columns merged in one line) is the same family: extraction loses structure, and the
 structure was the content.
+
+## K34 a gate that needs a gitignored file must build it, not report it missing
+
+**Symptom.** In a fresh clone (no `out/`, no derived JSON), `node scripts/qa/claims_check.mjs --film=arc`
+failed on two rows whose values live in `data/arc/sim.json`:
+
+    arc-scan-pre: value 37.2 is in none of data/arc/eval.json and the row does not say why
+
+The same command passed in the author's tree, where `sim.json` existed because a render had been run there.
+That is the worst failure shape: a gate that is green only on the machine that produced the data.
+
+**Root cause.** Derived ledgers are gitignored on purpose — they are outputs of a generator with a fixed
+seed, not inputs. `npm run make` runs `qa/derive_data` before `claims_check`, so the pipeline was fine; the
+standalone invocation was not, and a human typing the gate by hand (or a fresh-clone verification) hit it.
+
+**Fix.** `scripts/qa/claims_check.mjs` now reads `scripts/film_registry.mjs`, and if any positive
+`derived` glob for the film has no match it runs that film's `derive` steps itself, then proceeds. It is
+cheap (the ARC simulator regenerates in ~3 s), idempotent (nothing runs when the files are present), and it
+prints why it is generating.
+
+**Rule.** A check may depend only on tracked files; everything else it needs, it regenerates. Verifying in
+a **clean clone** is what catches this class — the author's tree is contaminated with exactly the files the
+gate quietly depends on.
+

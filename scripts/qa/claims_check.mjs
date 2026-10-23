@@ -17,15 +17,51 @@
 // screen (K25). A gate that pretends otherwise is worse than no gate.
 import fs from "node:fs";
 import path from "node:path";
+import { execFileSync } from "node:child_process";
+import { FILMS } from "../film_registry.mjs";
 
 const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), "../..");
 const read = (p) => fs.readFileSync(path.join(ROOT, p), "utf8");
 const normalize = (s) => s.replace(/\s+/g, " ").trim();
 
+// A fresh clone has no derived ledgers (they are gitignored by design: they are outputs, not
+// inputs). This gate needs them, so it regenerates them itself instead of failing with a message
+// that reads like a missing citation. Cheap (seconds) and idempotent — make.mjs has already run
+// the same step, in which case every glob matches and nothing happens.
+const globToRe = (p) => new RegExp("^" + p
+  .replace(/[.+^$(){}=!|\\]/g, "\\$&")
+  .replace(/\*\*\//g, "(?:.*/)?")
+  .replace(/\*\*/g, ".*")
+  .replace(/\*/g, "[^/]*")
+  .replace(/\?/g, "[^/]") + "$");
+
+function expand(glob) {
+  const parts = glob.split("/");
+  const base = parts.slice(0, -1).join("/");
+  const re = globToRe(parts[parts.length - 1]);
+  const dir = path.join(ROOT, base);
+  if (!fs.existsSync(dir)) return [];
+  return fs.readdirSync(dir).filter((f) => re.test(f)).map((f) => path.join(base, f));
+}
+
+function ensureDerived(film) {
+  const name = Object.keys(FILMS).find((k) => k.toLowerCase() === film);
+  if (!name) return;
+  const entry = FILMS[name];
+  const positive = (entry.derived ?? []).filter((g) => !g.startsWith("!"));
+  if (!positive.length) return;
+  if (positive.every((g) => expand(g).length > 0)) return;
+  console.log("claims check [" + film + "]: derived ledgers missing in this checkout — running " + entry.derive.join(", "));
+  for (const step of entry.derive ?? []) {
+    execFileSync("python3", [step], { cwd: ROOT, stdio: "inherit" });
+  }
+}
+
 // Film name selects the ledger directory and the script that owns the scenes. Default keeps the
 // original single-film invocation working; make.mjs passes --film=<composition lowercased>.
 const arg = (k) => (process.argv.find((a) => a.startsWith("--" + k + "=")) ?? "").split("=")[1];
 const FILM = arg("film") ?? "hawk";
+ensureDerived(FILM);
 const LEDGER_EXCLUDE = new Set(["claims.json", "clips.json", "crops.json", "voice.json", "lines.json"]);
 const ledgerFiles = fs.readdirSync(path.join(ROOT, "data", FILM))
   .filter((f) => f.endsWith(".json") && !LEDGER_EXCLUDE.has(f))
