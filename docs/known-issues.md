@@ -617,3 +617,27 @@ the command looked right and the run reproduced the old failure with the fix "pr
 and machine name are not an argument. Check `pwd`/distro inside the same shell that runs the
 gate, or pipe the archive into the render distro (`cat pkg.tar.gz | wsl ... tar xzf -`) and verify
 in one place.
+## K33 a text extraction that re-indents an algorithm is not the algorithm
+
+**Symptom.** The first implementation of Figure 4 in `scripts/generate_arc_data.py` looked faithful to the
+extracted text and was wrong: on a miss it called `REPLACE` twice, so the cache lost one page it should
+have kept, and the hit ratio sat at **1.15 %** where the paper reports double digits.
+
+**Root cause.** The algorithm is a nest of `If / else / endif` blocks whose meaning is carried entirely by
+indentation. The OCR of page 123 flattens that indentation: the `else` that belongs to `If (|T1| < c)`
+inside Case IV(A) ends up adjacent to a line from the next block, and the missing `endif` makes the
+subsequent `REPLACE(x_t, p)` read as if it were outside the branch. Nothing in the text is *wrong* —
+the structure is simply absent.
+
+**Fix.** Read the algorithm **as an image**, not as text: render Figure 4 at 300 dpi
+(`page.get_pixmap(dpi=300, clip=...)`), zoom into the branches, and transcribe the nesting from the
+indentation you can see. The four cases and the `REPLACE` guard are then unambiguous, and the simulator's
+hit ratios land in the range the paper reports. Numbers that came out of a suspicious reimplementation are
+evidence of a transcription bug, not of a surprising paper.
+
+**Rule for any paper with pseudo-code.** The picture is the source; the text is an index into it. When an
+implementation's output disagrees with a published number by more than a few percent, suspect the
+transcription of control flow before suspecting the paper.
+
+**Related.** K30 (two columns merged in one line) is the same family: extraction loses structure, and the
+structure was the content.

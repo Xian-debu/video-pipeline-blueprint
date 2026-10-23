@@ -26,7 +26,7 @@ integrated loudness -15.1 LUFS, true peak -1.8 dBTP, 41 narration lines.
 
 不是库，不是 SaaS，不是一键安装器。目标是：克隆下来，`bash scripts/bootstrap.sh` +
 `npm run verify` 在参考机上约十分钟得到 PASS（25 道门，含 59 帧静帧渲染），然后照着 `docs/deployment.md` 换成你自己的内容。
-坑都在 `docs/known-issues.md`（K1–K32），没有一条是假设出来的。
+坑都在 `docs/known-issues.md`（K1–K33），没有一条是假设出来的。
 
 ## 1. What this is, and what it is not
 
@@ -152,6 +152,41 @@ board, the latency table.
 | ![Title page of the paper](docs/images/still_hawk_paper.png) | ![Steady-state difference](docs/images/still_hawk_diff.png) |
 | The paper's own first page, badge `原文 第 1 页`, with the five authors and both institutions named in the film | The difference panel: the 1500 W step leaves the axis, the +40 W plateau is boxed — computed in the component, not read from a file |
 
+### The fifth film: an algorithm you can re-run
+
+`Arc` (composition id `Arc`, doc `docs/arc.md`) reads *ARC: A Self-Tuning, Low Overhead Replacement Cache*
+(Megiddo & Modha, FAST '03, pp. 115–130, USENIX open access) in 611 s. Unlike the Hawk film, the
+subject here is an **algorithm with four cases and a subroutine**, so the film's spine is not a sequence
+of results but the algorithm itself: the two LRU lists, the ghost directory of 2c entries, the policy
+class Π(c), and then Figure 4 case by case. Two things make it a paper reading rather than a paraphrase:
+Figure 4 is executed (a Python simulator implements it literally, and every curve on screen comes from
+that run, seed fixed, two runs byte-identical), and the numbers are audited (32 rows in
+`data/arc/claims.json`, each number with the sentence that sources it).
+
+The most expensive correction happened before the film existed: a text-extraction of Figure 4 put the
+`else` branch of Case IV in the wrong place, so the reimplementation called `REPLACE` twice on a miss and
+the hit ratio collapsed to 1.15 % — the fix came from reading the algorithm image at 300 dpi, not from
+reading the OCR text (K33).
+
+| Property | Measured |
+| --- | --- |
+| Runtime | 610.57 s, 30 fps, 1920x1080 (18,317 frames) |
+| Scenes | 12: open, problem, gap, concepts, double-cache, policy class, ARC(c), adaptation, scan resistance, measurement, universality and limits, outro |
+| Narration | 123 lines, IndexTTS-2 with `--fp16` (3 s/line; without it, 310 s for the first line alone), 0 overruns |
+| Source ledger | `data/arc/eval.json`: every number hand-copied from Tables I–VIII with `where` naming the table; P4's offline FRC read 11.60 off the table image because OCR turned it into "OAL" |
+| Claims gate | `data/arc/claims.json`: 32 rows over 12 scenes; `claims_check.mjs --film=arc` proves the quote occurs in `paper.txt` and the value occurs in a ledger |
+| Derived data | `sim.json`: a literal implementation of Figure 4 (ARC, LRU, FRC_p at p = 0/25/50/75/100) over 120,000 synthetic requests, 4,000 pages, three alternating phases; `scan` uses a 6,000-request hot set, 3,000 sequential pages, then the same hot set again (ARC 40 % vs LRU 18 % on the first 100 post-scan requests) |
+| Paper plates | 8 crops generated (title, proceedings cover, Fig. 1, Fig. 2, Fig. 3, Fig. 4, Fig. 7, Table VIII), 6 used; `annots=False` plus a yellow-pixel count of 0.0000; Table VIII needed four crops before all 23 rows were inside the frame |
+| Audio | aac 48 kHz, I = -15 LUFS, TP = -2 dBTP; mix gate speech -15.44, gap -28.81, bed 41.2 dB |
+| Flicker gate | mean\|Δ\| 0.0336, p99 0.2034, max 67.15 across 11 declared hard cuts (threshold 12) |
+| Deliverables | 123 SRT cues (0 wrapped, longest 34 chars), 12 chapters, cover frame 180 |
+| sha256 | `fa24989fd52cec618dc7163cfd2182e73d9ef73fb2e8056a99bfa7f414b9a6a2` |
+
+| | |
+| --- | --- |
+| ![p adapts to the workload](docs/images/still_arc_walk.png) | ![Table VIII beside the film's own bars](docs/images/still_arc_measure.png) |
+| p over a synthetic trace (c = 256): it walks to 256 and back — the film's own run, not the paper's Figure 7, which sits beside it as the plate | The paper's Table VIII as the yardstick, with SPC1 and P6 re-drawn as bars: ARC 20.00 % against LRU 9.19 %, and P6 where the offline optimum is *below* ARC |
+
 ## 3. Pipeline at a glance
 
 ```
@@ -181,7 +216,7 @@ Three independent layers, joined only by files:
 ```
 .
 ├─ src/
-│  ├─ Root.tsx                 registered compositions (15)
+│  ├─ Root.tsx                 registered compositions (16)
 │  ├─ storyboard/              generic template: storyboard JSON -> film
 │  ├─ lecture/                 the validated 305 s lecture (script + scenes)
 │  ├─ mult/                    the second film, 588 s: digit-wise multiplication (script + scenes)
@@ -189,6 +224,8 @@ Three independent layers, joined only by files:
 │  │                           scene components; the geometry is computed, not imported)
 │  ├─ hawk/                    the fourth film, 757 s, paper reading: shared.tsx (scene furniture,
 │  │                           beat helpers) + scenes/ (one file per scene) + script.ts (timeline)
+│  ├─ arc/                     the fifth film, 611 s, paper reading with an executed algorithm:
+│  │                           same shared.tsx / scenes/ / script.ts layout as hawk
 │  ├─ design/                  design contract loader + derived tokens, palette scope (presets),
 │  │                           scene shell, KaTeX helpers, motion primitives, 3D primitives
 │  │                           (canvas, lights, camera rigs, materials, glTF model), still-lint
@@ -255,7 +292,7 @@ Three independent layers, joined only by files:
 └─ THIRD_PARTY_NOTICES.md      licences: npm packages, system tools, TTS models, reference reading
 ```
 
-**Docs, all of them:** [3d](docs/3d.md) · [architecture](docs/architecture.md) · [blender-plates](docs/blender-plates.md) · [deployment](docs/deployment.md) · [design-language](docs/design-language.md) · [engineering-standards](docs/engineering-standards.md) · [environments](docs/environments.md) · [gears](docs/gears.md) · [hawk](docs/hawk.md) · [known-issues](docs/known-issues.md) · [multiplication](docs/multiplication.md) · [roadmap](docs/roadmap.md) · [sdf-assets](docs/sdf-assets.md) · [verify-report](docs/verify-report.md).
+**Docs, all of them:** [3d](docs/3d.md) · [architecture](docs/architecture.md) · [blender-plates](docs/blender-plates.md) · [deployment](docs/deployment.md) · [design-language](docs/design-language.md) · [engineering-standards](docs/engineering-standards.md) · [environments](docs/environments.md) · [gears](docs/gears.md) · [arc](docs/arc.md) · [hawk](docs/hawk.md) · [known-issues](docs/known-issues.md) · [multiplication](docs/multiplication.md) · [roadmap](docs/roadmap.md) · [sdf-assets](docs/sdf-assets.md) · [verify-report](docs/verify-report.md).
 
 **Source data vs derived data.** Some JSON under `data/` is written by hand and is the only place a
 number exists (the design contract, each film's `params.json`/`eval.json`/`crops.json`, the measured
@@ -268,8 +305,8 @@ apart silently. `data/hawk/paper.txt` is the exception that proves the rule — 
 4.0, 125 KB) because `claims_check.mjs` has to be able to quote it; a ledger that cannot be checked
 is decoration.
 
-Compositions (15): the four films `Lecture` (305 s), `Multiplication` (588 s), `Gears` (333 s),
-`Hawk` (757 s); the template and the verify artefact `Storyboard` (20 s) and `Showreel` (30 s);
+Compositions (16): the five films `Lecture` (305 s), `Multiplication` (588 s), `Gears` (333 s),
+`Hawk` (757 s), `Arc` (611 s); the template and the verify artefact `Storyboard` (20 s) and `Showreel` (30 s);
 the single-capability samples `Transitions`, `Typesetting`, `ThreeCube`, `ManimOverlay`,
 `ThreeStage` (30 s: procedural geometry, an imported `.glb`, and a transparent 3D layer over 2D
 text), `PlateStage` (3 s: consumes a Blender-rendered plate sequence; needs `npm run plates` first,
@@ -437,7 +474,7 @@ Node — see `docs/known-issues.md` K2), and any cloud TTS.
 1.3  type ratchet       type_ratchet.py: no new hard-coded fontSize/letterSpacing literals
 1.5  headless browser   remotion browser ensure (downloads once)
 2/6  still frames       Storyboard f60, Lecture f2500, Typesetting f60  -> human review
-2.5  still lint         still_lint.mjs: 59 frames measured from the DOM (12 Hawk + 11 Gears +
+2.5  still lint         still_lint.mjs: 71 frames measured from the DOM (12 Hawk + 12 Arc + 11 Gears +
                         9 Lecture + 10 Mult + 17 showcase; one per scene) + fixtures that prove
                         the rules still fire
 2.6  model lint         model_lint.mjs: GLB structure, triangle budget, extent, watertight
@@ -485,7 +522,7 @@ looking at rendered frames. Treat "human reviews stills" as a required stage, no
 
 ## 9. Known issues
 
-Full detail in `docs/known-issues.md` (K1–K32); the short list, oldest first:
+Full detail in `docs/known-issues.md` (K1–K33); the short list, oldest first:
 
 - **K1 cross-fade flicker**: `TransitionSeries` keeps both scenes visible for the overlap and
   multiplies two opacities, producing a visible dip. Fixed by hard cuts + per-scene content fades.
@@ -555,6 +592,9 @@ Full detail in `docs/known-issues.md` (K1–K32); the short list, oldest first:
 - **K32 a deployment package that was never deployed**: every gate ran in the working copy, so
   `public/music/` was present locally and absent from `git archive HEAD`. A package is verified
   only as a package: archive -> empty directory -> `npm run verify`.
+- **K33 an algorithm read from a text dump**: OCR flattens the `If / else / endif` nesting of Figure 4,
+  the reimplementation called `REPLACE` twice per miss, and the hit ratio came out at 1.15 %. Read
+  pseudo-code as an image at 300 dpi; the text is an index into the picture, not the picture.
 
 ## 10. Choosing an environment (and lower-tier substitutes)
 

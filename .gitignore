@@ -27,3 +27,13 @@ data/hawk/clips.json
 # data/gears, so the generator is in the gate (make.mjs / verify.sh step 0.5) instead of the repo.
 data/hawk/gray.json
 data/hawk/wave.json
+public/voice/arc/
+public/voice/arc_narration.wav
+data/arc/lines.json
+data/arc/clips.json
+# arc: eval.json (the hand-written number ledger) and voice.json (measured narration) are the
+# sources; sim.json is written by scripts/generate_arc_data.py — same policy as gears/hawk.
+data/arc/sim.json
+
+# python bytecode from the asset/generator scripts
+__pycache__/
