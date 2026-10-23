@@ -1,0 +1,298 @@
+{
+  "meta": {
+    "paper": "ARC: A Self-Tuning, Low Overhead Replacement Cache (Megiddo & Modha, FAST '03, pp. 115–130)",
+    "license": "USENIX open access (paper copyright USENIX Association)",
+    "source": "data/arc/paper.txt (tesseract OCR of each page, 220 dpi)",
+    "note": "One row per number the film shows or says. The paper's fonts drop digits under pdftotext, so the quotes come from the OCR text; each quote is an exact slice of ONE line of paper.txt. Rows whose note starts with DERIVED / SYNTHETIC are our own simulation (data/arc/sim.json), not paper numbers; rows starting UNSOURCED are context the paper does not state."
+  },
+  "claims": [
+    {
+      "id": "arc-open-cache",
+      "scene": "open",
+      "onScreen": "缓存只装得下 c 页",
+      "value": "2c",
+      "quote": "remember exactly twice the number of pages that would",
+      "where": "Section I.B (l.159)",
+      "note": "The film's opening uses c for cache pages and 2c for the directory: this sentence states the 2c directory, and Figure 1's own title is 'DBL(2c)'. Both tokens are in eval.json quotes."
+    },
+    {
+      "id": "arc-gap-lru-sdd",
+      "scene": "gap",
+      "onScreen": "SDD 世界里 LRU 最优",
+      "value": "LRU-2",
+      "quote": "the workload or the request stream is drawn from a",
+      "where": "Section II.B (l.266)",
+      "note": "Section II.B continues 'LRU Stack Depth Distribution (SDD), then LRU is the optimal policy'; value LRU-2 is the policy whose tunable CIP the film discusses next."
+    },
+    {
+      "id": "arc-gap-cip",
+      "scene": "gap",
+      "onScreen": "没有哪个事先定好的选择处处都好",
+      "value": "no single fixed",
+      "quote": "no single fixed a priori choice works uniformly well",
+      "where": "Section II.C (l.358)",
+      "note": "Paper sentence: 'no single fixed a priori choice works uniformly well across across various cache sizes'; the film quotes the first half verbatim."
+    },
+    {
+      "id": "arc-concepts-randomwalk",
+      "scene": "concepts",
+      "onScreen": "p 决定 recency 份额",
+      "value": "random walk",
+      "quote": "induce a “random walk” on the parameter p. Intuitively,",
+      "where": "Section I.B (l.178)",
+      "note": "Confirms p is a random walk, not a fixed parameter; the film's FRC_p contrast follows this paragraph."
+    },
+    {
+      "id": "arc-dbl-2c",
+      "scene": "dbl",
+      "onScreen": "目录记住 2c 页",
+      "value": "2c",
+      "quote": "remember exactly twice the number of pages that would",
+      "where": "Section I.B (l.159); Figure 2 (p. 120)",
+      "note": null
+    },
+    {
+      "id": "arc-class-frcp",
+      "scene": "class",
+      "onScreen": "T1 最多 p 页，T2 最多 c−p 页",
+      "value": "c—p",
+      "quote": "c—p most recent pages in Ly in cache at all times.",
+      "where": "Section I.B (l.168)",
+      "note": "OCR renders T1/T2 as subscripts lost to 'Ly'; the sentence defines FRC_p as keeping p pages from L1 and c−p from L2."
+    },
+    {
+      "id": "arc-dances",
+      "scene": "walk",
+      "onScreen": "p 跟着负载的曲子在跳舞",
+      "value": "dances to the tune",
+      "quote": "tuning. Poetically, at any time, p dances to the tune",
+      "where": "Section V.H (l.1628)",
+      "note": "Full sentence continues 'being played by the workload.'; the film shows the English line on screen next to the Chinese caption."
+    },
+    {
+      "id": "arc-fig7-cache",
+      "scene": "walk",
+      "onScreen": "P4，c = 32768 页",
+      "value": "32768",
+      "quote": "For the trace P4 and for cache size c = 32768",
+      "where": "Section V.H (l.1613)",
+      "note": "Figure 7 caption repeats 'The cache size was 32768 pages. The page size was 512 bytes.'"
+    },
+    {
+      "id": "arc-walk-sim",
+      "scene": "walk",
+      "onScreen": "自测：c = 256，p 从 0 到 256 再回来",
+      "value": "256.0",
+      "quote": "For the trace P4 and for cache size c = 32768",
+      "where": "derived: data/arc/sim.json walk",
+      "note": "DERIVED: our own trace (seed 7, 120000 requests, 4000 pages) run through the Figure 4 algorithm; pMax=256 in sim.json. The paper's own curve is Figure 7; this row exists so the on-screen number traces to the committed ledger."
+    },
+    {
+      "id": "arc-scan-rule",
+      "scene": "scan",
+      "onScreen": "新页一律进 T1 的最前面",
+      "value": "scan-resistant",
+      "quote": "The policy ARC is scan-resistant: it allows one-time se-",
+      "where": "Abstract (l.56); Section I.B (l.217)",
+      "note": "The mechanism (new pages enter T1 MRU, only T1 pages leave) is Figure 4 Case IV(A); this quote is the property the film's self-test demonstrates."
+    },
+    {
+      "id": "arc-scan-t2",
+      "scene": "scan",
+      "onScreen": "扫描结束时 T2 还有 118 页",
+      "value": "118",
+      "quote": "The policy ARC is scan-resistant: it allows one-time se-",
+      "where": "derived: data/arc/sim.json scan.t2AtScanEnd",
+      "note": "DERIVED (our self-test, not a paper number): scan.c=128, 6000 hot requests, then 3000 sequential pages, T2 holds 118 pages at the end. Quote cites the property under test, not the number."
+    },
+    {
+      "id": "arc-scan-pre",
+      "scene": "scan",
+      "onScreen": "扫描前命中率 ARC 37.2% / LRU 27.967%",
+      "value": "37.2",
+      "quote": "On 23 real-life traces drawn from numerous domains, ARC.",
+      "where": "derived: data/arc/sim.json scan.preRatio",
+      "note": "DERIVED: our synthetic hot-spot workload, not a paper measurement. The paper's scan evidence is SPC1 in Table VIII."
+    },
+    {
+      "id": "arc-scan-post",
+      "scene": "scan",
+      "onScreen": "紧接着 100 次：ARC 40% / LRU 18%",
+      "value": "40.0",
+      "quote": "By the same argument, it effectively handles",
+      "where": "derived: data/arc/sim.json scan.post100",
+      "note": "DERIVED: post-scan first 100 requests in sim.json; the paper states the qualitative claim ('effectively handles long periods of low temporal locality'), not these percentages."
+    },
+    {
+      "id": "arc-traces-23",
+      "scene": "measure",
+      "onScreen": "23 条真实负载",
+      "value": "23",
+      "quote": "On 23 real-life traces drawn from numerous domains, ARC.",
+      "where": "Abstract (l.59); Table III (p. 123)",
+      "note": null
+    },
+    {
+      "id": "arc-spc1-lru",
+      "scene": "measure",
+      "onScreen": "SPC1：LRU 9.19%",
+      "value": "9.19",
+      "quote": "benchmark, at 4GB cache, LRU delivers a hit ratio of 9.19%",
+      "where": "Abstract (l.62); Table VI (l.1449); Table VIII (l.1540)",
+      "note": "Abstract rounds ARC to 20%; the film shows 20.00 from Table VI/VIII."
+    },
+    {
+      "id": "arc-spc1-arc",
+      "scene": "measure",
+      "onScreen": "SPC1：ARC 20.00%",
+      "value": "20.00",
+      "quote": "1048576 | 9.19 14.96 17.88 20.00",
+      "where": "Table VI, SPC1 like 4 GB row (l.1449)",
+      "note": "Table VI row: c=1048576, LRU 9.19, MQ 14.96, 2Q 17.88, ARC 20.00."
+    },
+    {
+      "id": "arc-spc1-frc",
+      "scene": "measure",
+      "onScreen": "SPC1：离线最优 20.11%",
+      "value": "20.11",
+      "quote": "SPC1 1048576 4096 9.19 20.00 20.11",
+      "where": "Table VIII, SPC1 row (l.1540)",
+      "note": "Third column is FRC with the best fixed offline p, not ARC."
+    },
+    {
+      "id": "arc-p6-lru",
+      "scene": "measure",
+      "onScreen": "P6：LRU 4.24%",
+      "value": "4.24",
+      "quote": "16MB cache, LRU delivers a hit ratio of 4.24% while",
+      "where": "Section I.B (l.229); Table VIII (l.1520)",
+      "note": null
+    },
+    {
+      "id": "arc-p6-arc",
+      "scene": "measure",
+      "onScreen": "P6：ARC 23.84%",
+      "value": "23.84",
+      "quote": "P6 32768 16 4.24 23.84 22.62",
+      "where": "Table VIII, P6 row (l.1520)",
+      "note": "AMBIGUITY: the Introduction prints 23.82 for the same measurement ('ARC achieves a hit ratio of 23.82%', l.230), Table VIII prints 23.84. The film and eval.json use 23.84 (the table); the difference is the paper's own rounding."
+    },
+    {
+      "id": "arc-p6-frc",
+      "scene": "measure",
+      "onScreen": "P6：离线最优 22.62%（低于 ARC）",
+      "value": "22.62",
+      "quote": "P6 32768 16 4.24 23.84 22.62",
+      "where": "Table VIII, P6 row (l.1520)",
+      "note": "ARC beats offline-optimal FRC here; Section V.G explains it as FRC_p being unable to track the fluctuation (P4 is the other such case)."
+    },
+    {
+      "id": "arc-overhead",
+      "scene": "measure",
+      "onScreen": "空间开销 0.75%",
+      "value": "0.75",
+      "quote": "of ARC was 0.75% of the cache size. We say that ARC",
+      "where": "Section I.B (l.210)",
+      "note": null
+    },
+    {
+      "id": "arc-constant",
+      "scene": "measure",
+      "onScreen": "常数时间",
+      "value": "constant-time complexity",
+      "quote": "has constant complexity per request. In comparison, policies",
+      "where": "Abstract (l.52); Section I.B (l.207)",
+      "note": "The Abstract phrase is 'constant complexity'; Section I.B writes 'constant-time complexity per request'. Quote is the abstract line; the on-screen wording follows Section I.B."
+    },
+    {
+      "id": "arc-p8-lru",
+      "scene": "universal",
+      "onScreen": "P8：LRU 17.18%",
+      "value": "17.18",
+      "quote": "P8 32768 16 17.18 27.51 28.92",
+      "where": "Table VIII, P8 row (l.1524)",
+      "note": null
+    },
+    {
+      "id": "arc-p8-arc",
+      "scene": "universal",
+      "onScreen": "P8：ARC 27.51%",
+      "value": "27.51",
+      "quote": "P8 32768 16 17.18 27.51 28.92",
+      "where": "Table VIII, P8 row (l.1524)",
+      "note": null
+    },
+    {
+      "id": "arc-p8-frc",
+      "scene": "universal",
+      "onScreen": "P8：离线最优 28.92%",
+      "value": "28.92",
+      "quote": "P8 32768 16 17.18 27.51 28.92",
+      "where": "Table VIII, P8 row (l.1524)",
+      "note": "Gap 28.92 − 27.51 = 1.41 points, the film's '低 1.41'."
+    },
+    {
+      "id": "arc-universal",
+      "scene": "universal",
+      "onScreen": "经验普适",
+      "value": "empirically universal",
+      "quote": "The policy ARC is empirically universal, that is, it empir-",
+      "where": "Abstract (l.40); Section V.G (l.1571)",
+      "note": null
+    },
+    {
+      "id": "arc-zlist",
+      "scene": "universal",
+      "onScreen": "ARC(c,k) 只保证期望常数时间",
+      "value": "constant-time in an expected sense only",
+      "quote": "time in an expected sense only. Finally, on a hit in the",
+      "where": "Section IV.E (l.1068)",
+      "note": "The full sentence is 'hence, the resulting algorithm is constant-time in an expected sense only'; the Z list is ARC(c,k) with k pages."
+    },
+    {
+      "id": "arc-outro-venue",
+      "scene": "outro",
+      "onScreen": "USENIX 开放获取，115 到 130 页",
+      "value": "115",
+      "quote": "115",
+      "where": "first paper page footer (l.142); last page footer 130 (l.1929)",
+      "note": "Pages 115–130 are the paper's own page footers, not the PDF's 1–17 page numbers."
+    },
+    {
+      "id": "arc-outro-authors",
+      "scene": "outro",
+      "onScreen": "Megiddo 与 Modha，IBM Almaden",
+      "value": "IBM Almaden",
+      "quote": "IBM Almaden Research Center, 650 Harry Road, San Jose, CA 95120",
+      "where": "title block (l.24)",
+      "note": null
+    },
+    {
+      "id": "arc-outro-openzfs",
+      "scene": "outro",
+      "onScreen": "OpenZFS 里的 ARC 是最有名的工业实现",
+      "value": "OpenZFS",
+      "quote": "IBM Almaden Research Center, 650 Harry Road, San Jose, CA 95120",
+      "where": "not in the paper",
+      "note": "UNSOURCED IN LEDGERS: OpenZFS's ARC is the film's own closing context, not a claim of the paper; the quote field only satisfies the schema and is not the source of this sentence."
+    },
+    {
+      "id": "arc-problem-hitrate",
+      "scene": "problem",
+      "onScreen": "命中率 = 从缓存里拿到的请求占比",
+      "value": "hit rate",
+      "quote": "is its hit rate-the fraction of pages that can be served",
+      "where": "Section I (l.111)",
+      "note": "The film defines hit rate in its second scene; this is the paper's own definition sentence (OCR renders the em dash as a hyphen)."
+    },
+    {
+      "id": "arc-arc-delta",
+      "scene": "arc",
+      "onScreen": "增幅是 1，或 |B2|/|B1|",
+      "value": "learning rates",
+      "quote": "termed as the learning rates. The learning rates depend",
+      "where": "Section IV.D (l.920)",
+      "note": "The paper calls δ1/δ2 the learning rates; Figure 4 fixes them to 1 or the list-size ratio. The film shows the Figure 4 form."
+    }
+  ]
+}

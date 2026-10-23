@@ -1,0 +1,242 @@
+{
+  "meta": {
+    "source": "ARC: A Self-Tuning, Low Overhead Replacement Cache (Megiddo & Modha, FAST '03, pp. 115–130)",
+    "note": "论文数字逐条摘自 OCR 全文（/root/work/megiddo/pages 的 tesseract 文本，pp. 115–130）与 Table VI–VIII；OCR 对个别数字有误读（如 Merge(S) 2097152 行 ARC 被读成 7141），此类值取自上下文明确的另一份 OCR 行或标注 null。sim 数字不在此文件，见 data/arc/sim.json。",
+    "attribution": "Table VIII 的 FRC 列是『离线挑好的最佳固定 p』，不是 ARC；引用时勿混。P6 的 ARC 23.84 高于离线 22.62 是论文自己承认的例外。"
+  },
+  "paper": {
+    "venue": "FAST '03",
+    "year": 2003,
+    "pages": "115–130",
+    "traces": 23,
+    "spaceOverheadPct": 0.75,
+    "pageSizeB": 512
+  },
+  "spc1": {
+    "trace": "SPC1 like",
+    "cacheMB": 4096,
+    "pageSizeB": 4096,
+    "lru": 9.19,
+    "mq": 14.96,
+    "twoQ": 17.88,
+    "arc": 20,
+    "offlineFrc": 20.11
+  },
+  "p6": {
+    "trace": "P6",
+    "cacheMB": 16,
+    "lru": 4.24,
+    "arc": 23.84,
+    "offlineFrc": 22.62
+  },
+  "p8": {
+    "trace": "P8",
+    "lruAt1024Pages": 0.35,
+    "arcAt1024Pages": 1.22,
+    "lruAt32768Pages": 17.18,
+    "arcAt32768Pages": 27.51,
+    "offlineFrc": 28.92
+  },
+  "mergeS": {
+    "trace": "Merge(S)",
+    "lruAt1GB": 27.62,
+    "arcAt1GB": 40.44,
+    "lruAt2GB": 68.68,
+    "arcAt2GB": 71.41
+  },
+  "quotes": {
+    "universal": "empirically universal",
+    "dances": "p dances to the tune",
+    "scan": "scan-resistant",
+    "constant": "constant-time complexity",
+    "cip": "no single fixed a priori choice works uniformly well",
+    "expected": "constant-time in an expected sense only",
+    "openzfs": "OpenZFS",
+    "almaden": "IBM Almaden",
+    "twoC": "DBL(2c) that will",
+    "lru2": "policies such as LRU-2,",
+    "randomWalk": "“random walk” on the parameter p",
+    "frcp": "c—p most recent pages in Ly in cache at all times.",
+    "spc1Arc": "1048576 | 9.19 14.96 17.88 20.00",
+    "hitRate": "is its hit rate-the fraction of pages that can be served",
+    "learningRate": "termed as the learning rates. The learning rates depend"
+  },
+  "tableVIII": [
+    {
+      "trace": "P1",
+      "cachePages": 32768,
+      "cacheMB": 16,
+      "lru": 16.55,
+      "arc": 28.26,
+      "frc": 29.39
+    },
+    {
+      "trace": "P2",
+      "cachePages": 32768,
+      "cacheMB": 16,
+      "lru": 18.47,
+      "arc": 27.38,
+      "frc": 27.61
+    },
+    {
+      "trace": "P3",
+      "cachePages": 32768,
+      "cacheMB": 16,
+      "lru": 3.57,
+      "arc": 17.12,
+      "frc": 17.6
+    },
+    {
+      "trace": "P4",
+      "cachePages": 32768,
+      "cacheMB": 16,
+      "lru": 5.24,
+      "arc": 11.24,
+      "frc": 11.6
+    },
+    {
+      "trace": "P5",
+      "cachePages": 32768,
+      "cacheMB": 16,
+      "lru": 6.73,
+      "arc": 14.27,
+      "frc": 14.29
+    },
+    {
+      "trace": "P6",
+      "cachePages": 32768,
+      "cacheMB": 16,
+      "lru": 4.24,
+      "arc": 23.84,
+      "frc": 22.62
+    },
+    {
+      "trace": "P7",
+      "cachePages": 32768,
+      "cacheMB": 16,
+      "lru": 3.45,
+      "arc": 13.77,
+      "frc": 14.01
+    },
+    {
+      "trace": "P8",
+      "cachePages": 32768,
+      "cacheMB": 16,
+      "lru": 17.18,
+      "arc": 27.51,
+      "frc": 28.92
+    },
+    {
+      "trace": "P9",
+      "cachePages": 32768,
+      "cacheMB": 16,
+      "lru": 8.28,
+      "arc": 19.73,
+      "frc": 20.28
+    },
+    {
+      "trace": "P10",
+      "cachePages": 32768,
+      "cacheMB": 16,
+      "lru": 2.48,
+      "arc": 9.46,
+      "frc": 9.63
+    },
+    {
+      "trace": "P11",
+      "cachePages": 32768,
+      "cacheMB": 16,
+      "lru": 20.92,
+      "arc": 26.48,
+      "frc": 26.57
+    },
+    {
+      "trace": "P12",
+      "cachePages": 32768,
+      "cacheMB": 16,
+      "lru": 8.93,
+      "arc": 15.94,
+      "frc": 15.97
+    },
+    {
+      "trace": "P13",
+      "cachePages": 32768,
+      "cacheMB": 16,
+      "lru": 7.83,
+      "arc": 16.6,
+      "frc": 16.81
+    },
+    {
+      "trace": "P14",
+      "cachePages": 32768,
+      "cacheMB": 16,
+      "lru": 15.73,
+      "arc": 20.52,
+      "frc": 20.55
+    },
+    {
+      "trace": "ConCat",
+      "cachePages": 32768,
+      "cacheMB": 16,
+      "lru": 14.38,
+      "arc": 21.67,
+      "frc": 21.63
+    },
+    {
+      "trace": "Merge(P)",
+      "cachePages": 262144,
+      "cacheMB": 128,
+      "lru": 38.05,
+      "arc": 39.91,
+      "frc": 39.4
+    },
+    {
+      "trace": "DS1",
+      "cachePages": 2097152,
+      "cacheMB": 1024,
+      "lru": 11.65,
+      "arc": 22.52,
+      "frc": 18.72
+    },
+    {
+      "trace": "SPC1",
+      "cachePages": 1048576,
+      "cacheMB": 4096,
+      "lru": 9.19,
+      "arc": 20,
+      "frc": 20.11
+    },
+    {
+      "trace": "S1",
+      "cachePages": 524288,
+      "cacheMB": 2048,
+      "lru": 23.71,
+      "arc": 33.43,
+      "frc": 34
+    },
+    {
+      "trace": "S2",
+      "cachePages": 524288,
+      "cacheMB": 2048,
+      "lru": 25.91,
+      "arc": 40.68,
+      "frc": 40.57
+    },
+    {
+      "trace": "S3",
+      "cachePages": 524288,
+      "cacheMB": 2048,
+      "lru": 25.26,
+      "arc": 40.44,
+      "frc": 40.29
+    },
+    {
+      "trace": "Merge(S)",
+      "cachePages": 1048576,
+      "cacheMB": 4096,
+      "lru": 27.62,
+      "arc": 40.44,
+      "frc": 40.18
+    }
+  ]
+}

@@ -1,0 +1,122 @@
+{
+  "title": {
+    "file": "public/arc/title.png",
+    "page": 2,
+    "bbox": [
+      50.0,
+      72.0,
+      562.0,
+      162.0
+    ],
+    "width": 1566,
+    "height": 275,
+    "dpi": 220,
+    "yellow": 0.0,
+    "shows": "论文首页题头：标题 ARC: A Self-Tuning, Low Overhead Replacement Cache、作者 Megiddo 与 Modha、IBM Almaden 研究中心与邮箱"
+  },
+  "cover": {
+    "file": "public/arc/cover.png",
+    "page": 1,
+    "bbox": [
+      122.4,
+      150.48,
+      489.6,
+      396.0
+    ],
+    "width": 1122,
+    "height": 751,
+    "dpi": 220,
+    "yellow": 0.0,
+    "shows": "FAST '03 论文集封面：Proceedings of FAST '03 / 2nd USENIX Conference on File and Storage Technologies, San Francisco, March 31–April 2, 2003"
+  },
+  "dbl_fig1": {
+    "file": "public/arc/dbl_fig1.png",
+    "page": 7,
+    "bbox": [
+      302.9,
+      43.56,
+      605.88,
+      350.0
+    ],
+    "width": 927,
+    "height": 937,
+    "dpi": 220,
+    "yellow": 0.0,
+    "shows": "Figure 1：DBL(2c) 的完整算法（两条 LRU 列表 L1/L2 的命中与缺失处理）"
+  },
+  "dbl_fig2": {
+    "file": "public/arc/dbl_fig2.png",
+    "page": 7,
+    "bbox": [
+      302.9,
+      344.0,
+      605.88,
+      748.0
+    ],
+    "width": 927,
+    "height": 1235,
+    "dpi": 220,
+    "yellow": 0.0,
+    "shows": "Figure 2：DBL 的物理结构——L2 正序、L1 倒序画出的两条 LRU 列表，MRU/LRU 两端与 DBL 总宽 2c"
+  },
+  "pi_fig3": {
+    "file": "public/arc/pi_fig3.png",
+    "page": 8,
+    "bbox": [
+      52.02,
+      47.52,
+      263.16,
+      352.0
+    ],
+    "width": 647,
+    "height": 931,
+    "dpi": 220,
+    "yellow": 0.0,
+    "shows": "Figure 3：Π(c) 类策略的通用结构——L1 切成 T1↑/B1↓、L2 切成 T2↑/B2↓，缓存里只放 T1∪T2"
+  },
+  "arc_fig4": {
+    "file": "public/arc/arc_fig4.png",
+    "page": 10,
+    "bbox": [
+      48.96,
+      67.32,
+      575.28,
+      576.0
+    ],
+    "width": 1609,
+    "height": 1555,
+    "dpi": 220,
+    "yellow": 0.0,
+    "shows": "Figure 4：ARC(c) 完整算法——四种情形、p 的加/减规则、Case IV 的 A/B 分支与 REPLACE 子程序"
+  },
+  "p_fig7": {
+    "file": "public/arc/p_fig7.png",
+    "page": 16,
+    "bbox": [
+      302.9,
+      39.6,
+      532.44,
+      272.0
+    ],
+    "width": 702,
+    "height": 711,
+    "dpi": 220,
+    "yellow": 0.0,
+    "shows": "Figure 7：P4 负载下参数 p（List T1 的目标大小）随虚拟时间在 0 与 32768 之间来回摆动"
+  },
+  "table8": {
+    "file": "public/arc/table8.png",
+    "page": 15,
+    "bbox": [
+      306.0,
+      39.6,
+      532.44,
+      292.0
+    ],
+    "width": 692,
+    "height": 772,
+    "dpi": 220,
+    "yellow": 0.0,
+    "shows": "Table VIII：23 条真实负载上 LRU / ARC / 离线最优 FRC 的命中率对照表"
+  }
+}
