@@ -172,7 +172,7 @@ try {
     // only a paper film owns a claims ledger, and only a claims ledger can be checked against the
     // paper it cites; a film without one skips this stage by design, not by accident
     if (fs.existsSync(path.join(ROOT, "data", COMP.toLowerCase(), "claims.json"))) {
-      run("claims check", "node", ["scripts/qa/claims_check.mjs"]);
+      run("claims check", "node", ["scripts/qa/claims_check.mjs", "--film=" + COMP.toLowerCase()]);
     }
     run("docs check", "node", ["scripts/qa/docs_check.mjs"]);
   }

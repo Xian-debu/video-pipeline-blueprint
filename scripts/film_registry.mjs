@@ -34,6 +34,12 @@ export const FILMS = {
     derive: ["scripts/generate_hawk_data.py"],
     derived: ["data/hawk/gray.json", "data/hawk/wave.json"],
   },
+  Arc: {
+    script: "src/arc/script.ts",
+    prefix: "arc",
+    derive: ["scripts/generate_arc_data.py"],
+    derived: ["data/arc/sim.json"],
+  },
 };
 
 /** Composition ids that have a film behind them (the rest are design demos). */

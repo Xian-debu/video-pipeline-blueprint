@@ -19,6 +19,7 @@ import { TOTAL as MULT_FRAMES, FPS as MULT_FPS } from "./mult/script";
 import { LintAudit } from "./design/lint";
 import { Gears, GEARS_TOTAL, GEARS_FPS } from "./gears/Gears";
 import { Hawk, HAWK_TOTAL, HAWK_FPS } from "./hawk/Hawk";
+import { Arc, ARC_TOTAL, ARC_FPS } from "./arc/Arc";
 import { LintFixtures } from "./qa/LintFixtures";
 
 /**
@@ -93,6 +94,15 @@ export const RemotionRoot: React.FC = () => {
         component={withLint(Hawk)}
         durationInFrames={HAWK_TOTAL}
         fps={HAWK_FPS}
+        width={1920}
+        height={1080}
+        defaultProps={{ music: null, narration: null }}
+      />
+      <Composition
+        id="Arc"
+        component={withLint(Arc)}
+        durationInFrames={ARC_TOTAL}
+        fps={ARC_FPS}
         width={1920}
         height={1080}
         defaultProps={{ music: null, narration: null }}

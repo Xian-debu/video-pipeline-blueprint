@@ -22,10 +22,20 @@ const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), "../.
 const read = (p) => fs.readFileSync(path.join(ROOT, p), "utf8");
 const normalize = (s) => s.replace(/\s+/g, " ").trim();
 
-const ledger = JSON.parse(read("data/hawk/claims.json"));
-const paper = normalize(read("data/hawk/paper.txt"));
-const ledgers = ["data/hawk/eval.json", "data/hawk/gray.json", "data/hawk/wave.json"].map((p) => normalize(read(p)));
-const script = read("src/hawk/script.ts");
+// Film name selects the ledger directory and the script that owns the scenes. Default keeps the
+// original single-film invocation working; make.mjs passes --film=<composition lowercased>.
+const arg = (k) => (process.argv.find((a) => a.startsWith("--" + k + "=")) ?? "").split("=")[1];
+const FILM = arg("film") ?? "hawk";
+const LEDGER_EXCLUDE = new Set(["claims.json", "clips.json", "crops.json", "voice.json", "lines.json"]);
+const ledgerFiles = fs.readdirSync(path.join(ROOT, "data", FILM))
+  .filter((f) => f.endsWith(".json") && !LEDGER_EXCLUDE.has(f))
+  .sort()
+  .map((f) => path.join("data", FILM, f));
+
+const ledger = JSON.parse(read(path.join("data", FILM, "claims.json")));
+const paper = normalize(read(path.join("data", FILM, "paper.txt")));
+const ledgers = ledgerFiles.map((p) => normalize(read(p)));
+const script = read(path.join("src", FILM, "script.ts"));
 const sceneIds = new Set([...script.matchAll(/id:\s*"([a-z]+)"/g)].map((m) => m[1]));
 
 const problems = [];
@@ -43,9 +53,9 @@ for (const c of ledger.claims) {
   // it is said in the narration or derived in the film, and the row says so. Silence is a failure.
   if (c.value && !ledgers.some((l) => l.includes(String(c.value)))) {
     if ((c.note ?? "").includes("UNSOURCED IN LEDGERS")) exceptions.push(tag);
-    else problems.push(tag + ": value " + c.value + " is in none of eval/gray/wave and the row does not say why");
+    else problems.push(tag + ": value " + c.value + " is in none of " + ledgerFiles.join("/") + " and the row does not say why");
   }
-  if (c.scene && !sceneIds.has(c.scene)) problems.push(tag + ": scene \"" + c.scene + "\" is not in src/hawk/script.ts");
+  if (c.scene && !sceneIds.has(c.scene)) problems.push(tag + ": scene \"" + c.scene + "\" is not in src/" + FILM + "/script.ts");
 }
 
 const byScene = {};
@@ -57,7 +67,7 @@ if (problems.length) {
   for (const p of problems) console.error("  " + p);
   process.exit(1);
 }
-console.log("claims check: " + ledger.claims.length + " claims quoted from paper.txt ("
+console.log("claims check [" + FILM + "]: " + ledger.claims.length + " claims quoted from paper.txt ("
   + paper.length + " chars), values present in the ledgers, scenes "
   + Object.keys(byScene).sort().join("/"));
 if (missingScenes.length) console.log("  note: no claim rows for scene(s) " + missingScenes.join(", "));
