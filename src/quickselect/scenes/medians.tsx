@@ -2,7 +2,7 @@ import React from "react";
 import { useCurrentFrame } from "remotion";
 import { C, FONT, FT, FT_T } from "../../design/tokens";
 import { Build } from "../../design/primitives";
-import { Bar, Body, Card, Mono, Scene, PAD, BFPRT, cn, comma, frameOf, perElem, R_, Foot } from "../shared";
+import { Bar, Body, Card, Mono, Scene, PAD, BFPRT, cn, comma, frameOf, perElem, R_, T_, Foot } from "../shared";
 
 /* 中位数：五个一组 → 组内中位数 → 这些中位数的中位数当枢轴。
  * 阶梯用 bfprt.json 实测的每层规模（只画规模，不混用比较口径）。 */
@@ -18,7 +18,9 @@ export const SMedians: React.FC = () => {
   const f = useCurrentFrame();
   const row = R_("bfprt", "random", N);
   const cmpE = perElem(row);
-  const stdSort = R_("std_sort", "random", N);
+  const hoare = R_("hoare", "random", N);
+  const bfprtT = T_("bfprt", "random", N);
+  const hoareT = T_("hoare", "random", N);
   const levels = BFPRT.levels.slice(0, 5);
   const top = levels[0].size;
 
@@ -75,8 +77,8 @@ export const SMedians: React.FC = () => {
         </Build>
         <Build at={frameOf("medians", 9)} style={{ marginTop: 16 }}>
           <Card accent={C.coral} pad={20}>
-            <Mono size={FT.body} color={C.coral}>{"常数大：排序的 " + (row.cmp / stdSort.cmp).toFixed(1) + " 倍比较"}</Mono>
-            <Body size={FT.meta} style={{ marginTop: 6 }}>{"每元素 " + cmpE.toFixed(2) + " 次 vs 排序 " + perElem(stdSort).toFixed(2) + " 次"}</Body>
+            <Mono size={FT.body} color={C.coral}>{"代价：比 Hoare 慢 " + (bfprtT.ms / hoareT.ms).toFixed(1) + " 倍时间"}</Mono>
+            <Body size={FT.meta} style={{ marginTop: 6 }}>{"每元素 " + cmpE.toFixed(2) + " 次 vs Hoare " + perElem(hoare).toFixed(2) + " 次 · 用常数换最坏保证"}</Body>
           </Card>
         </Build>
 
