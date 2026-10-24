@@ -40,6 +40,16 @@ export const FILMS = {
     derive: ["scripts/generate_arc_data.py"],
     derived: ["data/arc/sim.json"],
   },
+  Quickselect: {
+    script: "src/quickselect/script.ts",
+    prefix: "quickselect",
+    derive: ["scripts/generate_quickselect_data.py"],
+    derived: [
+      "data/quickselect/*.json",
+      "!data/quickselect/sources.json",
+      "!data/quickselect/voice.json",
+    ],
+  },
 };
 
 /** Composition ids that have a film behind them (the rest are design demos). */

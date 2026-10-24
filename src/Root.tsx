@@ -20,6 +20,7 @@ import { LintAudit } from "./design/lint";
 import { Gears, GEARS_TOTAL, GEARS_FPS } from "./gears/Gears";
 import { Hawk, HAWK_TOTAL, HAWK_FPS } from "./hawk/Hawk";
 import { Arc, ARC_TOTAL, ARC_FPS } from "./arc/Arc";
+import { Quickselect, QUICKSELECT_TOTAL, QUICKSELECT_FPS } from "./quickselect/Quickselect";
 import { LintFixtures } from "./qa/LintFixtures";
 
 /**
@@ -103,6 +104,15 @@ export const RemotionRoot: React.FC = () => {
         component={withLint(Arc)}
         durationInFrames={ARC_TOTAL}
         fps={ARC_FPS}
+        width={1920}
+        height={1080}
+        defaultProps={{ music: null, narration: null }}
+      />
+      <Composition
+        id="Quickselect"
+        component={withLint(Quickselect)}
+        durationInFrames={QUICKSELECT_TOTAL}
+        fps={QUICKSELECT_FPS}
         width={1920}
         height={1080}
         defaultProps={{ music: null, narration: null }}
