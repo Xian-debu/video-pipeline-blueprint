@@ -313,7 +313,7 @@ apart silently. `data/hawk/paper.txt` is the exception that proves the rule — 
 is decoration.
 
 Compositions (18): the seven films `Lecture` (305 s), `Multiplication` (588 s), `Gears` (333 s),
-`Hawk` (757 s), `Arc` (611 s), `Quickselect` (640 s), `Char` (488 s); the template and the verify artefact `Storyboard` (20 s) and `Showreel` (30 s);
+`Hawk` (757 s), `Arc` (611 s), `Quickselect` (640 s), `Char` (494 s); the template and the verify artefact `Storyboard` (20 s) and `Showreel` (30 s);
 the single-capability samples `Transitions`, `Typesetting`, `ThreeCube`, `ManimOverlay`,
 `ThreeStage` (30 s: procedural geometry, an imported `.glb`, and a transparent 3D layer over 2D
 text), `PlateStage` (3 s: consumes a Blender-rendered plate sequence; needs `npm run plates` first,

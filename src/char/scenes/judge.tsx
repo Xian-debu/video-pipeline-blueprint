@@ -61,11 +61,11 @@ export const SJudge: React.FC = () => (
       </Build>
     </div>
 
-    <div style={{ position: "absolute", left: 1010, top: 316, width: 820, display: "flex", flexDirection: "column", gap: 18 }}>
+    <div style={{ position: "absolute", left: 1010, top: 300, width: 820, display: "flex", flexDirection: "column", gap: 14 }}>
       {VIEWS.map((v) => (
         <Build key={v} at={frameOf("judge", 3)}>
           <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
-            <Img src={staticFile("char/gate/cmp_" + v + ".png")} style={{ width: 400, borderRadius: 8, border: "1px solid " + C.panelLine }} />
+            <Img src={staticFile("char/gate/cmp_" + v + ".png")} style={{ width: 272, borderRadius: 8, border: "1px solid " + C.panelLine }} />
             <div>
               <Mono size={FT.body} color={C.ink}>{CN[v]}</Mono>
               <div style={{ fontFamily: FONT.mono, fontSize: FT.num, color: C.cyan, marginTop: 2 }}>{f3(V_(v).iou)}</div>

@@ -12,7 +12,7 @@ import platesJson from "../../data/char/plates.json";
  * 贴片清单 data/char/plates.json 是进 git 的（scripts/char/manifest.py 从渲染账本裁出来），
  * 所以取不到图时报错信息能指到具体的名字，而不是静默空画面（K20 那个坑）。 */
 
-export type PlateEntry = { name: string; job: string; seconds: number; sha256: string };
+export type PlateEntry = { name: string; job: string; seconds: number | null; sha256: string };
 export type PlatesJson = {
   source: string;
   res: [number, number];

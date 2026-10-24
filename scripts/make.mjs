@@ -62,6 +62,27 @@ if (EXPECT_TREE && EXPECT_TREE !== "true" && EXPECT_TREE !== TREE.tree) {
   process.exit(2);
 }
 
+/**
+ * Resolve --cut-frames. "auto" reads the film's own measured layout: data/<film>/lines.json is what
+ * dump_script.mjs writes from the script's real TTS durations, so the declared cuts are the frames
+ * the renderer actually cuts on. Anything else is passed through as typed.
+ */
+function resolveCutFrames(raw) {
+  if (!raw || raw === "true") return null;
+  if (raw !== "auto") return raw;
+  const lines = path.join(ROOT, "data", COMP.toLowerCase(), "lines.json");
+  if (!fs.existsSync(lines)) {
+    throw new Error(
+      "--cut-frames auto needs " + path.relative(ROOT, lines) + ": run "
+      + "node scripts/qa/dump_script.mjs <script.ts> " + path.relative(ROOT, lines) + " first",
+    );
+  }
+  const layout = JSON.parse(fs.readFileSync(lines, "utf8"));
+  const frames = layout.scenes.map((s) => Math.round(s.start * layout.fps)).filter((n) => n > 0);
+  if (!frames.length) throw new Error("--cut-frames auto: " + path.relative(ROOT, lines) + " has no scenes");
+  return frames.join(",");
+}
+
 fs.mkdirSync(path.join(OUT, "stills"), { recursive: true });
 const report = {
   generatedAt: new Date().toISOString(),
@@ -311,9 +332,11 @@ try {
 
   // --cut-frames: a hard cut between scenes is intentional; the gate ignores those frames.
   // Without it the gate is strict, which is right for the lecture (and for any film whose cuts
-  // are crossfades).
+  // are crossfades). Pass "auto" and the frames come from the film's own measured script layout
+  // (data/<film>/lines.json), so a line edit cannot leave a stale list of numbers behind.
+  const cutArg = resolveCutFrames(args["cut-frames"]);
   const blinkArgs = ["scripts/qa/luma_blink.py", finalMp4, "--thresh", "12", "--region", "full"];
-  if (args["cut-frames"]) blinkArgs.push("--cut-frames", args["cut-frames"]);
+  if (cutArg) blinkArgs.push("--cut-frames", cutArg);
   const blink = run("flicker gate", PYTHON, blinkArgs);
   // The gate prints two lines that both contain "max=": the frame-luma range, then the diff
   // statistics. Read the diff line, or the report would quote a legitimate luma range as a flicker.
@@ -325,7 +348,7 @@ try {
     max: Number((diffLine.match(/max=([\d.]+)/) || [])[1]),
     // a cut is a jump the gate was told to ignore; recorded so a reader is not surprised by a raw
     // max (e.g. 107.59) next to a PASS
-    cutFrames: args["cut-frames"] ? args["cut-frames"].split(",").map(Number) : null,
+    cutFrames: cutArg ? cutArg.split(",").map(Number) : null,
   };
 
   // ---- 7. delivery exports, copied next to the film. The exporter is bound to the lecture

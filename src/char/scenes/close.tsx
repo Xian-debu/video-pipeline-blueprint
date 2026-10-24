@@ -20,7 +20,7 @@ export const SClose: React.FC = () => {
       <Head kicker="11 / 转一圈" title="从图里长出来的角色" goal="数字都在账本里" />
 
       <Build at={frameOf("close", 0)} style={{ position: "absolute", left: 200, top: 268 }}>
-        <PlateSeq prefix="turn" count={36} fps={7.5} w={980} />
+        <PlateSeq prefix="turn" count={36} fps={7.5} w={620} />
       </Build>
 
       <div style={{ position: "absolute", left: 1280, top: 300, width: 568 }}>

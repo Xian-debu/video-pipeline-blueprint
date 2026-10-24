@@ -145,10 +145,29 @@ M_grey = newmat("HandGrey", P["col_grey"], 0.55)
 M_eye = newmat("EyeGreen", P["col_eye"], 0.28)
 M_pupil = newmat("Pupil", (0.010, 0.010, 0.012), 0.18)
 M_dark = newmat("MouthDark", (0.16, 0.09, 0.05), 0.6)
+M_cut = newmat("CrossSection", (0.62, 0.48, 0.33), 0.85)
+
+
+def patch_factor(co):
+    """cream patch weight in REST coordinates.
+
+    A material that samples object coordinates samples them on the *deformed*
+    mesh, so the moment the rig spins the root the patch slides onto the back.
+    Computing the weight once, in rest pose, and storing it as a vertex attribute
+    keeps the patch welded to the skin through every pose.
+    """
+    PR = P["patch"]
+    z0 = 1.0 - PR["t"]
+    ux = co.x / PR["rx"]
+    vz = (co.z - z0) / PR["rz"]
+    r2 = ux * ux + vz * vz
+    mr = min(max((1.0 - r2) / 0.10, 0.0), 1.0)
+    gate = min(max((0.005 - co.y) / 0.025, 0.0), 1.0)
+    return mr * gate
 
 
 def body_mask_material():
-    """object-space cream patch: no extra geometry, so skinning can never tear it."""
+    """cream patch from a rest-space vertex attribute: no extra geometry."""
     m = bpy.data.materials.new("BodyMask")
     m.use_nodes = True
     nt = m.node_tree
@@ -157,57 +176,10 @@ def body_mask_material():
     cream.inputs["Base Color"].default_value = (*P["col_cream"], 1)
     cream.inputs["Roughness"].default_value = 0.72
     ms = nodes.new("ShaderNodeMixShader")
-    tc = nodes.new("ShaderNodeTexCoord")
-    sep = nodes.new("ShaderNodeSeparateXYZ")
-    links.new(tc.outputs["Object"], sep.inputs[0])
-    PR = P["patch"]
-    z0 = 1.0 - PR["t"]
-
-    def math_node(op, a=None, b=None, loc=(0, 0)):
-        n = nodes.new("ShaderNodeMath")
-        n.operation = op
-        n.location = loc
-        if a is not None:
-            links.new(a, n.inputs[0])
-        if b is not None:
-            if hasattr(b, "node"):
-                links.new(b, n.inputs[1])
-            else:
-                n.inputs[1].default_value = b
-        return n
-
-    ux = math_node("DIVIDE", sep.outputs["X"], PR["rx"], (-700, 220))
-    ux2 = math_node("POWER", ux.outputs[0], 2.0, (-550, 220))
-    sub = math_node("SUBTRACT", sep.outputs["Z"], z0, (-700, 20))
-    vz = math_node("DIVIDE", sub.outputs[0], PR["rz"], (-550, 20))
-    vz2 = math_node("POWER", vz.outputs[0], 2.0, (-400, 20))
-    r2 = nodes.new("ShaderNodeMath")
-    r2.operation = "ADD"
-    r2.location = (-250, 120)
-    links.new(ux2.outputs[0], r2.inputs[0])
-    links.new(vz2.outputs[0], r2.inputs[1])
-    mr = nodes.new("ShaderNodeMapRange")
-    mr.location = (-100, 120)
-    mr.inputs["From Min"].default_value = 1.0
-    mr.inputs["From Max"].default_value = 0.90
-    mr.inputs["To Min"].default_value = 0.0
-    mr.inputs["To Max"].default_value = 1.0
-    mr.clamp = True
-    links.new(r2.outputs[0], mr.inputs["Value"])
-    gate = nodes.new("ShaderNodeMapRange")
-    gate.location = (-100, -140)
-    gate.inputs["From Min"].default_value = 0.005
-    gate.inputs["From Max"].default_value = -0.02
-    gate.inputs["To Min"].default_value = 0.0
-    gate.inputs["To Max"].default_value = 1.0
-    gate.clamp = True
-    links.new(sep.outputs["Y"], gate.inputs["Value"])
-    mul = nodes.new("ShaderNodeMath")
-    mul.operation = "MULTIPLY"
-    mul.location = (100, -40)
-    links.new(mr.outputs[0], mul.inputs[0])
-    links.new(gate.outputs[0], mul.inputs[1])
-    links.new(mul.outputs[0], ms.inputs[0])
+    attr = nodes.new("ShaderNodeAttribute")
+    attr.attribute_type = "GEOMETRY"
+    attr.attribute_name = "patch"
+    links.new(attr.outputs["Color"], ms.inputs[0])
     links.new(nodes["Principled BSDF"].outputs[0], ms.inputs[1])
     links.new(cream.outputs[0], ms.inputs[2])
     base = nodes["Principled BSDF"]
@@ -305,11 +277,13 @@ def weight(ob, fn):
 build_t0 = time.time()
 TB, TE, NR = P["body_top"], P["body_bottom"], P["body_rings"]
 body_rings = []
-# crown dome: the reference's top is a *rounded* flat 0.054h wide, not a disc with an edge
+# crown dome: the reference's top is a *rounded* plateau 0.054h wide, not a disc
+# with a sharp rim (the rim read as a tin can in the closeups).
 a0, b0, cy0 = body_ab(TB)
-for k in range(4, 0, -1):
-    f = (k / 4.0) ** 0.55
-    body_rings.append((1 - TB + 0.013 * (1 - f), cy0, a0 * f, b0 * f))
+DOME_H = 0.030
+for k in range(7, -1, -1):   # k=8 would duplicate the body's top ring and leave a seam
+    f = max(math.sin((k / 8.0) * math.pi / 2), 0.055)
+    body_rings.append((1 - TB + DOME_H * (1 - f), cy0, a0 * f, b0 * f))
 for k in range(NR):
     t = TB + (TE - TB) * k / (NR - 1.0)
     a, b, cy = body_ab(t)
@@ -323,6 +297,10 @@ for k in range(1, 13):
 # hard ridge down the back of the skull (docs/41 K64)
 body = loft("Body", body_rings, SEGS,
             lambda z: 2.0 + 0.42 * smoothstep(0.30, 0.62, 1 - z), mat=M_body)
+pcol = body.data.color_attributes.new(name="patch", type="FLOAT_COLOR", domain="POINT")
+for _i, _v in enumerate(body.data.vertices):
+    _f = patch_factor(_v.co)
+    pcol.data[_i].color = (_f, _f, _f, 1.0)
 
 
 def body_weights(co):
@@ -657,17 +635,35 @@ def look_at(loc, target):
     return d.to_track_quat("-Z", "Y").to_euler()
 
 
+# Framing is aspect-aware: 1.32 was tuned on the 4:3 reference render, and on a
+# 16:9 frame that same ortho_scale would crop the crown and the feet (ortho_scale
+# spans the LONGER frame side). Keep 'ref' byte-identical for the gate, and for
+# the film resolutions cover 1.21 world units vertically instead of 0.99.
+REF_ASPECT = 832.0 / 624.0
+FRAME_MARGIN = 1.0 if RES == "ref" else 1.22
+
+
+def ortho_scale():
+    return 1.32 * (RX / float(RY)) / REF_ASPECT * FRAME_MARGIN
+
+
 def set_cam(kind):
     if kind in VIEWS:
         loc, rot = VIEWS[kind]
         cam_d.type = "ORTHO"
-        cam_d.ortho_scale = 1.32
+        cam_d.ortho_scale = ortho_scale()
         cam.location = loc
         cam.rotation_euler = Euler(rot)
     elif kind == "hero":
         cam_d.type = "PERSP"
         cam_d.lens = 72
-        cam.location = (1.05, -2.35, 0.82)
+        # A perspective camera's vertical coverage shrinks with a wider frame, so
+        # the distance has to be solved from the aspect, not multiplied by a constant.
+        need_h = 0.97 if RES == "ref" else 1.16
+        half_w = need_h * (RX / float(RY)) / 2.0
+        dist = half_w / (18.0 / 72.0)
+        off = Vector((1.05, -2.35, 0.30)).normalized() * dist
+        cam.location = Vector((0, 0, 0.52)) + off
         cam.rotation_euler = look_at(cam.location, (0, 0, 0.52))
     elif kind == "closeup":
         cam_d.type = "PERSP"
@@ -742,7 +738,9 @@ def clip_pose(name, f, n):
                 "hand_r": (1, 12 * math.sin(ph * 2)), "head": (0, -6),
                 "arm_l": (1, -6), "spine": (0, 3)}
     if name == "turn":
-        return {"root": (2, 360.0 * f / n)}
+        # root points +Z, so its LOCAL Y axis is the bone axis: index 1 spins the
+        # figure around the world vertical. Index 2 tipped it on its side.
+        return {"root": (1, 360.0 * f / n)}
     if name == "walk":
         return {"thigh_l": (1, 24 * math.sin(ph)), "thigh_r": (1, -24 * math.sin(ph)),
                 "shin_l": (1, -30 * max(0.0, math.sin(ph + 0.9))),
@@ -769,7 +767,7 @@ for job in JOBS:
         set_cam("hero")
         n = 36
         for f in range(n):
-            apply_pose({"root": (2, 360.0 * f / n)})
+            apply_pose({"root": (1, 360.0 * f / n)})
             render("turn_%03d" % f, "turntable", transparent=True)
     elif job == "poses":
         for pname, pose in POSES.items():
@@ -787,15 +785,24 @@ for job in JOBS:
         reset_pose()
     elif job == "colors":
         set_cam("hero")
-        for cname, rgb in P["col_variants"].items():
+        def recolour(rgb):
+            # body and limbs are two materials (the body one carries the cream patch);
+            # a variant that recolours only the torso leaves yellow arms and legs
+            for mat in (M_body, M_yellow):
+                mat.node_tree.nodes["Principled BSDF"].inputs["Base Color"].default_value = (*rgb, 1)
             P["col_yellow"] = rgb
-            b = M_body.node_tree.nodes["Principled BSDF"]
-            b.inputs["Base Color"].default_value = (*rgb, 1)
             bpy.context.view_layer.update()
+
+        for cname, rgb in P["col_variants"].items():
+            recolour(rgb)
             render("color_" + cname, "colors", transparent=True)
-        P["col_yellow"] = json.loads(COLOR) if COLOR else P["col_variants"]["yellow"]
+        # put the body back: the recolour above mutates the shared material node, and
+        # every later job (build/closeups/patch) would inherit the last variant's hue
+        recolour(json.loads(COLOR) if COLOR else P["col_variants"]["yellow"])
     elif job == "build":
         set_cam("hero")
+        model.data.materials.append(M_cut)
+        cut_idx = len(model.data.materials) - 1
         base = model.data.copy()
         for i, frac in enumerate(P["build_steps"]):
             # a real partial loft: drop the faces above a moving cut height
@@ -804,25 +811,46 @@ for job in JOBS:
             cut = 1.0 - cut_top(frac)
             bm = bmesh.new()
             bm.from_mesh(me)
-            doomed = [f for f in bm.faces if f.calc_center_median().z > cut]
-            bmesh.ops.delete(bm, geom=doomed, context="FACES")
+            # A slice, not a hole: deleting the faces above the cut left the inside
+            # of the shell visible (magenta = polygon index past the material slots).
+            # Bisect and cap the opening so every build step is a closed solid.
+            cutres = bmesh.ops.bisect_plane(
+                bm, geom=bm.verts[:] + bm.edges[:] + bm.faces[:],
+                plane_co=(0, 0, cut), plane_no=(0, 0, 1), clear_outer=True)
+            loop = [e for e in cutres["geom_cut"] if isinstance(e, bmesh.types.BMEdge)]
+            if loop:
+                bmesh.ops.edgenet_fill(bm, edges=loop)
+            for f in bm.faces:
+                if abs(f.calc_center_median().z - cut) < 1e-4:
+                    f.smooth = False
+                    f.material_index = cut_idx
             bm.to_mesh(me)
             bm.free()
+            nmat = max(1, len(me.materials))
+            for poly in me.polygons:
+                if poly.material_index >= nmat:
+                    poly.material_index = 0
             me.update()
             render("build_%02d" % i, "build", transparent=True)
         model.data = base
     elif job == "closeups":
-        set_cam("closeup")
+        # Closeups keep the reference's vertical coverage: pull the camera back by
+        # the aspect ratio so a detail tile isn't tighter on a 16:9 frame.
+        cs = (RX / float(RY)) / REF_ASPECT
+
+        def closeup(loc, target, lens=105):
+            cam_d.type = "PERSP"
+            cam_d.lens = lens
+            cam.location = Vector(target) + (Vector(loc) - Vector(target)) * cs
+            cam.rotation_euler = look_at(cam.location, target)
+
+        closeup((0.18, -0.72, 0.94), (0.0, -0.05, 0.90), 85)
         render("closeup_face", "closeups", transparent=True)
-        cam_d.lens = 105
-        cam.location = (0.42, -0.90, 0.45)
-        cam.rotation_euler = look_at(cam.location, (0.16, -0.05, 0.40))
+        closeup((0.42, -0.90, 0.45), (0.16, -0.05, 0.40))
         render("closeup_hand", "closeups", transparent=True)
-        cam.location = (0.32, -0.85, 0.16)
-        cam.rotation_euler = look_at(cam.location, (0.10, -0.02, 0.06))
+        closeup((0.32, -0.85, 0.16), (0.10, -0.02, 0.06))
         render("closeup_foot", "closeups", transparent=True)
-        cam.location = (0.0, -0.70, 0.86)
-        cam.rotation_euler = look_at(cam.location, (0.0, -0.05, 0.83))
+        closeup((0.0, -0.60, 0.96), (0.0, -0.05, 0.93))
         render("closeup_eyes", "closeups", transparent=True)
     elif job == "patch":
         set_cam("hero")

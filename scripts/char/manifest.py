@@ -54,7 +54,9 @@ def main():
         "count": len(frames),
         "jobs": jobs,
         "plates": [
-            {"name": f["name"], "job": f["job"], "seconds": round(f["seconds"], 2), "sha256": f["sha256"]}
+            {"name": f["name"], "job": f["job"],
+             "seconds": None if f.get("seconds") is None else round(f["seconds"], 2),
+             "sha256": f["sha256"]}
             for f in frames
         ],
     }
@@ -68,7 +70,7 @@ def main():
     with open(os.path.join(a.out, "bones.json"), "w") as fh:
         json.dump({"unit": "model (figure height = 1, z up)", "bones": bone_rows}, fh, indent=1, ensure_ascii=False)
 
-    secs = [f["seconds"] for f in frames]
+    secs = [f["seconds"] for f in frames if f.get("seconds") is not None] or [0.0]
     print("MANIFEST", json.dumps({
         "plates": len(frames), "jobs": jobs, "bones": len(BONES),
         "verts": rep["parts"]["verts"], "faces": rep["parts"]["faces"],
