@@ -1,0 +1,56 @@
+{
+  "meta": {
+    "note": "手写引用台账。片子里出现的每一个数字都来自我们自己的 C++ 基准（data/quickselect/bench.json / timing.json / trace.json / degradation.json / bfprt.json，由 scripts/generate_quickselect_data.py 生成、不入库）；本文件只回答『谁先做的、哪一年、发表在哪』，不摘录任何文献里的常数，屏幕上也不会出现文献里的比较次数。",
+    "films": "第六部片《快速选择：只找第 k 小》",
+    "generatedBy": "人写，不由脚本生成"
+  },
+  "references": [
+    {
+      "id": "hoare-1961",
+      "what": "FIND：先用划分把枢轴放到最终位置，再只递归包含第 k 个元素的那一侧——本片第 4 场『继承』的全部内容",
+      "authors": "C. A. R. Hoare",
+      "title": "Algorithm 65: FIND",
+      "venue": "Communications of the ACM 4(7), pp. 321–322",
+      "year": 1961,
+      "onScreen": "第 4 场引文条：Hoare 1961 · Algorithm 65: FIND"
+    },
+    {
+      "id": "floyd-rivest-1975",
+      "what": "用随机抽样的两个值夹住目标、一次划分就跳过大部分数据的思路——本片第 10 场",
+      "authors": "R. W. Floyd, R. L. Rivest",
+      "title": "Expected time bounds for selection",
+      "venue": "Communications of the ACM 18(3), pp. 165–172",
+      "year": 1975,
+      "onScreen": "第 10 场引文条：Floyd–Rivest 1975 · Expected time bounds for selection",
+      "note": "文献给的是期望界的推导；片子里的 1.8n 是我们自己的实现测出来的（bracket 版，见 docs/40），不是文献常数。"
+    },
+    {
+      "id": "bfprt-1973",
+      "what": "中位数的中位数挑选枢轴，把每轮规模压到 7n/10，得到最坏线性——本片第 9 场",
+      "authors": "M. Blum, R. W. Floyd, V. Pratt, R. L. Rivest, R. E. Tarjan",
+      "title": "Time bounds for selection",
+      "venue": "Journal of Computer and System Sciences 7(4), pp. 448–461",
+      "year": 1973,
+      "onScreen": "第 9 场引文条：Blum–Floyd–Pratt–Rivest–Tarjan 1973 · Time bounds for selection",
+      "note": "片中的 9.98n 是我们的 BFPRT 实现实测；递推 T(n) ≤ T(n/5) + T(7n/10) + cn 在屏幕上只作为结构展示，两侧数字都来自实测的 bfprt.json。"
+    },
+    {
+      "id": "musser-1997",
+      "what": "introselect：快排式划分加深度上限，超了就换成有最坏界的方法——本片第 11 场讲标准库为什么这么选",
+      "authors": "D. R. Musser",
+      "title": "Introspective sorting and selection algorithms",
+      "venue": "Software: Practice and Experience 27(8), pp. 983–993",
+      "year": 1997,
+      "onScreen": "第 11 场引文条：Musser 1997 · Introspective sorting and selection algorithms"
+    },
+    {
+      "id": "clrs-ch9",
+      "what": "期望线性选择与最坏线性选择的教材表述、以及 n−1 次比较下界的论证框架——本片第 2 场与第 5 场的旁白结构参考",
+      "authors": "T. H. Cormen, C. E. Leiserson, R. L. Rivest, C. Stein",
+      "title": "Introduction to Algorithms, 3rd ed., Chapter 9: Medians and Order Statistics",
+      "venue": "MIT Press",
+      "year": 2009,
+      "onScreen": "第 2 场下界一句的旁白出处（画面不引原文）"
+    }
+  ]
+}

@@ -34,6 +34,18 @@ data/arc/clips.json
 # arc: eval.json (the hand-written number ledger) and voice.json (measured narration) are the
 # sources; sim.json is written by scripts/generate_arc_data.py — same policy as gears/hawk.
 data/arc/sim.json
+public/voice/quickselect/
+public/voice/quickselect_narration.wav
+data/quickselect/lines.json
+data/quickselect/clips.json
+# quickselect: sources.json (the hand-written citation ledger) and voice.json (measured narration)
+# are the sources; the five *.json ledgers are written by scripts/generate_quickselect_data.py —
+# same policy as gears/hawk/arc, so the generator sits in the gate instead of the numbers.
+data/quickselect/bench.json
+data/quickselect/timing.json
+data/quickselect/trace.json
+data/quickselect/degradation.json
+data/quickselect/bfprt.json
 
 # python bytecode from the asset/generator scripts
 __pycache__/
