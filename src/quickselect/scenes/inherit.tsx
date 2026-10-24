@@ -27,7 +27,6 @@ export const SInherit: React.FC = () => {
     return "idle" as const;
   });
   const leftCount = T.steps[T.steps.length - 1].p ?? 3;
-  const pathAt = frameOf("inherit", 9);
 
   return (
     <Scene id="inherit">
@@ -73,22 +72,34 @@ export const SInherit: React.FC = () => {
         </div>
       </div>
 
-      <div style={{ position: "absolute", left: 1480, top: 250, width: 330 }}>
-        <Build at={pathAt}>
+      <div style={{ position: "absolute", left: 1268, top: 250, width: 520 }}>
+        <Build at={frameOf("inherit", 2)}>
           <div style={{ fontFamily: FONT.mono, fontSize: FT.meta, color: C.inkFaint, letterSpacing: FT_T.meta }}>递归宽度</div>
-          <div style={{ marginTop: 16, display: "flex", flexDirection: "column", gap: 14 }}>
-            <div style={{ display: "flex", gap: 12 }}>
-              <div style={{ width: 92, height: 54, border: "2px solid " + C.coral, borderRadius: 8, opacity: 0.5, display: "flex", alignItems: "center", justifyContent: "center" }}><Mono size={FT.tiny} color={C.coral}>被排除</Mono></div>
-              <div style={{ width: 92, height: 54, border: "2px solid " + C.cyan, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center" }}><Mono size={FT.tiny} color={C.cyan}>继续</Mono></div>
-            </div>
-            <div style={{ display: "flex", gap: 12 }}>
-              <div style={{ width: 92, height: 54, border: "2px solid " + C.cyan, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center" }}><Mono size={FT.tiny} color={C.cyan}>继续</Mono></div>
-              <div style={{ width: 92, height: 54, border: "2px solid " + C.coral, borderRadius: 8, opacity: 0.5, display: "flex", alignItems: "center", justifyContent: "center" }}><Mono size={FT.tiny} color={C.coral}>被排除</Mono></div>
-            </div>
-          </div>
-          <Body size={FT.tiny} style={{ marginTop: 16 }}>快排两边都做，选择只做一边</Body>
         </Build>
-        <Build at={frameOf("inherit", 8)} style={{ marginTop: 30 }}>
+        {[
+          { line: 2, label: "第 1 轮", keep: 1, tag: "n" },
+          { line: 3, label: "第 2 轮", keep: 0.5, tag: "n/2" },
+          { line: 4, label: "第 3 轮", keep: 0.25, tag: "n/4" },
+          { line: 6, label: "第 4 轮", keep: 0.125, tag: "n/8" },
+        ].map((row) => {
+          const at = frameOf("inherit", row.line);
+          const grow = pct(f, at, at + 22);
+          return (
+            <Build key={row.label} at={at} style={{ marginTop: 16 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <Mono size={FT.micro} color={C.inkFaint} style={{ width: 58 }}>{row.label}</Mono>
+                <div style={{ position: "relative", width: 340, height: 20, background: C.panel, borderRadius: 4 }}>
+                  <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 340 * row.keep * grow, background: C.cyan, borderRadius: 4 }} />
+                </div>
+                <Mono size={FT.micro} color={C.inkDim}>{row.tag}</Mono>
+              </div>
+            </Build>
+          );
+        })}
+        <Build at={frameOf("inherit", 7)} style={{ marginTop: 24 }}>
+          <Body size={FT.tiny}>快排两边都做，选择只做一边</Body>
+        </Build>
+        <Build at={frameOf("inherit", 8)} style={{ marginTop: 22 }}>
           <Mono size={FT.meta} color={C.cyan}>Hoare 1961 · FIND</Mono>
           <Body size={FT.tiny} style={{ marginTop: 6 }}>CACM 4(7):321–322</Body>
         </Build>

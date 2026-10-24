@@ -27,15 +27,19 @@ export const SProblem: React.FC = () => {
         <Build at={frameOf("problem", 2)} style={{ marginTop: 40 }}>
           <div style={{ position: "relative", width: 1000, height: 150 }}>
             <div style={{ position: "absolute", top: 74, left: 0, right: 0, height: 3, background: C.panelLine }} />
-            {marks.map((m, i) => (
+            {marks.map((m, i) => {
+              // 首尾两个刻度贴边，标签不能按居中摆：0 号左对齐、末号右对齐，否则会出画
+              const lx = i === 0 ? -8 : i === marks.length - 1 ? -300 : -150;
+              return (
               <div key={m.k} style={{ position: "absolute", left: (m.k / (N - 1)) * 1000 - 8, top: 0, textAlign: "center", width: 16 }}>
                 <div style={{ opacity: pct(f, frameOf("problem", 2) + i * 12, frameOf("problem", 2) + i * 12 + 14) }}>
                   <div style={{ width: 16, height: 16, borderRadius: 8, background: i === 1 ? C.amber : C.cyan }} />
-                  <div style={{ position: "absolute", top: 96, left: -140, width: 300, fontFamily: FONT.mono, fontSize: FT.meta, color: C.inkDim }}>{m.label}</div>
-                  <div style={{ position: "absolute", top: 122, left: -140, width: 300, fontFamily: FONT.sans, fontSize: FT.meta, color: i === 1 ? C.amber : C.inkFaint }}>{m.note}</div>
+                  <div style={{ position: "absolute", top: 96, left: lx, width: 300, textAlign: i === 0 ? "left" : i === marks.length - 1 ? "right" : "center", fontFamily: FONT.mono, fontSize: FT.meta, color: C.inkDim }}>{m.label}</div>
+                  <div style={{ position: "absolute", top: 122, left: lx, width: 300, textAlign: i === 0 ? "left" : i === marks.length - 1 ? "right" : "center", fontFamily: FONT.sans, fontSize: FT.meta, color: i === 1 ? C.amber : C.inkFaint }}>{m.note}</div>
                 </div>
               </div>
-            ))}
+              );
+            })}
           </div>
         </Build>
 

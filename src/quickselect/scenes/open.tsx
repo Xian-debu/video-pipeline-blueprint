@@ -11,9 +11,9 @@ const ROW = [61, 7, 94, 23, 88, 15, 42, 3, 77, 50, 19, 68];
 export const SOpen: React.FC = () => {
   const f = useCurrentFrame();
   const n = R_("std_nth", "random", 1000000).n;
-  const pick = 5; // 这排数里的中位数位置（演示用，不是测量值）
+  const pick = 5; // 这排数里的第 5 小（演示用，不是测量值）
   const sorted = [...ROW].sort((a, b) => a - b);
-  const kth = sorted[pick];
+  const kth = sorted[pick]; // = 42，高亮按数值匹配，不按下标，避免圈错格子
 
   return (
     <Scene id="open">
@@ -47,7 +47,7 @@ export const SOpen: React.FC = () => {
         <Build at={frameOf("open", 1)}>
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
             {ROW.map((v, i) => {
-              const on = i === pick;
+              const on = v === kth;
               const hot = f >= frameOf("open", 2) && on;
               return (
                 <div key={i} style={{

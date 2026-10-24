@@ -20,9 +20,10 @@ integrated loudness -15.1 LUFS, true peak -1.8 dBTP, 41 narration lines.
 
 这是一个**经过实测验证**的代码驱动视频管线部署包：分镜是数据（JSON/TS），画面是代码（Remotion/React），
 声音是本地合成的（IndexTTS-2 旁白 + 种子确定性配乐），验收靠测量而不是靠嘴（EBU R128 响度、逐帧亮度
-闪烁检测、静帧人工复核）。本仓库收录的是四部完整生产案例——305 秒快速排序教学片、588 秒「逐位乘法演进」科普片、
-333 秒齿轮 3D 解析片、757 秒「别人论文的解读片」（SenSys '24 的 Hawk）——以及让它们跑起来所需的
-脚本、环境说明、失败模式和验收关卡。四部片子共用一套门禁，片单只有一处真源：`scripts/film_registry.mjs`。
+闪烁检测、静帧人工复核）。本仓库收录的是六部完整生产案例——305 秒快速排序教学片、588 秒「逐位乘法演进」科普片、
+333 秒齿轮 3D 解析片、757 秒「别人论文的解读片」（SenSys '24 的 Hawk）、611 秒 ARC 论文片、
+640 秒「快速选择」算法片——以及让它们跑起来所需的脚本、环境说明、失败模式和验收关卡。
+六部片子共用一套门禁，片单只有一处真源：`scripts/film_registry.mjs`。
 
 不是库，不是 SaaS，不是一键安装器。目标是：克隆下来，`bash scripts/bootstrap.sh` +
 `npm run verify` 在参考机上约十分钟得到 PASS（25 道门，含 59 帧静帧渲染），然后照着 `docs/deployment.md` 换成你自己的内容。
@@ -216,7 +217,7 @@ Three independent layers, joined only by files:
 ```
 .
 ├─ src/
-│  ├─ Root.tsx                 registered compositions (16)
+│  ├─ Root.tsx                 registered compositions (17)
 │  ├─ storyboard/              generic template: storyboard JSON -> film
 │  ├─ lecture/                 the validated 305 s lecture (script + scenes)
 │  ├─ mult/                    the second film, 588 s: digit-wise multiplication (script + scenes)
@@ -226,6 +227,9 @@ Three independent layers, joined only by files:
 │  │                           beat helpers) + scenes/ (one file per scene) + script.ts (timeline)
 │  ├─ arc/                     the fifth film, 611 s, paper reading with an executed algorithm:
 │  │                           same shared.tsx / scenes/ / script.ts layout as hawk
+│  ├─ quickselect/             the sixth film, 640 s, algorithm lecture: same shared.tsx /
+│  │                           scenes/ / script.ts layout; every on-screen number is read from
+│  │                           data/quickselect/*.json, produced by a C++ benchmark
 │  ├─ design/                  design contract loader + derived tokens, palette scope (presets),
 │  │                           scene shell, KaTeX helpers, motion primitives, 3D primitives
 │  │                           (canvas, lights, camera rigs, materials, glTF model), still-lint
@@ -305,8 +309,8 @@ apart silently. `data/hawk/paper.txt` is the exception that proves the rule — 
 4.0, 125 KB) because `claims_check.mjs` has to be able to quote it; a ledger that cannot be checked
 is decoration.
 
-Compositions (16): the five films `Lecture` (305 s), `Multiplication` (588 s), `Gears` (333 s),
-`Hawk` (757 s), `Arc` (611 s); the template and the verify artefact `Storyboard` (20 s) and `Showreel` (30 s);
+Compositions (17): the six films `Lecture` (305 s), `Multiplication` (588 s), `Gears` (333 s),
+`Hawk` (757 s), `Arc` (611 s), `Quickselect` (640 s); the template and the verify artefact `Storyboard` (20 s) and `Showreel` (30 s);
 the single-capability samples `Transitions`, `Typesetting`, `ThreeCube`, `ManimOverlay`,
 `ThreeStage` (30 s: procedural geometry, an imported `.glb`, and a transparent 3D layer over 2D
 text), `PlateStage` (3 s: consumes a Blender-rendered plate sequence; needs `npm run plates` first,
