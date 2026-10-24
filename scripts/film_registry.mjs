@@ -50,6 +50,14 @@ export const FILMS = {
       "!data/quickselect/voice.json",
     ],
   },
+  Char: {
+    script: "src/char/script.ts",
+    prefix: "char",
+    // The model and its plates are authored by Blender under scripts/char and committed as
+    // ledgers (data/char/plates.json, data/char/gate.json); nothing here is generated at make time.
+    derive: [],
+    derived: [],
+  },
 };
 
 /** Composition ids that have a film behind them (the rest are design demos). */

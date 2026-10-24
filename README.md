@@ -217,7 +217,7 @@ Three independent layers, joined only by files:
 ```
 .
 ├─ src/
-│  ├─ Root.tsx                 registered compositions (17)
+│  ├─ Root.tsx                 registered compositions (18)
 │  ├─ storyboard/              generic template: storyboard JSON -> film
 │  ├─ lecture/                 the validated 305 s lecture (script + scenes)
 │  ├─ mult/                    the second film, 588 s: digit-wise multiplication (script + scenes)
@@ -230,6 +230,9 @@ Three independent layers, joined only by files:
 │  ├─ quickselect/             the sixth film, 640 s, algorithm lecture: same shared.tsx /
 │  │                           scenes/ / script.ts layout; every on-screen number is read from
 │  │                           data/quickselect/*.json, produced by a C++ benchmark
+│  ├─ char/                    the seventh film, a character modelling tutorial: scenes read the
+│  │                           modelling gate (data/char/gate.json) and the Blender plate ledger
+│  │                           (data/char/plates.json); the model itself is scripts/char/gen.py
 │  ├─ design/                  design contract loader + derived tokens, palette scope (presets),
 │  │                           scene shell, KaTeX helpers, motion primitives, 3D primitives
 │  │                           (canvas, lights, camera rigs, materials, glTF model), still-lint
@@ -296,7 +299,7 @@ Three independent layers, joined only by files:
 └─ THIRD_PARTY_NOTICES.md      licences: npm packages, system tools, TTS models, reference reading
 ```
 
-**Docs, all of them:** [3d](docs/3d.md) · [architecture](docs/architecture.md) · [blender-plates](docs/blender-plates.md) · [deployment](docs/deployment.md) · [design-language](docs/design-language.md) · [engineering-standards](docs/engineering-standards.md) · [environments](docs/environments.md) · [gears](docs/gears.md) · [arc](docs/arc.md) · [hawk](docs/hawk.md) · [known-issues](docs/known-issues.md) · [multiplication](docs/multiplication.md) · [roadmap](docs/roadmap.md) · [sdf-assets](docs/sdf-assets.md) · [verify-report](docs/verify-report.md).
+**Docs, all of them:** [3d](docs/3d.md) · [architecture](docs/architecture.md) · [blender-plates](docs/blender-plates.md) · [deployment](docs/deployment.md) · [design-language](docs/design-language.md) · [engineering-standards](docs/engineering-standards.md) · [environments](docs/environments.md) · [gears](docs/gears.md) · [arc](docs/arc.md) · [hawk](docs/hawk.md) · [known-issues](docs/known-issues.md) · [char](docs/char.md) · [multiplication](docs/multiplication.md) · [roadmap](docs/roadmap.md) · [sdf-assets](docs/sdf-assets.md) · [verify-report](docs/verify-report.md).
 
 **Source data vs derived data.** Some JSON under `data/` is written by hand and is the only place a
 number exists (the design contract, each film's `params.json`/`eval.json`/`crops.json`, the measured
@@ -309,8 +312,8 @@ apart silently. `data/hawk/paper.txt` is the exception that proves the rule — 
 4.0, 125 KB) because `claims_check.mjs` has to be able to quote it; a ledger that cannot be checked
 is decoration.
 
-Compositions (17): the six films `Lecture` (305 s), `Multiplication` (588 s), `Gears` (333 s),
-`Hawk` (757 s), `Arc` (611 s), `Quickselect` (640 s); the template and the verify artefact `Storyboard` (20 s) and `Showreel` (30 s);
+Compositions (18): the seven films `Lecture` (305 s), `Multiplication` (588 s), `Gears` (333 s),
+`Hawk` (757 s), `Arc` (611 s), `Quickselect` (640 s), `Char` (488 s); the template and the verify artefact `Storyboard` (20 s) and `Showreel` (30 s);
 the single-capability samples `Transitions`, `Typesetting`, `ThreeCube`, `ManimOverlay`,
 `ThreeStage` (30 s: procedural geometry, an imported `.glb`, and a transparent 3D layer over 2D
 text), `PlateStage` (3 s: consumes a Blender-rendered plate sequence; needs `npm run plates` first,
