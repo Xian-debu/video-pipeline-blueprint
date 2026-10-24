@@ -8,15 +8,15 @@ Runs on the host (numpy + Pillow); Blender itself has no PIL (docs/41 K62).
 
 Exit code 0 = every view passes, 1 = a threshold failed (numbers printed either way).
 """
-import argparse, json, math, os
+import argparse, hashlib, json, math, os
 import numpy as np
 from PIL import Image
 
 ap = argparse.ArgumentParser()
 ap.add_argument("--shots", required=True)
 ap.add_argument("--ref", default="data/char/ref_views.json")
-ap.add_argument("--ref-image", default="data/char/reference.png")
-ap.add_argument("--out", default=None)
+ap.add_argument("--ref-image", default="public/char/reference.png")
+ap.add_argument("--out", default="data/char/gate.json")
 ap.add_argument("--min-iou", type=float, default=None)
 A = ap.parse_args()
 
@@ -275,7 +275,30 @@ if "front" in l2:
 
 print("ANCHORS " + json.dumps({"front": l2, "checks": L2_PASS}))
 
+# The film imports this file: every number it says out loud is read from here, so the
+# narration cannot quote a gate score the gate did not compute.
+def sha256(path):
+    h = hashlib.sha256()
+    with open(path, "rb") as fh:
+        for chunk in iter(lambda: fh.read(1 << 20), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+payload = {
+    "reference": {"path": A.ref_image.replace(os.sep, "/"), "sha256": sha256(A.ref_image),
+                  "bytes": os.path.getsize(A.ref_image)},
+    "shots": os.path.abspath(A.shots),
+    "thresholds": {"iou": MIN_IOU, "w_over_h": 0.04, "profile_rmse": 0.045},
+    "views": res,
+    "anchors": l2,
+    "checks": L2_PASS,
+    "pass": bool(ok),
+}
 if A.out:
     os.makedirs(os.path.dirname(A.out) or ".", exist_ok=True)
-    json.dump({"views": res, "pass": ok}, open(A.out, "w"), indent=1)
+    with open(A.out, "w") as fh:
+        json.dump(payload, fh, indent=1)
+        fh.write("\n")
+    print("wrote " + A.out)
 raise SystemExit(0 if ok else 1)

@@ -1,0 +1,229 @@
+{
+ "unit": "model (figure height = 1, z up)",
+ "bones": [
+  {
+   "name": "root",
+   "head": [
+    0,
+    0,
+    0.3
+   ],
+   "tail": [
+    0,
+    0,
+    0.42
+   ],
+   "parent": null
+  },
+  {
+   "name": "spine",
+   "head": [
+    0,
+    0,
+    0.42
+   ],
+   "tail": [
+    0,
+    0,
+    0.62
+   ],
+   "parent": "root"
+  },
+  {
+   "name": "chest",
+   "head": [
+    0,
+    0,
+    0.62
+   ],
+   "tail": [
+    0,
+    0,
+    0.8
+   ],
+   "parent": "spine"
+  },
+  {
+   "name": "head",
+   "head": [
+    0,
+    0,
+    0.8
+   ],
+   "tail": [
+    0,
+    0,
+    0.97
+   ],
+   "parent": "chest"
+  },
+  {
+   "name": "arm_l",
+   "head": [
+    0.2,
+    0,
+    0.66
+   ],
+   "tail": [
+    0.235,
+    0,
+    0.5
+   ],
+   "parent": "chest"
+  },
+  {
+   "name": "forearm_l",
+   "head": [
+    0.235,
+    0,
+    0.5
+   ],
+   "tail": [
+    0.19,
+    0,
+    0.365
+   ],
+   "parent": "arm_l"
+  },
+  {
+   "name": "hand_l",
+   "head": [
+    0.19,
+    0,
+    0.365
+   ],
+   "tail": [
+    0.19,
+    0,
+    0.325
+   ],
+   "parent": "forearm_l"
+  },
+  {
+   "name": "arm_r",
+   "head": [
+    -0.2,
+    0,
+    0.66
+   ],
+   "tail": [
+    -0.235,
+    0,
+    0.5
+   ],
+   "parent": "chest"
+  },
+  {
+   "name": "forearm_r",
+   "head": [
+    -0.235,
+    0,
+    0.5
+   ],
+   "tail": [
+    -0.19,
+    0,
+    0.365
+   ],
+   "parent": "arm_r"
+  },
+  {
+   "name": "hand_r",
+   "head": [
+    -0.19,
+    0,
+    0.365
+   ],
+   "tail": [
+    -0.19,
+    0,
+    0.325
+   ],
+   "parent": "forearm_r"
+  },
+  {
+   "name": "thigh_l",
+   "head": [
+    0.09,
+    0,
+    0.46
+   ],
+   "tail": [
+    0.1,
+    0,
+    0.26
+   ],
+   "parent": "root"
+  },
+  {
+   "name": "shin_l",
+   "head": [
+    0.1,
+    0,
+    0.26
+   ],
+   "tail": [
+    0.103,
+    0,
+    0.06
+   ],
+   "parent": "thigh_l"
+  },
+  {
+   "name": "foot_l",
+   "head": [
+    0.103,
+    0,
+    0.06
+   ],
+   "tail": [
+    0.105,
+    -0.09,
+    0.035
+   ],
+   "parent": "shin_l"
+  },
+  {
+   "name": "thigh_r",
+   "head": [
+    -0.09,
+    0,
+    0.46
+   ],
+   "tail": [
+    -0.1,
+    0,
+    0.26
+   ],
+   "parent": "root"
+  },
+  {
+   "name": "shin_r",
+   "head": [
+    -0.1,
+    0,
+    0.26
+   ],
+   "tail": [
+    -0.103,
+    0,
+    0.06
+   ],
+   "parent": "thigh_r"
+  },
+  {
+   "name": "foot_r",
+   "head": [
+    -0.103,
+    0,
+    0.06
+   ],
+   "tail": [
+    -0.105,
+    -0.09,
+    0.035
+   ],
+   "parent": "shin_r"
+  }
+ ]
+}

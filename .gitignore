@@ -49,3 +49,11 @@ data/quickselect/bfprt.json
 
 # python bytecode from the asset/generator scripts
 __pycache__/
+# char: the model is authored by scripts/char/gen.py and committed as ledgers (params.json,
+# gate.json, plates.json, bones.json); the plates themselves are renders (public/plates/ is
+# already ignored) and the narration is derived from data/char/voice.json.
+public/voice/char/
+public/voice/char_narration.wav
+data/char/lines.json
+data/char/clips.json
+data/char/runs/

@@ -1,68 +1,151 @@
+"""Measure the three-view reference sheet: one command, one file.
 
-import numpy as np, json, os
+    python3 scripts/char/measure.py --image public/char/reference.png \
+        --out data/char/ref_views.json
+
+This is the only input to the model: scripts/char/gen.py reads ref_views.json and turns the
+front/side silhouettes into a lofted body whose rings match them by construction. That is why
+the numbers here are not allowed to drift — the gate (scripts/char/check.py) compares the
+render against the same profile, so a change in this file silently moves the target.
+
+Method (deliberately dumb: no learning, no thresholds that need tuning):
+  foreground   chroma > 14 and luminance < 250 (white paper, saturated yellow figure; the grey
+               shadow under the feet is low chroma, so it drops out)
+  views        three fixed boxes, found once by column occupancy and then frozen — a measurement
+               script that re-segments on every run is not a measurement (K70)
+  profile      128 heights top to bottom; per row the left/right extent of the figure,
+               normalised by figure height in pixels (so 1.0 == one figure height)
+  crotch       first row where the silhouette splits into two runs more than 10 px apart
+  cream patch  low-chroma interior above luminance 200, as a fraction of the figure area
+"""
+import argparse
+import json
+from collections import deque
+
+import numpy as np
 from PIL import Image
-src="/mnt/e/Strata-data/models/swift-IQ2_XS/视图.png"
-out="/mnt/e/aigen_out/probe3d/out"; os.makedirs(out,exist_ok=True)
-im=Image.open(src).convert("RGB")
-a=np.asarray(im).astype(np.float32)
-H,W,_=a.shape
-r,g,b=a[:,:,0],a[:,:,1],a[:,:,2]
-mx=a.max(2); mn=a.min(2); chroma=mx-mn; lum=a.mean(2)
-fg=(chroma>14)&(lum<250)
-# remove noise: column occupancy
-col=fg.sum(0)
-# split into views by gaps of empty columns
-cols=np.where(col>3)[0]
-groups=[]; start=cols[0]; prev=cols[0]
-for c in cols[1:]:
-    if c-prev>8: groups.append((start,prev)); start=c
-    prev=c
-groups.append((start,prev))
-res={"size":[W,H],"groups":[[int(x0),int(x1)] for x0,x1 in groups]}
-views=[]
-for gi,(x0,x1) in enumerate(groups):
-    m=fg[:,x0:x1+1]
-    rows=np.where(m.sum(1)>0)[0]
-    y0,y1=rows[0],rows[-1]
-    mm=m[y0:y1+1,:]
-    hh=y1-y0+1
-    # silhouette profile: width fraction and center offset at 64 heights (top=0)
-    prof=[]
-    for i in range(64):
-        yy=min(hh-1,int((i+0.5)*hh/64))
-        xs=np.where(mm[yy])[0]
-        if len(xs)==0: prof.append([i,0,0,0]); continue
-        prof.append([i, round(float((xs[-1]-xs[0]+1)/hh),4), round(float((xs[0]+xs[-1])/2-(x1-x0)/2)/hh,4), int(len(xs))])
-    # colors: sample body color at mid-torso
-    cy=y0+int(hh*0.62); cx=x0+int((x1-x0)/2)
-    patch=a[cy-3:cy+4,cx-3:cx+4].reshape(-1,3)
-    body_rgb=[round(float(v),1) for v in np.median(patch,0)]
-    # green eye mask in this view
-    sub=a[y0:y1+1, x0:x1+1]
-    gr,gg,gb=sub[:,:,0],sub[:,:,1],sub[:,:,2]
-    eye=(gg>gr+18)&(gg>gb+10)&(gg>60)&(gg<200)
-    eyc=[]
-    if eye.sum()>20:
-        ys,xs=np.where(eye)
-        # split into blobs by x clustering
-        order=np.argsort(xs); xs2=xs[order]; ys2=ys[order]
-        cuts=np.where(np.diff(xs2)>6)[0]
-        segs=np.split(np.arange(len(xs2)),cuts+1)
-        for s in segs:
-            if len(s)<10: continue
-            eyc.append([round(float(xs2[s].mean())/hh,4), round(float(ys2[s].mean())/hh,4),
-                        round(float((xs2[s].max()-xs2[s].min()+1)/hh),4),
-                        round(float((ys2[s].max()-ys2[s].min()+1)/hh),4),
-                        int(len(s))])
-    views.append({"bbox":[int(x0),int(y0),int(x1),int(y1)],"h":int(hh),"body_rgb":body_rgb,
-                  "eyes":eyc,"profile":prof})
-res["views"]=views
-json.dump(res,open(out+"/ref_measure.json","w"),indent=1)
-# diagnostic overlay
-ov=np.array(im).copy()
-ov[fg]=[255,0,255]
-Image.fromarray(ov).save(out+"/ref_fg.png")
-print(json.dumps({k:v for k,v in res.items() if k!="views"},ensure_ascii=False))
-for v in views:
-    print("view bbox",v["bbox"],"h",v["h"],"body",v["body_rgb"],"eyes",v["eyes"][:4])
-print("ok")
+
+# Fixed view boxes in the 832x624 sheet (x0, x1, y0, y1).
+VIEWS = {
+    "front": (28, 313, 94, 565),
+    "side": (328, 513, 94, 566),
+    "back": (526, 805, 94, 563),
+}
+
+
+def foreground(path):
+    a = np.asarray(Image.open(path).convert("RGB")).astype(np.float32)
+    chroma = a.max(2) - a.min(2)
+    lum = a.mean(2)
+    return a, (chroma > 14) & (lum < 250)
+
+
+def runs_of(row):
+    xs = np.where(row)[0]
+    if len(xs) == 0:
+        return []
+    out = []
+    s = p = xs[0]
+    for x in xs[1:]:
+        if x - p > 2:
+            out.append((s, p))
+            s = x
+        p = x
+    out.append((s, p))
+    return out
+
+
+def interior_mask(fg):
+    """Everything the border cannot reach without crossing the figure."""
+    bg = np.zeros_like(fg)
+    dq = deque()
+    h, w = fg.shape
+    for x in range(w):
+        for y in (0, h - 1):
+            if not fg[y, x] and not bg[y, x]:
+                bg[y, x] = 1
+                dq.append((y, x))
+    for y in range(h):
+        for x in (0, w - 1):
+            if not fg[y, x] and not bg[y, x]:
+                bg[y, x] = 1
+                dq.append((y, x))
+    while dq:
+        y, x = dq.popleft()
+        for dy, dx in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+            ny, nx = y + dy, x + dx
+            if 0 <= ny < h and 0 <= nx < w and not fg[ny, nx] and not bg[ny, nx]:
+                bg[ny, nx] = 1
+                dq.append((ny, nx))
+    return bg == 0
+
+
+def measure_view(a, fg, box):
+    x0, x1, y0, y1 = box
+    hh = y1 - y0 + 1
+    m = fg[y0:y1 + 1, x0:x1 + 1]
+    rows = [runs_of(m[yy]) for yy in range(hh)]
+
+    crotch = None
+    for yy in range(hh):
+        r0 = rows[yy]
+        if r0 and len(r0) >= 2 and (r0[1][0] - r0[0][1]) > 10:
+            crotch = yy
+            break
+
+    cx = (x1 - x0) / 2
+    prof = []
+    for i in range(128):
+        yy = min(hh - 1, int((i + 0.5) * hh / 128))
+        r0 = rows[yy]
+        if not r0:
+            prof.append([None, None])
+            continue
+        prof.append([round((r0[0][0] - cx) / hh, 4), round((r0[-1][1] - cx) / hh, 4)])
+
+    sub = a[y0:y1 + 1, x0:x1 + 1]
+    inner = interior_mask(m)
+    chroma = sub.max(2) - sub.min(2)
+    cream = inner & (chroma < 26) & (sub.mean(2) > 200)
+    cream_info = None
+    if cream.sum() > 200:
+        ys, xs = np.where(cream)
+        cream_info = {
+            "bbox_rel": [round(float(xs.min()) / hh, 4), round(float(ys.min()) / hh, 4),
+                         round(float(xs.max()) / hh, 4), round(float(ys.max()) / hh, 4)],
+            "area_frac": round(float(cream.sum()) / float(inner.sum()), 4),
+            "rgb": [round(float(v), 1) for v in np.median(sub[cream], 0)],
+        }
+
+    return {
+        "bbox": [x0, y0, x1, y1],
+        "h": hh,
+        "prof128": prof,
+        "crotch_rel": round(crotch / hh, 4) if crotch else None,
+        "cream": cream_info,
+    }
+
+
+def main():
+    ap = argparse.ArgumentParser(description="measure the three-view reference sheet")
+    ap.add_argument("--image", default="public/char/reference.png")
+    ap.add_argument("--out", default="data/char/ref_views.json")
+    args = ap.parse_args()
+
+    a, fg = foreground(args.image)
+    out = {}
+    for name, box in VIEWS.items():
+        out[name] = measure_view(a, fg, box)
+
+    with open(args.out, "w") as fh:
+        json.dump(out, fh, indent=1)
+
+    for name, v in out.items():
+        c = v["cream"]
+        print(name, "h", v["h"], "crotch", v["crotch_rel"],
+              "cream_area", c["area_frac"] if c else None,
+              "w_over_h", round(v["prof128"][64][1] - v["prof128"][64][0], 4))
+
+
+if __name__ == "__main__":
+    main()

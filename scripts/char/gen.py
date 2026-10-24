@@ -25,6 +25,9 @@ import bpy, bmesh, hashlib, json, math, os, sys, time
 import numpy as np
 from mathutils import Vector, Euler
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from bones import BONES  # noqa: E402  the one place the skeleton is written down
+
 # ---------------------------------------------------------------- args
 argv = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
 
@@ -570,24 +573,8 @@ REPORT["parts"]["faces"] = len(model.data.polygons)
 REPORT["parts"]["build_seconds"] = round(time.time() - build_t0, 2)
 
 # ---------------------------------------------------------------- armature (explicit groups, no auto weights)
-BONES = [
-    ("root", (0, 0, 0.30), (0, 0, 0.42), None),
-    ("spine", (0, 0, 0.42), (0, 0, 0.62), "root"),
-    ("chest", (0, 0, 0.62), (0, 0, 0.80), "spine"),
-    ("head", (0, 0, 0.80), (0, 0, 0.97), "chest"),
-    ("arm_l", (0.20, 0, 0.66), (0.235, 0, 0.50), "chest"),
-    ("forearm_l", (0.235, 0, 0.50), (0.19, 0, 0.365), "arm_l"),
-    ("hand_l", (0.19, 0, 0.365), (0.19, 0, 0.325), "forearm_l"),
-    ("arm_r", (-0.20, 0, 0.66), (-0.235, 0, 0.50), "chest"),
-    ("forearm_r", (-0.235, 0, 0.50), (-0.19, 0, 0.365), "arm_r"),
-    ("hand_r", (-0.19, 0, 0.365), (-0.19, 0, 0.325), "forearm_r"),
-    ("thigh_l", (0.09, 0, 0.46), (0.10, 0, 0.26), "root"),
-    ("shin_l", (0.10, 0, 0.26), (0.103, 0, 0.06), "thigh_l"),
-    ("foot_l", (0.103, 0, 0.06), (0.105, -0.09, 0.035), "shin_l"),
-    ("thigh_r", (-0.09, 0, 0.46), (-0.10, 0, 0.26), "root"),
-    ("shin_r", (-0.10, 0, 0.26), (-0.103, 0, 0.06), "thigh_r"),
-    ("foot_r", (-0.103, 0, 0.06), (-0.105, -0.09, 0.035), "shin_r"),
-]
+# BONES comes from scripts/char/bones.py (imported at the top) so the film can draw
+# the same skeleton it was built with — see scripts/char/manifest.py.
 arm_data = bpy.data.armatures.new("CharRig")
 rig = bpy.data.objects.new("CharRig", arm_data)
 bpy.context.collection.objects.link(rig)
@@ -796,7 +783,7 @@ for job in JOBS:
         for cname, n in CLIP_FRAMES.items():
             for f in range(n):
                 apply_pose(clip_pose(cname, f, n))
-                render("%s_%03d" % (cname, f), "clips", transparent=True)
+                render("clip_%s_%03d" % (cname, f), "clips", transparent=True)
         reset_pose()
     elif job == "colors":
         set_cam("hero")

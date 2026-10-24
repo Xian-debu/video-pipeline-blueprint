@@ -1,0 +1,137 @@
+{
+ "reference": {
+  "path": "public/char/reference.png",
+  "sha256": "e7f223e8be9e0fa0faa04488e5ce251ef9078a4ee517da39ab6ff4b0adfa9241",
+  "bytes": 211548
+ },
+ "shots": "/mnt/e/aigen_out/char_v16",
+ "thresholds": {
+  "iou": {
+   "front": 0.84,
+   "side": 0.8,
+   "back": 0.85
+  },
+  "w_over_h": 0.04,
+  "profile_rmse": 0.045
+ },
+ "views": {
+  "front": {
+   "iou": 0.8512,
+   "min_iou": 0.84,
+   "w_over_h_render": 0.6154,
+   "w_over_h_ref": 0.6059,
+   "w_over_h_err": 0.0156,
+   "profile_rmse": 0.0201,
+   "pass": true
+  },
+  "side": {
+   "iou": 0.8146,
+   "min_iou": 0.8,
+   "w_over_h_render": 0.3958,
+   "w_over_h_ref": 0.3932,
+   "w_over_h_err": 0.0066,
+   "profile_rmse": 0.0335,
+   "pass": true
+  },
+  "back": {
+   "iou": 0.8595,
+   "min_iou": 0.85,
+   "w_over_h_render": 0.6154,
+   "w_over_h_ref": 0.5957,
+   "w_over_h_err": 0.033,
+   "profile_rmse": 0.0232,
+   "pass": true
+  }
+ },
+ "anchors": {
+  "front": {
+   "render": {
+    "eyes": [
+     {
+      "centre": [
+       0.2385,
+       0.0606
+      ],
+      "r": 0.0211
+     },
+     {
+      "centre": [
+       0.3713,
+       0.0604
+      ],
+      "r": 0.0215
+     }
+    ],
+    "eye_r": 0.0213,
+    "eye_sep": 0.1328,
+    "patch": {
+     "box": [
+      0.141,
+      0.3526,
+      0.476,
+      0.6554
+     ],
+     "w": 0.3365,
+     "h": 0.3045,
+     "area_frac": 0.2146,
+     "lab": [
+      79.43,
+      -1.21,
+      8.82
+     ]
+    },
+    "crotch": 0.9984,
+    "leg_gap": 0.1394
+   },
+   "ref": {
+    "eyes": [
+     {
+      "centre": [
+       0.2419,
+       0.0692
+      ],
+      "r": 0.0215
+     },
+     {
+      "centre": [
+       0.3613,
+       0.07
+      ],
+      "r": 0.0216
+     }
+    ],
+    "eye_r": 0.0215,
+    "eye_sep": 0.1193,
+    "patch": {
+     "box": [
+      0.1144,
+      0.3008,
+      0.4979,
+      0.4809
+     ],
+     "w": 0.3856,
+     "h": 0.1822,
+     "area_frac": 0.1289,
+     "lab": [
+      86.51,
+      1.35,
+      14.95
+     ]
+    },
+    "crotch": 0.9979,
+    "leg_gap": 0.3792
+   }
+  },
+  "patch_dE": 9.71
+ },
+ "checks": {
+  "eye_centre": true,
+  "eye_r": true,
+  "eye_sep": true,
+  "patch_centre": true,
+  "patch_area": true,
+  "patch_dE": true,
+  "crotch": true
+ },
+ "pass": true
+}
