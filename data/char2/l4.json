@@ -1,0 +1,14 @@
+{
+  "source": "/mnt/e/aigen_out/char_delivery/Char.mp4 (第七部片成片)",
+  "tool": "scripts/spike/l4_baseline.py",
+  "frames": 14817,
+  "seconds": 493.9,
+  "motionRate": 0.001,
+  "longestStaticFrames": 1526,
+  "longestStaticSeconds": 50.87,
+  "windows": 494,
+  "windowsUnder20pct": 494,
+  "motionPlateFrames": 102,
+  "plateFrames": 162,
+  "motionPlateSeconds": 3.4
+}

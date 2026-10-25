@@ -1,0 +1,122 @@
+{
+ "views": {
+  "front": {
+   "iou": 0.8893,
+   "aspectRef": 0.6059,
+   "aspectOut": 0.6036,
+   "aspectErr": 0.0039,
+   "rmseProfile": 0.0187,
+   "heightPx": 951,
+   "dEBody": 4.99,
+   "rgbRefBody": [
+    232,
+    189,
+    60
+   ],
+   "rgbOutBody": [
+    232,
+    188,
+    72
+   ],
+   "dEPatch": 1.05,
+   "rgbRefPatch": [
+    229,
+    214,
+    184
+   ],
+   "rgbOutPatch": [
+    229,
+    216,
+    185
+   ],
+   "dERefSpreadBody": 0.0,
+   "dEGateBody": 6.0,
+   "dERefSpreadPatch": 0.0,
+   "dEGatePatch": 6.0
+  },
+  "side": {
+   "iou": 0.9094,
+   "aspectRef": 0.3932,
+   "aspectOut": 0.3912,
+   "aspectErr": 0.0051,
+   "rmseProfile": 0.0234,
+   "heightPx": 956,
+   "dEBody": 15.55,
+   "rgbRefBody": [
+    243,
+    219,
+    89
+   ],
+   "rgbOutBody": [
+    227,
+    183,
+    69
+   ],
+   "dEPatch": 12.05,
+   "rgbRefPatch": [
+    233,
+    194,
+    56
+   ],
+   "rgbOutPatch": [
+    217,
+    176,
+    66
+   ],
+   "dERefSpreadBody": 12.97,
+   "dEGateBody": 18.97,
+   "dERefSpreadPatch": 53.48,
+   "dEGatePatch": 59.48
+  },
+  "back": {
+   "iou": 0.8904,
+   "aspectRef": 0.5957,
+   "aspectOut": 0.5987,
+   "aspectErr": 0.005,
+   "rmseProfile": 0.0178,
+   "heightPx": 952,
+   "dEBody": 16.49,
+   "rgbRefBody": [
+    238,
+    208,
+    68
+   ],
+   "rgbOutBody": [
+    218,
+    176,
+    67
+   ],
+   "dEPatch": 14.78,
+   "rgbRefPatch": [
+    231,
+    189,
+    47
+   ],
+   "rgbOutPatch": [
+    210,
+    170,
+    63
+   ],
+   "dERefSpreadBody": 9.12,
+   "dEGateBody": 15.12,
+   "dERefSpreadPatch": 55.19,
+   "dEGatePatch": 61.19
+  }
+ },
+ "gate": {
+  "pass": true,
+  "fails": [],
+  "thresholds": {
+   "iou": {
+    "front": 0.85,
+    "side": 0.82,
+    "back": 0.86
+   },
+   "aspectErr": 0.03,
+   "rmseProfile": 0.025,
+   "dEBody": 6.0
+  }
+ },
+ "thresholds": null,
+ "model": "swift_v23"
+}

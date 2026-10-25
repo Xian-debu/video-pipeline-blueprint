@@ -305,10 +305,15 @@ a0, b0, cy0 = body_ab(TB)
 # 但总高只多 0.7%。
 # apex = 1 - TB + DOME_H - subsurf_drop. Measured on real exports: DOME_H = 1.00*TB gives
 # apex 0.9851, DOME_H = 1.45*TB gives 1.0235 -> solve 1.175*TB for apex == 1.000.
-DOME_H = 1.175 * TB
+# K101: the old profile was r = sin θ, y = 1 - sin θ -> a straight line in (r, y),
+# i.e. a CONE, not a dome (the "尖帽" in the closeups; the silhouette gate cannot see it
+# because the head is narrow from the front). A round crown needs the ellipse r = cos θ,
+# y = sin θ, so the top is hemispherical for as long as DOME_H ~= a0.
+DOME_H = 1.036 * TB   # solved against apex == 1.000 on the ellipse profile (see K101)
 for k in range(7, -1, -1):   # k=8 would duplicate the body's top ring and leave a seam
-    f = max(math.sin((k / 8.0) * math.pi / 2), 0.055)
-    body_rings.append((1 - TB + DOME_H * (1 - f), cy0, a0 * f, b0 * f))
+    th = (k / 8.0) * math.pi / 2
+    f = max(math.cos(th), 0.0)
+    body_rings.append((1 - TB + DOME_H * math.sin(th), cy0, a0 * f, b0 * f))
 for k in range(NR):
     t = TB + (TE - TB) * k / (NR - 1.0)
     a, b, cy = body_ab(t)

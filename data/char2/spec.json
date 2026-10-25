@@ -11,10 +11,10 @@
   "note": "任务书点名的是 E:\\Strata-data\\models\\swift-IQ2_XS\\视图.png；与仓库里这张解码后逐像素相同"
  },
  "model": {
-  "glb": "public/models/swift_v19.glb",
-  "sha256": "d649bd983dc9c7475adba16f8c841bfd43a9e664e9e6a3abfee6dddec2e9ab6a",
-  "bytes": 16240000,
-  "verts": 194572,
+  "glb": "public/models/swift_v23.glb",
+  "sha256": "ef3a9abaae9ecf298dec122c9233adabdec16008550bd0cded8ffe1025c6b9d3",
+  "bytes": 16240256,
+  "verts": 194576,
   "tris": 384736,
   "bones": 16,
   "boneOrder": [

@@ -50,6 +50,14 @@ export const FILMS = {
       "!data/quickselect/voice.json",
     ],
   },
+  Char2: {
+    script: "src/char2/script.ts",
+    prefix: "char2",
+    // 3D 资产由 Blender 在 scripts/char 里离线烘焙，GLB + 三份账本（model.ledger/gate_anim/silhouette）
+    // 都进 git；make 阶段不再生成任何几何。成片是 @remotion/three 实时渲染。
+    derive: [],
+    derived: [],
+  },
   Char: {
     script: "src/char/script.ts",
     prefix: "char",

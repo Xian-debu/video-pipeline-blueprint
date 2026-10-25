@@ -56,14 +56,37 @@ export const NeutralRig: React.FC<{ env?: number; k?: number }> = ({ env = 0.12,
   </>
 );
 
-/** 成片用的电影光：暖主光+投影、青轮廓、紫补光、地面。 */
-export const HeroRig: React.FC<{ shadowSize?: number; extent?: number }> = ({ shadowSize = 2048, extent = 3.2 }) => (
+/** 成片用的电影光。参数化是因为 look-dev 要拿同一台机器上的三组候选做像素比较，
+ *  而不是靠形容词选。默认值 = 深底青轮廓那一组（stage）。 */
+export const HeroRig: React.FC<{
+  keyI?: number;
+  rim?: string;
+  rimI?: number;
+  fill?: string;
+  fillI?: number;
+  bounce?: string;
+  bounceI?: number;
+  env?: number;
+  shadowSize?: number;
+  extent?: number;
+}> = ({
+  keyI = 2.9,
+  rim = "#37e0d6",
+  rimI = 9,
+  fill = "#ffe9c9",
+  fillI = 0.55,
+  bounce = "#9f7bff",
+  bounceI = 0.7,
+  env = 0.9,
+  shadowSize = 2048,
+  extent = 3.2,
+}) => (
   <>
-    <Env intensity={0.9} />
+    <Env intensity={env} />
     <ambientLight intensity={0.28} color="#8fb4bf" />
     <directionalLight
       position={[3.4, 5.2, 3.2]}
-      intensity={2.9}
+      intensity={keyI}
       color="#fff2d6"
       castShadow
       shadow-mapSize={[shadowSize, shadowSize]}
@@ -76,9 +99,9 @@ export const HeroRig: React.FC<{ shadowSize?: number; extent?: number }> = ({ sh
       shadow-camera-near={0.2}
       shadow-camera-far={30}
     />
-    <directionalLight position={[-2.6, 1.4, 2.8]} intensity={0.55} color="#ffe9c9" />
-    <spotLight position={[-3.0, 2.6, -3.4]} angle={0.9} penumbra={1} intensity={9} color="#37e0d6" />
-    <directionalLight position={[0.6, 1.0, -4.4]} intensity={0.7} color="#9f7bff" />
+    <directionalLight position={[-2.6, 1.4, 2.8]} intensity={fillI} color={fill} />
+    <spotLight position={[-3.0, 2.6, -3.4]} angle={0.9} penumbra={1} intensity={rimI} color={rim} />
+    <directionalLight position={[0.6, 1.0, -4.4]} intensity={bounceI} color={bounce} />
   </>
 );
 
