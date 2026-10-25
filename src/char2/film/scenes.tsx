@@ -184,10 +184,10 @@ export const SCrown: React.FC = () => {
 /* ============================== 06 脚掌 ============================== */
 export const SFoot: React.FC = () => {
   const f = useCurrentFrame();
-  const cam: CamMove = { az: [-26, 16], el: [1.5, 3.5], dist: [1.15, 0.98], fov: [30, 30], ty: [0.17, 0.13] };
+  const cam: CamMove = { az: [-26, 14], el: [9, 11], dist: [1.85, 1.62], fov: [30, 30], ty: [0.20, 0.17] };
   return (
     <>
-      <Shot cam={cam} actor={{ clip: "walk", frame: Math.floor(f * 0.5) % 36, scale: 1.72 }} accent="#fbbf24" />
+      <Shot cam={cam} actor={{ clip: "idle", scale: 1.72 }} accent="#fbbf24" />
       <Head kicker="04 / 脚掌" title="脚掌要平，还要站在原点" at={0} />
       <div style={{ position: "absolute", right: PAD, bottom: 230, width: 660, display: "flex", flexDirection: "column", gap: 16 }}>
         <Row at={at("foot", 1)} num="01">细分会把平底吃掉 → 先烘细分，再压平</Row>
