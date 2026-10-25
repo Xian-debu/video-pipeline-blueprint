@@ -114,43 +114,43 @@
   "hash": "9ad3980d"
  },
  "crown#0": {
-  "bytes": 119340,
+  "bytes": 107052,
   "chars": 12,
   "file": "l034_e8129768.wav",
   "hash": "e8129768"
  },
  "crown#1": {
-  "bytes": 204844,
+  "bytes": 199724,
   "chars": 22,
   "file": "l035_f2e45ed1.wav",
   "hash": "f2e45ed1"
  },
  "crown#2": {
-  "bytes": 162860,
+  "bytes": 153132,
   "chars": 18,
   "file": "l036_807bc52e.wav",
   "hash": "807bc52e"
  },
  "crown#3": {
-  "bytes": 227884,
+  "bytes": 214572,
   "chars": 24,
   "file": "l037_7bdde174.wav",
   "hash": "7bdde174"
  },
  "crown#4": {
-  "bytes": 162860,
+  "bytes": 175148,
   "chars": 18,
   "file": "l038_357a60ac.wav",
   "hash": "357a60ac"
  },
  "crown#5": {
-  "bytes": 178732,
+  "bytes": 176684,
   "chars": 21,
   "file": "l039_af152aef.wav",
   "hash": "af152aef"
  },
  "crown#6": {
-  "bytes": 195116,
+  "bytes": 184876,
   "chars": 20,
   "file": "l040_14a4003c.wav",
   "hash": "14a4003c"
@@ -186,7 +186,7 @@
   "hash": "7b6ec0a8"
  },
  "depth#0": {
-  "bytes": 166444,
+  "bytes": 153132,
   "chars": 21,
   "file": "l047_bed51d97.wav",
   "hash": "bed51d97"
@@ -198,133 +198,133 @@
   "hash": "bcfdfdc2"
  },
  "depth#2": {
-  "bytes": 148524,
+  "bytes": 149548,
   "chars": 18,
   "file": "l049_4d072130.wav",
   "hash": "4d072130"
  },
  "depth#3": {
-  "bytes": 156716,
+  "bytes": 149548,
   "chars": 17,
   "file": "l050_5c85d30c.wav",
   "hash": "5c85d30c"
  },
  "depth#4": {
-  "bytes": 169516,
+  "bytes": 188460,
   "chars": 18,
   "file": "l051_b57c1aed.wav",
   "hash": "b57c1aed"
  },
  "depth#5": {
-  "bytes": 166444,
+  "bytes": 150572,
   "chars": 16,
   "file": "l052_9543aa0a.wav",
   "hash": "9543aa0a"
  },
  "depth#6": {
-  "bytes": 199724,
+  "bytes": 181292,
   "chars": 21,
   "file": "l053_3d4ca4d2.wav",
   "hash": "3d4ca4d2"
  },
  "foot#0": {
-  "bytes": 78892,
+  "bytes": 87084,
   "chars": 8,
   "file": "l041_23bf0842.wav",
   "hash": "23bf0842"
  },
  "foot#1": {
-  "bytes": 100396,
+  "bytes": 96812,
   "chars": 11,
   "file": "l042_6c211774.wav",
   "hash": "6c211774"
  },
  "foot#2": {
-  "bytes": 232492,
+  "bytes": 194604,
   "chars": 22,
   "file": "l043_39c28430.wav",
   "hash": "39c28430"
  },
  "foot#3": {
-  "bytes": 152108,
+  "bytes": 156716,
   "chars": 18,
   "file": "l044_b060e3ae.wav",
   "hash": "b060e3ae"
  },
  "foot#4": {
-  "bytes": 180268,
+  "bytes": 182828,
   "chars": 19,
   "file": "l045_9118ce14.wav",
   "hash": "9118ce14"
  },
  "foot#5": {
-  "bytes": 171564,
+  "bytes": 161836,
   "chars": 19,
   "file": "l046_2b190d02.wav",
   "hash": "2b190d02"
  },
  "gate#0": {
-  "bytes": 144428,
+  "bytes": 135212,
   "chars": 16,
   "file": "l054_68cbe802.wav",
   "hash": "68cbe802"
  },
  "gate#1": {
-  "bytes": 172588,
+  "bytes": 157228,
   "chars": 18,
   "file": "l055_ae02e978.wav",
   "hash": "ae02e978"
  },
  "gate#2": {
-  "bytes": 160812,
+  "bytes": 164396,
   "chars": 18,
   "file": "l056_10a562dd.wav",
   "hash": "10a562dd"
  },
  "gate#3": {
-  "bytes": 177708,
+  "bytes": 179244,
   "chars": 19,
   "file": "l057_07898105.wav",
   "hash": "07898105"
  },
  "gate#4": {
-  "bytes": 189996,
+  "bytes": 198700,
   "chars": 22,
   "file": "l058_2e508104.wav",
   "hash": "2e508104"
  },
  "gate#5": {
-  "bytes": 206892,
+  "bytes": 218156,
   "chars": 23,
   "file": "l059_97fc41b6.wav",
   "hash": "97fc41b6"
  },
  "gate#6": {
-  "bytes": 177708,
+  "bytes": 176684,
   "chars": 22,
   "file": "l060_d270b3a0.wav",
   "hash": "d270b3a0"
  },
  "loft#0": {
-  "bytes": 169516,
+  "bytes": 167980,
   "chars": 21,
   "file": "l025_4d456990.wav",
   "hash": "4d456990"
  },
  "loft#1": {
-  "bytes": 212012,
+  "bytes": 203308,
   "chars": 23,
   "file": "l026_b399f55f.wav",
   "hash": "b399f55f"
  },
  "loft#2": {
-  "bytes": 185388,
+  "bytes": 179244,
   "chars": 19,
   "file": "l027_ac034a30.wav",
   "hash": "ac034a30"
  },
  "loft#3": {
-  "bytes": 204332,
+  "bytes": 226348,
   "chars": 24,
   "file": "l028_b1c81540.wav",
   "hash": "b1c81540"
@@ -336,85 +336,85 @@
   "hash": "0a1e0648"
  },
  "loft#5": {
-  "bytes": 189996,
+  "bytes": 192556,
   "chars": 19,
   "file": "l030_bb4b47c1.wav",
   "hash": "bb4b47c1"
  },
  "loft#6": {
-  "bytes": 220204,
+  "bytes": 196140,
   "chars": 21,
   "file": "l031_266634f4.wav",
   "hash": "266634f4"
  },
  "loft#7": {
-  "bytes": 164396,
+  "bytes": 183852,
   "chars": 18,
   "file": "l032_df269baa.wav",
   "hash": "df269baa"
  },
  "loft#8": {
-  "bytes": 165420,
+  "bytes": 173100,
   "chars": 18,
   "file": "l033_b836b925.wav",
   "hash": "b836b925"
  },
  "measure#0": {
-  "bytes": 169516,
+  "bytes": 166956,
   "chars": 19,
   "file": "l015_511f1aff.wav",
   "hash": "511f1aff"
  },
  "measure#1": {
-  "bytes": 183852,
+  "bytes": 173100,
   "chars": 19,
   "file": "l016_05e2192e.wav",
   "hash": "05e2192e"
  },
  "measure#2": {
-  "bytes": 166444,
+  "bytes": 175148,
   "chars": 19,
   "file": "l017_1139344b.wav",
   "hash": "1139344b"
  },
  "measure#3": {
-  "bytes": 181292,
+  "bytes": 165420,
   "chars": 18,
   "file": "l018_5fe0f70f.wav",
   "hash": "5fe0f70f"
  },
  "measure#4": {
-  "bytes": 138284,
+  "bytes": 159276,
   "chars": 17,
   "file": "l019_bbcc5608.wav",
   "hash": "bbcc5608"
  },
  "measure#5": {
-  "bytes": 196140,
+  "bytes": 177708,
   "chars": 21,
   "file": "l020_cf817d1e.wav",
   "hash": "cf817d1e"
  },
  "measure#6": {
-  "bytes": 174124,
+  "bytes": 166956,
   "chars": 20,
   "file": "l021_4108dadb.wav",
   "hash": "4108dadb"
  },
  "measure#7": {
-  "bytes": 133676,
+  "bytes": 142380,
   "chars": 16,
   "file": "l022_207a62e1.wav",
   "hash": "207a62e1"
  },
  "measure#8": {
-  "bytes": 179244,
+  "bytes": 153132,
   "chars": 18,
   "file": "l023_965b9871.wav",
   "hash": "965b9871"
  },
  "measure#9": {
-  "bytes": 188972,
+  "bytes": 191020,
   "chars": 19,
   "file": "l024_a4cf1834.wav",
   "hash": "a4cf1834"
@@ -468,37 +468,37 @@
   "hash": "25df6940"
  },
  "open#0": {
-  "bytes": 171564,
+  "bytes": 164396,
   "chars": 19,
   "file": "l000_25670cb9.wav",
   "hash": "25670cb9"
  },
  "open#1": {
-  "bytes": 160300,
+  "bytes": 157228,
   "chars": 17,
   "file": "l001_84cb8dc3.wav",
   "hash": "84cb8dc3"
  },
  "open#2": {
-  "bytes": 154156,
+  "bytes": 155692,
   "chars": 16,
   "file": "l002_3bb1efc0.wav",
   "hash": "3bb1efc0"
  },
  "open#3": {
-  "bytes": 141356,
+  "bytes": 135212,
   "chars": 17,
   "file": "l003_604d0b1e.wav",
   "hash": "604d0b1e"
  },
  "open#4": {
-  "bytes": 150572,
+  "bytes": 141356,
   "chars": 15,
   "file": "l004_3d05e87d.wav",
   "hash": "3d05e87d"
  },
  "open#5": {
-  "bytes": 166444,
+  "bytes": 184876,
   "chars": 18,
   "file": "l005_c08c3d28.wav",
   "hash": "c08c3d28"
@@ -510,7 +510,7 @@
   "hash": "6e8dd5c1"
  },
  "rig#0": {
-  "bytes": 111660,
+  "bytes": 116268,
   "chars": 12,
   "file": "l061_12c708e0.wav",
   "hash": "12c708e0"
@@ -558,49 +558,49 @@
   "hash": "53566576"
  },
  "why#0": {
-  "bytes": 135212,
+  "bytes": 152108,
   "chars": 16,
   "file": "l007_7405da16.wav",
   "hash": "7405da16"
  },
  "why#1": {
-  "bytes": 181292,
+  "bytes": 193580,
   "chars": 19,
   "file": "l008_851f6ca9.wav",
   "hash": "851f6ca9"
  },
  "why#2": {
-  "bytes": 186412,
+  "bytes": 177708,
   "chars": 21,
   "file": "l009_65334371.wav",
   "hash": "65334371"
  },
  "why#3": {
-  "bytes": 158252,
+  "bytes": 184876,
   "chars": 18,
   "file": "l010_c0399aaf.wav",
   "hash": "c0399aaf"
  },
  "why#4": {
-  "bytes": 166956,
+  "bytes": 169004,
   "chars": 21,
   "file": "l011_3f66db7e.wav",
   "hash": "3f66db7e"
  },
  "why#5": {
-  "bytes": 175148,
+  "bytes": 166956,
   "chars": 19,
   "file": "l012_6f1ef3d9.wav",
   "hash": "6f1ef3d9"
  },
  "why#6": {
-  "bytes": 188460,
+  "bytes": 196140,
   "chars": 22,
   "file": "l013_5fee082e.wav",
   "hash": "5fee082e"
  },
  "why#7": {
-  "bytes": 181292,
+  "bytes": 178732,
   "chars": 21,
   "file": "l014_eb6d8172.wav",
   "hash": "eb6d8172"
