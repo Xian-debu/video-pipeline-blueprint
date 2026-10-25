@@ -1,0 +1,608 @@
+{
+ "build#0": {
+  "bytes": 117804,
+  "chars": 14,
+  "file": "l084_5abe24e9.wav",
+  "hash": "5abe24e9"
+ },
+ "build#1": {
+  "bytes": 155692,
+  "chars": 16,
+  "file": "l085_37f77022.wav",
+  "hash": "37f77022"
+ },
+ "build#2": {
+  "bytes": 116268,
+  "chars": 12,
+  "file": "l086_61353414.wav",
+  "hash": "61353414"
+ },
+ "build#3": {
+  "bytes": 160812,
+  "chars": 17,
+  "file": "l087_6a514dfb.wav",
+  "hash": "6a514dfb"
+ },
+ "build#4": {
+  "bytes": 131116,
+  "chars": 13,
+  "file": "l088_7b47d803.wav",
+  "hash": "7b47d803"
+ },
+ "close#0": {
+  "bytes": 86060,
+  "chars": 8,
+  "file": "l094_11e103e2.wav",
+  "hash": "11e103e2"
+ },
+ "close#1": {
+  "bytes": 181292,
+  "chars": 19,
+  "file": "l095_902e437c.wav",
+  "hash": "902e437c"
+ },
+ "close#2": {
+  "bytes": 187436,
+  "chars": 20,
+  "file": "l096_97cae4ca.wav",
+  "hash": "97cae4ca"
+ },
+ "close#3": {
+  "bytes": 198700,
+  "chars": 23,
+  "file": "l097_eb922b35.wav",
+  "hash": "eb922b35"
+ },
+ "close#4": {
+  "bytes": 156716,
+  "chars": 17,
+  "file": "l098_09e2c0b8.wav",
+  "hash": "09e2c0b8"
+ },
+ "close#5": {
+  "bytes": 186412,
+  "chars": 20,
+  "file": "l099_b9d0be90.wav",
+  "hash": "b9d0be90"
+ },
+ "close#6": {
+  "bytes": 107052,
+  "chars": 13,
+  "file": "l100_99cdfb6f.wav",
+  "hash": "99cdfb6f"
+ },
+ "color#0": {
+  "bytes": 157228,
+  "chars": 19,
+  "file": "l077_cf3d1a32.wav",
+  "hash": "cf3d1a32"
+ },
+ "color#1": {
+  "bytes": 160300,
+  "chars": 19,
+  "file": "l078_35460785.wav",
+  "hash": "35460785"
+ },
+ "color#2": {
+  "bytes": 191532,
+  "chars": 22,
+  "file": "l079_6b86ee34.wav",
+  "hash": "6b86ee34"
+ },
+ "color#3": {
+  "bytes": 187436,
+  "chars": 21,
+  "file": "l080_146bf604.wav",
+  "hash": "146bf604"
+ },
+ "color#4": {
+  "bytes": 150572,
+  "chars": 17,
+  "file": "l081_50d6b83c.wav",
+  "hash": "50d6b83c"
+ },
+ "color#5": {
+  "bytes": 156716,
+  "chars": 18,
+  "file": "l082_0c49bb83.wav",
+  "hash": "0c49bb83"
+ },
+ "color#6": {
+  "bytes": 162860,
+  "chars": 18,
+  "file": "l083_9ad3980d.wav",
+  "hash": "9ad3980d"
+ },
+ "crown#0": {
+  "bytes": 119340,
+  "chars": 12,
+  "file": "l034_e8129768.wav",
+  "hash": "e8129768"
+ },
+ "crown#1": {
+  "bytes": 204844,
+  "chars": 22,
+  "file": "l035_f2e45ed1.wav",
+  "hash": "f2e45ed1"
+ },
+ "crown#2": {
+  "bytes": 162860,
+  "chars": 18,
+  "file": "l036_807bc52e.wav",
+  "hash": "807bc52e"
+ },
+ "crown#3": {
+  "bytes": 227884,
+  "chars": 24,
+  "file": "l037_7bdde174.wav",
+  "hash": "7bdde174"
+ },
+ "crown#4": {
+  "bytes": 162860,
+  "chars": 18,
+  "file": "l038_357a60ac.wav",
+  "hash": "357a60ac"
+ },
+ "crown#5": {
+  "bytes": 178732,
+  "chars": 21,
+  "file": "l039_af152aef.wav",
+  "hash": "af152aef"
+ },
+ "crown#6": {
+  "bytes": 195116,
+  "chars": 20,
+  "file": "l040_14a4003c.wav",
+  "hash": "14a4003c"
+ },
+ "demo#0": {
+  "bytes": 100396,
+  "chars": 9,
+  "file": "l089_510dd8ea.wav",
+  "hash": "510dd8ea"
+ },
+ "demo#1": {
+  "bytes": 118828,
+  "chars": 14,
+  "file": "l090_e72be739.wav",
+  "hash": "e72be739"
+ },
+ "demo#2": {
+  "bytes": 115244,
+  "chars": 12,
+  "file": "l091_e40833be.wav",
+  "hash": "e40833be"
+ },
+ "demo#3": {
+  "bytes": 143404,
+  "chars": 18,
+  "file": "l092_9349c0ae.wav",
+  "hash": "9349c0ae"
+ },
+ "demo#4": {
+  "bytes": 197164,
+  "chars": 21,
+  "file": "l093_7b6ec0a8.wav",
+  "hash": "7b6ec0a8"
+ },
+ "depth#0": {
+  "bytes": 166444,
+  "chars": 21,
+  "file": "l047_bed51d97.wav",
+  "hash": "bed51d97"
+ },
+ "depth#1": {
+  "bytes": 194604,
+  "chars": 20,
+  "file": "l048_bcfdfdc2.wav",
+  "hash": "bcfdfdc2"
+ },
+ "depth#2": {
+  "bytes": 148524,
+  "chars": 18,
+  "file": "l049_4d072130.wav",
+  "hash": "4d072130"
+ },
+ "depth#3": {
+  "bytes": 156716,
+  "chars": 17,
+  "file": "l050_5c85d30c.wav",
+  "hash": "5c85d30c"
+ },
+ "depth#4": {
+  "bytes": 169516,
+  "chars": 18,
+  "file": "l051_b57c1aed.wav",
+  "hash": "b57c1aed"
+ },
+ "depth#5": {
+  "bytes": 166444,
+  "chars": 16,
+  "file": "l052_9543aa0a.wav",
+  "hash": "9543aa0a"
+ },
+ "depth#6": {
+  "bytes": 199724,
+  "chars": 21,
+  "file": "l053_3d4ca4d2.wav",
+  "hash": "3d4ca4d2"
+ },
+ "foot#0": {
+  "bytes": 78892,
+  "chars": 8,
+  "file": "l041_23bf0842.wav",
+  "hash": "23bf0842"
+ },
+ "foot#1": {
+  "bytes": 100396,
+  "chars": 11,
+  "file": "l042_6c211774.wav",
+  "hash": "6c211774"
+ },
+ "foot#2": {
+  "bytes": 232492,
+  "chars": 22,
+  "file": "l043_39c28430.wav",
+  "hash": "39c28430"
+ },
+ "foot#3": {
+  "bytes": 152108,
+  "chars": 18,
+  "file": "l044_b060e3ae.wav",
+  "hash": "b060e3ae"
+ },
+ "foot#4": {
+  "bytes": 180268,
+  "chars": 19,
+  "file": "l045_9118ce14.wav",
+  "hash": "9118ce14"
+ },
+ "foot#5": {
+  "bytes": 171564,
+  "chars": 19,
+  "file": "l046_2b190d02.wav",
+  "hash": "2b190d02"
+ },
+ "gate#0": {
+  "bytes": 144428,
+  "chars": 16,
+  "file": "l054_68cbe802.wav",
+  "hash": "68cbe802"
+ },
+ "gate#1": {
+  "bytes": 172588,
+  "chars": 18,
+  "file": "l055_ae02e978.wav",
+  "hash": "ae02e978"
+ },
+ "gate#2": {
+  "bytes": 160812,
+  "chars": 18,
+  "file": "l056_10a562dd.wav",
+  "hash": "10a562dd"
+ },
+ "gate#3": {
+  "bytes": 177708,
+  "chars": 19,
+  "file": "l057_07898105.wav",
+  "hash": "07898105"
+ },
+ "gate#4": {
+  "bytes": 189996,
+  "chars": 22,
+  "file": "l058_2e508104.wav",
+  "hash": "2e508104"
+ },
+ "gate#5": {
+  "bytes": 206892,
+  "chars": 23,
+  "file": "l059_97fc41b6.wav",
+  "hash": "97fc41b6"
+ },
+ "gate#6": {
+  "bytes": 177708,
+  "chars": 22,
+  "file": "l060_d270b3a0.wav",
+  "hash": "d270b3a0"
+ },
+ "loft#0": {
+  "bytes": 169516,
+  "chars": 21,
+  "file": "l025_4d456990.wav",
+  "hash": "4d456990"
+ },
+ "loft#1": {
+  "bytes": 212012,
+  "chars": 23,
+  "file": "l026_b399f55f.wav",
+  "hash": "b399f55f"
+ },
+ "loft#2": {
+  "bytes": 185388,
+  "chars": 19,
+  "file": "l027_ac034a30.wav",
+  "hash": "ac034a30"
+ },
+ "loft#3": {
+  "bytes": 204332,
+  "chars": 24,
+  "file": "l028_b1c81540.wav",
+  "hash": "b1c81540"
+ },
+ "loft#4": {
+  "bytes": 169516,
+  "chars": 20,
+  "file": "l029_0a1e0648.wav",
+  "hash": "0a1e0648"
+ },
+ "loft#5": {
+  "bytes": 189996,
+  "chars": 19,
+  "file": "l030_bb4b47c1.wav",
+  "hash": "bb4b47c1"
+ },
+ "loft#6": {
+  "bytes": 220204,
+  "chars": 21,
+  "file": "l031_266634f4.wav",
+  "hash": "266634f4"
+ },
+ "loft#7": {
+  "bytes": 164396,
+  "chars": 18,
+  "file": "l032_df269baa.wav",
+  "hash": "df269baa"
+ },
+ "loft#8": {
+  "bytes": 165420,
+  "chars": 18,
+  "file": "l033_b836b925.wav",
+  "hash": "b836b925"
+ },
+ "measure#0": {
+  "bytes": 169516,
+  "chars": 19,
+  "file": "l015_511f1aff.wav",
+  "hash": "511f1aff"
+ },
+ "measure#1": {
+  "bytes": 183852,
+  "chars": 19,
+  "file": "l016_05e2192e.wav",
+  "hash": "05e2192e"
+ },
+ "measure#2": {
+  "bytes": 166444,
+  "chars": 19,
+  "file": "l017_1139344b.wav",
+  "hash": "1139344b"
+ },
+ "measure#3": {
+  "bytes": 181292,
+  "chars": 18,
+  "file": "l018_5fe0f70f.wav",
+  "hash": "5fe0f70f"
+ },
+ "measure#4": {
+  "bytes": 138284,
+  "chars": 17,
+  "file": "l019_bbcc5608.wav",
+  "hash": "bbcc5608"
+ },
+ "measure#5": {
+  "bytes": 196140,
+  "chars": 21,
+  "file": "l020_cf817d1e.wav",
+  "hash": "cf817d1e"
+ },
+ "measure#6": {
+  "bytes": 174124,
+  "chars": 20,
+  "file": "l021_4108dadb.wav",
+  "hash": "4108dadb"
+ },
+ "measure#7": {
+  "bytes": 133676,
+  "chars": 16,
+  "file": "l022_207a62e1.wav",
+  "hash": "207a62e1"
+ },
+ "measure#8": {
+  "bytes": 179244,
+  "chars": 18,
+  "file": "l023_965b9871.wav",
+  "hash": "965b9871"
+ },
+ "measure#9": {
+  "bytes": 188972,
+  "chars": 19,
+  "file": "l024_a4cf1834.wav",
+  "hash": "a4cf1834"
+ },
+ "motion#0": {
+  "bytes": 158252,
+  "chars": 17,
+  "file": "l069_dce56df6.wav",
+  "hash": "dce56df6"
+ },
+ "motion#1": {
+  "bytes": 149548,
+  "chars": 19,
+  "file": "l070_4fe4cfc9.wav",
+  "hash": "4fe4cfc9"
+ },
+ "motion#2": {
+  "bytes": 212012,
+  "chars": 22,
+  "file": "l071_5aacab1e.wav",
+  "hash": "5aacab1e"
+ },
+ "motion#3": {
+  "bytes": 131116,
+  "chars": 13,
+  "file": "l072_81ba7634.wav",
+  "hash": "81ba7634"
+ },
+ "motion#4": {
+  "bytes": 233004,
+  "chars": 24,
+  "file": "l073_d3abc45b.wav",
+  "hash": "d3abc45b"
+ },
+ "motion#5": {
+  "bytes": 117804,
+  "chars": 12,
+  "file": "l074_dc3e16e8.wav",
+  "hash": "dc3e16e8"
+ },
+ "motion#6": {
+  "bytes": 187436,
+  "chars": 21,
+  "file": "l075_97996ff2.wav",
+  "hash": "97996ff2"
+ },
+ "motion#7": {
+  "bytes": 126508,
+  "chars": 13,
+  "file": "l076_25df6940.wav",
+  "hash": "25df6940"
+ },
+ "open#0": {
+  "bytes": 171564,
+  "chars": 19,
+  "file": "l000_25670cb9.wav",
+  "hash": "25670cb9"
+ },
+ "open#1": {
+  "bytes": 160300,
+  "chars": 17,
+  "file": "l001_84cb8dc3.wav",
+  "hash": "84cb8dc3"
+ },
+ "open#2": {
+  "bytes": 154156,
+  "chars": 16,
+  "file": "l002_3bb1efc0.wav",
+  "hash": "3bb1efc0"
+ },
+ "open#3": {
+  "bytes": 141356,
+  "chars": 17,
+  "file": "l003_604d0b1e.wav",
+  "hash": "604d0b1e"
+ },
+ "open#4": {
+  "bytes": 150572,
+  "chars": 15,
+  "file": "l004_3d05e87d.wav",
+  "hash": "3d05e87d"
+ },
+ "open#5": {
+  "bytes": 166444,
+  "chars": 18,
+  "file": "l005_c08c3d28.wav",
+  "hash": "c08c3d28"
+ },
+ "open#6": {
+  "bytes": 152108,
+  "chars": 15,
+  "file": "l006_6e8dd5c1.wav",
+  "hash": "6e8dd5c1"
+ },
+ "rig#0": {
+  "bytes": 111660,
+  "chars": 12,
+  "file": "l061_12c708e0.wav",
+  "hash": "12c708e0"
+ },
+ "rig#1": {
+  "bytes": 236588,
+  "chars": 22,
+  "file": "l062_9746e621.wav",
+  "hash": "9746e621"
+ },
+ "rig#2": {
+  "bytes": 160812,
+  "chars": 20,
+  "file": "l063_cd7304f1.wav",
+  "hash": "cd7304f1"
+ },
+ "rig#3": {
+  "bytes": 157228,
+  "chars": 17,
+  "file": "l064_7a14d3dd.wav",
+  "hash": "7a14d3dd"
+ },
+ "rig#4": {
+  "bytes": 191532,
+  "chars": 20,
+  "file": "l065_9cabe328.wav",
+  "hash": "9cabe328"
+ },
+ "rig#5": {
+  "bytes": 132140,
+  "chars": 13,
+  "file": "l066_176be73b.wav",
+  "hash": "176be73b"
+ },
+ "rig#6": {
+  "bytes": 152108,
+  "chars": 15,
+  "file": "l067_1a9b0e1b.wav",
+  "hash": "1a9b0e1b"
+ },
+ "rig#7": {
+  "bytes": 231468,
+  "chars": 25,
+  "file": "l068_53566576.wav",
+  "hash": "53566576"
+ },
+ "why#0": {
+  "bytes": 135212,
+  "chars": 16,
+  "file": "l007_7405da16.wav",
+  "hash": "7405da16"
+ },
+ "why#1": {
+  "bytes": 181292,
+  "chars": 19,
+  "file": "l008_851f6ca9.wav",
+  "hash": "851f6ca9"
+ },
+ "why#2": {
+  "bytes": 186412,
+  "chars": 21,
+  "file": "l009_65334371.wav",
+  "hash": "65334371"
+ },
+ "why#3": {
+  "bytes": 158252,
+  "chars": 18,
+  "file": "l010_c0399aaf.wav",
+  "hash": "c0399aaf"
+ },
+ "why#4": {
+  "bytes": 166956,
+  "chars": 21,
+  "file": "l011_3f66db7e.wav",
+  "hash": "3f66db7e"
+ },
+ "why#5": {
+  "bytes": 175148,
+  "chars": 19,
+  "file": "l012_6f1ef3d9.wav",
+  "hash": "6f1ef3d9"
+ },
+ "why#6": {
+  "bytes": 188460,
+  "chars": 22,
+  "file": "l013_5fee082e.wav",
+  "hash": "5fee082e"
+ },
+ "why#7": {
+  "bytes": 181292,
+  "chars": 21,
+  "file": "l014_eb6d8172.wav",
+  "hash": "eb6d8172"
+ }
+}
