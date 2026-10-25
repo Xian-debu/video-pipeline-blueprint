@@ -227,7 +227,7 @@ const GateCol: React.FC<{ view: "front" | "side" | "back"; left: number; at: num
   return (
     <div style={{ position: "absolute", left, top: 300, width: 520 }}>
       <Plate src={`char2/view_${view}.png`} left={0} top={0} width={520} height={330} label={`${view} · 我们的渲染`} at={atF} bg="#f7f7f5" />
-      <div style={{ marginTop: 14, display: "flex", gap: 34 }}>
+      <div style={{ marginTop: 344, display: "flex", gap: 34 }}>
         <div>
           <div style={{ fontFamily: FONT.mono, fontSize: FT.h1, color: C.cyan }}>{v.iou.toFixed(4)}</div>
           <div style={{ fontFamily: FONT.sans, fontSize: FT.label, color: C.inkFaint }}>剪影重合度 IoU</div>
@@ -292,7 +292,7 @@ const CLIP_MARKS: { k: number; clip: ClipName; label: string }[] = [
 export const SMotion: React.FC = () => {
   const p = phaseOf("motion", CLIP_MARKS.map((m) => m.k));
   const m = CLIP_MARKS[p];
-  const cam: CamMove = { az: [-64, -46], el: [4, 7], dist: [3.25, 3.0], fov: [30, 29], ty: [0.88, 0.9] };
+  const cam: CamMove = { az: [-64, -46], el: [4, 7], dist: [4.5, 4.15], fov: [30, 29], ty: [0.9, 0.92] };
   return (
     <>
       <Shot cam={cam} actor={{ clip: m.clip, scale: 1.72, frame: undefined }} accent="#5eead4" />
@@ -394,7 +394,7 @@ export const SClose: React.FC = () => (
     <div style={{ position: "absolute", left: PAD, top: 320, width: 900 }}>
       <Cmd at={at("close", 2)} accent>{"$ python3 scripts/char/gen.py --glb out/swift.glb\n$ python3 scripts/char2/views.py --gate\n$ python3 scripts/char2/spec.py --verify"}</Cmd>
       <div style={{ marginTop: 30 }}>
-        <Cmd at={at("close", 1)}>{"data/char/params.json      ← 剖面/部件/颜色参数\ndata/char/ref_views.json    ← 量出来的剖面\npublic/models/swift_v23.glb ← 16 骨 · 194,572 顶点"}</Cmd>
+        <Cmd at={at("close", 1)}>{"data/char/params.json      ← 剖面/部件/颜色参数\ndata/char/ref_views.json    ← 量出来的剖面\npublic/models/swift_v25.glb ← 16 骨 · 194,575 顶点"}</Cmd>
       </div>
     </div>
     <div style={{ position: "absolute", right: PAD, top: 330, width: 560, display: "flex", flexDirection: "column", gap: 18 }}>

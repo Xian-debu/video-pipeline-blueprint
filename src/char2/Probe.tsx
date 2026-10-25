@@ -76,7 +76,7 @@ const STAGE_MOODS = {
 export const Probe: React.FC<ProbeProps> = ({ view, clip, frame, tint, scale, focus, rig, exposure, light, env, mood = "stage" }) => {
   const M = STAGE_MOODS[mood];
   const { width, height } = useVideoConfig();
-  const glb = useGltf("models/swift_v23.glb");
+  const glb = useGltf("models/swift_v25.glb");
   const v = VIEWS[view];
   const f = focus === "head" ? { ...v, ...HEAD } : v;
   const rad = (f.az * Math.PI) / 180;

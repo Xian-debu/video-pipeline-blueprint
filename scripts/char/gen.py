@@ -437,10 +437,17 @@ for sign, tag in ((1, "l"), (-1, "r")):
         bpy.context.view_layer.objects.active = ob
         for m in list(ob.modifiers):
             bpy.ops.object.modifier_apply(modifier=m.name)
-        _z0 = min(v.co.z for v in ob.data.vertices)
+        _z0 = 0.0   # K99b: the ground plane IS the sole; min() kept the pre-clamp dip (-0.0176)
+        # K102: a hard clamp folds the ring under the paw and the folded edge reads as a
+        # zig-zag skirt in the closeup. Compress the last band quadratically instead: the
+        # sole still touches z0, but the transition has a tangent, so Catmull-Clark keeps
+        # it smooth.
+        _band = FC.get("sole_band", 0.030)
         for v in ob.data.vertices:
-            if v.co.z < _z0 + 0.020:
-                v.co.z = _z0
+            _dz = v.co.z - _z0
+            if _dz < _band:
+                _dz = max(_dz, 0.0)
+                v.co.z = _z0 + (_dz * _dz) / _band
         m2 = ob.modifiers.new("sub2", "SUBSURF")
         m2.levels = m2.render_levels = 1
 

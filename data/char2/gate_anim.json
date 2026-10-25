@@ -3,7 +3,7 @@
   "maxWeightSumErr": 6e-08,
   "maxInfluences": 3,
   "orphans": 0,
-  "verts": 194576
+  "verts": 194575
  },
  "clips": {
   "idle": {
@@ -75,7 +75,7 @@
  },
  "contract": {
   "bones": 16,
-  "glbSha": "ef3a9abaae9ecf29",
+  "glbSha": "0207a0d5a692abab",
   "prims": 7,
   "animBonesMatch": true
  },

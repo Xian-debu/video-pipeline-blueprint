@@ -1,9 +1,9 @@
 {
- "glb": "public/models/swift_v23.glb",
- "bytes": 16240256,
- "sha256": "ef3a9abaae9ecf298dec122c9233adabdec16008550bd0cded8ffe1025c6b9d3",
+ "glb": "public/models/swift_v25.glb",
+ "bytes": 16240176,
+ "sha256": "0207a0d5a692abab656ebcfb11d88ef4019ca6209e6c2aa5d73de5ffd732daa7",
  "generator": "Khronos glTF Blender I/O v5.2.40",
- "verts": 194576,
+ "verts": 194575,
  "tris": 384736,
  "primitives": [
   {
@@ -161,7 +161,7 @@
      "component": 5126,
      "min": [
       -0.22123563289642334,
-      -0.01760363020002842,
+      0,
       -0.11669744551181793
      ],
      "max": [
@@ -226,7 +226,7 @@
    ],
    "attributes": {
     "POSITION": {
-     "count": 4568,
+     "count": 4566,
      "type": "VEC3",
      "component": 5126,
      "min": [
@@ -241,42 +241,42 @@
      ]
     },
     "NORMAL": {
-     "count": 4568,
+     "count": 4566,
      "type": "VEC3",
      "component": 5126,
      "min": null,
      "max": null
     },
     "TEXCOORD_0": {
-     "count": 4568,
+     "count": 4566,
      "type": "VEC2",
      "component": 5126,
      "min": null,
      "max": null
     },
     "COLOR_0": {
-     "count": 4568,
+     "count": 4566,
      "type": "VEC4",
      "component": 5121,
      "min": null,
      "max": null
     },
     "COLOR_1": {
-     "count": 4568,
+     "count": 4566,
      "type": "VEC4",
      "component": 5123,
      "min": null,
      "max": null
     },
     "JOINTS_0": {
-     "count": 4568,
+     "count": 4566,
      "type": "VEC4",
      "component": 5121,
      "min": null,
      "max": null
     },
     "WEIGHTS_0": {
-     "count": 4568,
+     "count": 4566,
      "type": "VEC4",
      "component": 5126,
      "min": null,
@@ -296,7 +296,7 @@
    ],
    "attributes": {
     "POSITION": {
-     "count": 8238,
+     "count": 8237,
      "type": "VEC3",
      "component": 5126,
      "min": [
@@ -311,42 +311,42 @@
      ]
     },
     "NORMAL": {
-     "count": 8238,
+     "count": 8237,
      "type": "VEC3",
      "component": 5126,
      "min": null,
      "max": null
     },
     "TEXCOORD_0": {
-     "count": 8238,
+     "count": 8237,
      "type": "VEC2",
      "component": 5126,
      "min": null,
      "max": null
     },
     "COLOR_0": {
-     "count": 8238,
+     "count": 8237,
      "type": "VEC4",
      "component": 5121,
      "min": null,
      "max": null
     },
     "COLOR_1": {
-     "count": 8238,
+     "count": 8237,
      "type": "VEC4",
      "component": 5123,
      "min": null,
      "max": null
     },
     "JOINTS_0": {
-     "count": 8238,
+     "count": 8237,
      "type": "VEC4",
      "component": 5121,
      "min": null,
      "max": null
     },
     "WEIGHTS_0": {
-     "count": 8238,
+     "count": 8237,
      "type": "VEC4",
      "component": 5126,
      "min": null,
@@ -366,7 +366,7 @@
    ],
    "attributes": {
     "POSITION": {
-     "count": 4552,
+     "count": 4554,
      "type": "VEC3",
      "component": 5126,
      "min": [
@@ -381,42 +381,42 @@
      ]
     },
     "NORMAL": {
-     "count": 4552,
+     "count": 4554,
      "type": "VEC3",
      "component": 5126,
      "min": null,
      "max": null
     },
     "TEXCOORD_0": {
-     "count": 4552,
+     "count": 4554,
      "type": "VEC2",
      "component": 5126,
      "min": null,
      "max": null
     },
     "COLOR_0": {
-     "count": 4552,
+     "count": 4554,
      "type": "VEC4",
      "component": 5121,
      "min": null,
      "max": null
     },
     "COLOR_1": {
-     "count": 4552,
+     "count": 4554,
      "type": "VEC4",
      "component": 5123,
      "min": null,
      "max": null
     },
     "JOINTS_0": {
-     "count": 4552,
+     "count": 4554,
      "type": "VEC4",
      "component": 5121,
      "min": null,
      "max": null
     },
     "WEIGHTS_0": {
-     "count": 4552,
+     "count": 4554,
      "type": "VEC4",
      "component": 5126,
      "min": null,

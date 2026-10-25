@@ -45,7 +45,7 @@ def build():
             "note": "任务书点名的是 E:\\Strata-data\\models\\swift-IQ2_XS\\视图.png；与仓库里这张解码后逐像素相同",
         },
         "model": {
-            "glb": "public/models/swift_v23.glb",
+            "glb": "public/models/swift_v25.glb",
             "sha256": ledger["sha256"],
             "bytes": ledger["bytes"],
             "verts": ledger["verts"],

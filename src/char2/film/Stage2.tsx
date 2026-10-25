@@ -225,7 +225,7 @@ export const Shot: React.FC<ShotProps> = ({
 }) => {
   const frame = useCurrentFrame();
   const { width, height, durationInFrames } = useVideoConfig();
-  const glb = useGltf("models/swift_v23.glb");
+  const glb = useGltf("models/swift_v25.glb");
   // 相机进度用**本场的实际帧数**（Sequence 给的 durationInFrames），不信外部传的 span：
   // 这样改讲稿时长时镜头自动拉长/压短，不会有"相机走完了画面还在"的错位。
   const total = (span ?? 0) > 1 ? span! : Math.max(2, durationInFrames);
