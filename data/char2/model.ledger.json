@@ -1,0 +1,975 @@
+{
+ "glb": "public/models/swift_v19.glb",
+ "bytes": 16240000,
+ "sha256": "d649bd983dc9c7475adba16f8c841bfd43a9e664e9e6a3abfee6dddec2e9ab6a",
+ "generator": "Khronos glTF Blender I/O v5.2.40",
+ "verts": 194572,
+ "tris": 384736,
+ "primitives": [
+  {
+   "mesh": "Body",
+   "material": "BodyMask",
+   "baseColor": [
+    0.75,
+    0.65,
+    0.45
+   ],
+   "attributes": {
+    "POSITION": {
+     "count": 121922,
+     "type": "VEC3",
+     "component": 5126,
+     "min": [
+      -0.29653245210647583,
+      0.3030782639980316,
+      -0.21729885041713715
+     ],
+     "max": [
+      0.29653245210647583,
+      1.0000362396240234,
+      0.18450531363487244
+     ]
+    },
+    "NORMAL": {
+     "count": 121922,
+     "type": "VEC3",
+     "component": 5126,
+     "min": null,
+     "max": null
+    },
+    "TEXCOORD_0": {
+     "count": 121922,
+     "type": "VEC2",
+     "component": 5126,
+     "min": null,
+     "max": null
+    },
+    "COLOR_0": {
+     "count": 121922,
+     "type": "VEC4",
+     "component": 5121,
+     "min": null,
+     "max": null
+    },
+    "COLOR_1": {
+     "count": 121922,
+     "type": "VEC4",
+     "component": 5123,
+     "min": null,
+     "max": null
+    },
+    "JOINTS_0": {
+     "count": 121922,
+     "type": "VEC4",
+     "component": 5121,
+     "min": null,
+     "max": null
+    },
+    "WEIGHTS_0": {
+     "count": 121922,
+     "type": "VEC4",
+     "component": 5126,
+     "min": null,
+     "max": null
+    }
+   },
+   "indices": 731520,
+   "tris": 243840
+  },
+  {
+   "mesh": "Body",
+   "material": "BodyYellow",
+   "baseColor": [
+    0.82,
+    0.5,
+    0.045
+   ],
+   "attributes": {
+    "POSITION": {
+     "count": 20712,
+     "type": "VEC3",
+     "component": 5126,
+     "min": [
+      -0.3121494650840759,
+      0.04799998551607132,
+      -0.1191156655550003
+     ],
+     "max": [
+      0.3121494650840759,
+      0.6899998784065247,
+      0.09668231755495071
+     ]
+    },
+    "NORMAL": {
+     "count": 20712,
+     "type": "VEC3",
+     "component": 5126,
+     "min": null,
+     "max": null
+    },
+    "TEXCOORD_0": {
+     "count": 20712,
+     "type": "VEC2",
+     "component": 5126,
+     "min": null,
+     "max": null
+    },
+    "COLOR_0": {
+     "count": 20712,
+     "type": "VEC4",
+     "component": 5121,
+     "min": null,
+     "max": null
+    },
+    "COLOR_1": {
+     "count": 20712,
+     "type": "VEC4",
+     "component": 5123,
+     "min": null,
+     "max": null
+    },
+    "JOINTS_0": {
+     "count": 20712,
+     "type": "VEC4",
+     "component": 5121,
+     "min": null,
+     "max": null
+    },
+    "WEIGHTS_0": {
+     "count": 20712,
+     "type": "VEC4",
+     "component": 5126,
+     "min": null,
+     "max": null
+    }
+   },
+   "indices": 124224,
+   "tris": 41408
+  },
+  {
+   "mesh": "Body",
+   "material": "FootTan",
+   "baseColor": [
+    0.38,
+    0.26,
+    0.13
+   ],
+   "attributes": {
+    "POSITION": {
+     "count": 33284,
+     "type": "VEC3",
+     "component": 5126,
+     "min": [
+      -0.22123563289642334,
+      -0.01760363020002842,
+      -0.11669744551181793
+     ],
+     "max": [
+      0.22123563289642334,
+      0.06144336611032486,
+      0.1157422885298729
+     ]
+    },
+    "NORMAL": {
+     "count": 33284,
+     "type": "VEC3",
+     "component": 5126,
+     "min": null,
+     "max": null
+    },
+    "TEXCOORD_0": {
+     "count": 33284,
+     "type": "VEC2",
+     "component": 5126,
+     "min": null,
+     "max": null
+    },
+    "COLOR_0": {
+     "count": 33284,
+     "type": "VEC4",
+     "component": 5121,
+     "min": null,
+     "max": null
+    },
+    "COLOR_1": {
+     "count": 33284,
+     "type": "VEC4",
+     "component": 5123,
+     "min": null,
+     "max": null
+    },
+    "JOINTS_0": {
+     "count": 33284,
+     "type": "VEC4",
+     "component": 5121,
+     "min": null,
+     "max": null
+    },
+    "WEIGHTS_0": {
+     "count": 33284,
+     "type": "VEC4",
+     "component": 5126,
+     "min": null,
+     "max": null
+    }
+   },
+   "indices": 199680,
+   "tris": 66560
+  },
+  {
+   "mesh": "Body",
+   "material": "HandGrey",
+   "baseColor": [
+    0.19,
+    0.15,
+    0.12
+   ],
+   "attributes": {
+    "POSITION": {
+     "count": 4566,
+     "type": "VEC3",
+     "component": 5126,
+     "min": [
+      -0.30696818232536316,
+      0.32309043407440186,
+      0.02601625956594944
+     ],
+     "max": [
+      0.30696821212768555,
+      0.4069100320339203,
+      0.08994928002357483
+     ]
+    },
+    "NORMAL": {
+     "count": 4566,
+     "type": "VEC3",
+     "component": 5126,
+     "min": null,
+     "max": null
+    },
+    "TEXCOORD_0": {
+     "count": 4566,
+     "type": "VEC2",
+     "component": 5126,
+     "min": null,
+     "max": null
+    },
+    "COLOR_0": {
+     "count": 4566,
+     "type": "VEC4",
+     "component": 5121,
+     "min": null,
+     "max": null
+    },
+    "COLOR_1": {
+     "count": 4566,
+     "type": "VEC4",
+     "component": 5123,
+     "min": null,
+     "max": null
+    },
+    "JOINTS_0": {
+     "count": 4566,
+     "type": "VEC4",
+     "component": 5121,
+     "min": null,
+     "max": null
+    },
+    "WEIGHTS_0": {
+     "count": 4566,
+     "type": "VEC4",
+     "component": 5126,
+     "min": null,
+     "max": null
+    }
+   },
+   "indices": 23520,
+   "tris": 7840
+  },
+  {
+   "mesh": "Body",
+   "material": "EyeGreen",
+   "baseColor": [
+    0.33,
+    0.7,
+    0.38
+   ],
+   "attributes": {
+    "POSITION": {
+     "count": 8234,
+     "type": "VEC3",
+     "component": 5126,
+     "min": [
+      -0.09118001163005829,
+      0.8996237516403198,
+      0.04524380341172218
+     ],
+     "max": [
+      0.09118003398180008,
+      0.9583743810653687,
+      0.10360383987426758
+     ]
+    },
+    "NORMAL": {
+     "count": 8234,
+     "type": "VEC3",
+     "component": 5126,
+     "min": null,
+     "max": null
+    },
+    "TEXCOORD_0": {
+     "count": 8234,
+     "type": "VEC2",
+     "component": 5126,
+     "min": null,
+     "max": null
+    },
+    "COLOR_0": {
+     "count": 8234,
+     "type": "VEC4",
+     "component": 5121,
+     "min": null,
+     "max": null
+    },
+    "COLOR_1": {
+     "count": 8234,
+     "type": "VEC4",
+     "component": 5123,
+     "min": null,
+     "max": null
+    },
+    "JOINTS_0": {
+     "count": 8234,
+     "type": "VEC4",
+     "component": 5121,
+     "min": null,
+     "max": null
+    },
+    "WEIGHTS_0": {
+     "count": 8234,
+     "type": "VEC4",
+     "component": 5126,
+     "min": null,
+     "max": null
+    }
+   },
+   "indices": 44064,
+   "tris": 14688
+  },
+  {
+   "mesh": "Body",
+   "material": "Pupil",
+   "baseColor": [
+    0.01,
+    0.01,
+    0.012
+   ],
+   "attributes": {
+    "POSITION": {
+     "count": 4554,
+     "type": "VEC3",
+     "component": 5126,
+     "min": [
+      -0.07679931074380875,
+      0.9140331149101257,
+      0.09555210918188095
+     ],
+     "max": [
+      0.07679931074380875,
+      0.9439680576324463,
+      0.10739155858755112
+     ]
+    },
+    "NORMAL": {
+     "count": 4554,
+     "type": "VEC3",
+     "component": 5126,
+     "min": null,
+     "max": null
+    },
+    "TEXCOORD_0": {
+     "count": 4554,
+     "type": "VEC2",
+     "component": 5126,
+     "min": null,
+     "max": null
+    },
+    "COLOR_0": {
+     "count": 4554,
+     "type": "VEC4",
+     "component": 5121,
+     "min": null,
+     "max": null
+    },
+    "COLOR_1": {
+     "count": 4554,
+     "type": "VEC4",
+     "component": 5123,
+     "min": null,
+     "max": null
+    },
+    "JOINTS_0": {
+     "count": 4554,
+     "type": "VEC4",
+     "component": 5121,
+     "min": null,
+     "max": null
+    },
+    "WEIGHTS_0": {
+     "count": 4554,
+     "type": "VEC4",
+     "component": 5126,
+     "min": null,
+     "max": null
+    }
+   },
+   "indices": 23520,
+   "tris": 7840
+  },
+  {
+   "mesh": "Body",
+   "material": "MouthDark",
+   "baseColor": [
+    0.16,
+    0.09,
+    0.05
+   ],
+   "attributes": {
+    "POSITION": {
+     "count": 1300,
+     "type": "VEC3",
+     "component": 5126,
+     "min": [
+      -0.03346472978591919,
+      0.880577802658081,
+      0.0966215506196022
+     ],
+     "max": [
+      0.03346473351120949,
+      0.894140899181366,
+      0.10507433861494064
+     ]
+    },
+    "NORMAL": {
+     "count": 1300,
+     "type": "VEC3",
+     "component": 5126,
+     "min": null,
+     "max": null
+    },
+    "TEXCOORD_0": {
+     "count": 1300,
+     "type": "VEC2",
+     "component": 5126,
+     "min": null,
+     "max": null
+    },
+    "COLOR_0": {
+     "count": 1300,
+     "type": "VEC4",
+     "component": 5121,
+     "min": null,
+     "max": null
+    },
+    "COLOR_1": {
+     "count": 1300,
+     "type": "VEC4",
+     "component": 5123,
+     "min": null,
+     "max": null
+    },
+    "JOINTS_0": {
+     "count": 1300,
+     "type": "VEC4",
+     "component": 5121,
+     "min": null,
+     "max": null
+    },
+    "WEIGHTS_0": {
+     "count": 1300,
+     "type": "VEC4",
+     "component": 5126,
+     "min": null,
+     "max": null
+    }
+   },
+   "indices": 7680,
+   "tris": 2560
+  }
+ ],
+ "skins": [
+  {
+   "name": "CharRig",
+   "joints": [
+    "root",
+    "spine",
+    "chest",
+    "arm_l",
+    "forearm_l",
+    "hand_l",
+    "arm_r",
+    "forearm_r",
+    "hand_r",
+    "head",
+    "thigh_l",
+    "shin_l",
+    "foot_l",
+    "thigh_r",
+    "shin_r",
+    "foot_r"
+   ]
+  }
+ ],
+ "nodes": [
+  {
+   "i": 0,
+   "name": "hand_l",
+   "children": null,
+   "mesh": null,
+   "skin": null,
+   "t": [
+    0.0,
+    0.1423,
+    0.0
+   ],
+   "r": [
+    -0.02566,
+    0.15811,
+    -0.15811,
+    0.97434
+   ],
+   "s": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "i": 1,
+   "name": "forearm_l",
+   "children": [
+    0
+   ],
+   "mesh": null,
+   "skin": null,
+   "t": [
+    0.0,
+    0.16378,
+    0.0
+   ],
+   "r": [
+    0.01411,
+    -0.25583,
+    0.26496,
+    0.9296
+   ],
+   "s": [
+    1.0,
+    1,
+    1.0
+   ]
+  },
+  {
+   "i": 2,
+   "name": "arm_l",
+   "children": [
+    1
+   ],
+   "mesh": null,
+   "skin": null,
+   "t": [
+    0.2,
+    0.04,
+    0
+   ],
+   "r": [
+    -0.98845,
+    -0.10685,
+    -0.10685,
+    0.01155
+   ],
+   "s": [
+    1.0,
+    1,
+    1
+   ]
+  },
+  {
+   "i": 3,
+   "name": "hand_r",
+   "children": null,
+   "mesh": null,
+   "skin": null,
+   "t": [
+    -0.0,
+    0.1423,
+    0.0
+   ],
+   "r": [
+    -0.02566,
+    -0.15811,
+    0.15811,
+    0.97434
+   ],
+   "s": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "i": 4,
+   "name": "forearm_r",
+   "children": [
+    3
+   ],
+   "mesh": null,
+   "skin": null,
+   "t": [
+    -0.0,
+    0.16378,
+    0.0
+   ],
+   "r": [
+    0.01411,
+    0.25583,
+    -0.26496,
+    0.9296
+   ],
+   "s": [
+    1.0,
+    1,
+    1.0
+   ]
+  },
+  {
+   "i": 5,
+   "name": "arm_r",
+   "children": [
+    4
+   ],
+   "mesh": null,
+   "skin": null,
+   "t": [
+    -0.2,
+    0.04,
+    0
+   ],
+   "r": [
+    -0.98845,
+    0.10685,
+    0.10685,
+    0.01155
+   ],
+   "s": [
+    1.0,
+    1,
+    1
+   ]
+  },
+  {
+   "i": 6,
+   "name": "head",
+   "children": null,
+   "mesh": null,
+   "skin": null,
+   "t": [
+    0,
+    0.18,
+    0
+   ],
+   "r": [
+    0,
+    0,
+    0,
+    1
+   ],
+   "s": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "i": 7,
+   "name": "chest",
+   "children": [
+    2,
+    5,
+    6
+   ],
+   "mesh": null,
+   "skin": null,
+   "t": [
+    0,
+    0.2,
+    0
+   ],
+   "r": [
+    0,
+    0,
+    0,
+    1
+   ],
+   "s": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "i": 8,
+   "name": "spine",
+   "children": [
+    7
+   ],
+   "mesh": null,
+   "skin": null,
+   "t": [
+    0,
+    0.12,
+    0
+   ],
+   "r": [
+    0,
+    0,
+    0,
+    1
+   ],
+   "s": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "i": 9,
+   "name": "foot_l",
+   "children": null,
+   "mesh": null,
+   "skin": null,
+   "t": [
+    -0.0,
+    0.20002,
+    -0.0
+   ],
+   "r": [
+    -0.60258,
+    0.04539,
+    -0.05443,
+    0.79491
+   ],
+   "s": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "i": 10,
+   "name": "shin_l",
+   "children": [
+    9
+   ],
+   "mesh": null,
+   "skin": null,
+   "t": [
+    0.0,
+    0.20025,
+    0.0
+   ],
+   "r": [
+    -0.00057,
+    -0.01748,
+    0.01747,
+    0.99969
+   ],
+   "s": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "i": 11,
+   "name": "thigh_l",
+   "children": [
+    10
+   ],
+   "mesh": null,
+   "skin": null,
+   "t": [
+    0.09,
+    0.16,
+    0
+   ],
+   "r": [
+    -0.99938,
+    -0.02497,
+    -0.02497,
+    0.00062
+   ],
+   "s": [
+    1.0,
+    1.0,
+    1
+   ]
+  },
+  {
+   "i": 12,
+   "name": "foot_r",
+   "children": null,
+   "mesh": null,
+   "skin": null,
+   "t": [
+    0.0,
+    0.20002,
+    -0.0
+   ],
+   "r": [
+    -0.60258,
+    -0.04539,
+    0.05443,
+    0.79491
+   ],
+   "s": [
+    1.0,
+    1.0,
+    1.0
+   ]
+  },
+  {
+   "i": 13,
+   "name": "shin_r",
+   "children": [
+    12
+   ],
+   "mesh": null,
+   "skin": null,
+   "t": [
+    -0.0,
+    0.20025,
+    0.0
+   ],
+   "r": [
+    -0.00057,
+    0.01748,
+    -0.01747,
+    0.99969
+   ],
+   "s": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "i": 14,
+   "name": "thigh_r",
+   "children": [
+    13
+   ],
+   "mesh": null,
+   "skin": null,
+   "t": [
+    -0.09,
+    0.16,
+    0
+   ],
+   "r": [
+    -0.99938,
+    0.02497,
+    0.02497,
+    0.00062
+   ],
+   "s": [
+    1.0,
+    1.0,
+    1
+   ]
+  },
+  {
+   "i": 15,
+   "name": "root",
+   "children": [
+    8,
+    11,
+    14
+   ],
+   "mesh": null,
+   "skin": null,
+   "t": [
+    0,
+    0.3,
+    0
+   ],
+   "r": [
+    0,
+    0,
+    0,
+    1
+   ],
+   "s": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "i": 16,
+   "name": "Character",
+   "children": null,
+   "mesh": 0,
+   "skin": 0,
+   "t": [
+    0,
+    0,
+    0
+   ],
+   "r": [
+    0,
+    0,
+    0,
+    1
+   ],
+   "s": [
+    1,
+    1,
+    1
+   ]
+  },
+  {
+   "i": 17,
+   "name": "CharRig",
+   "children": [
+    16,
+    15
+   ],
+   "mesh": null,
+   "skin": null,
+   "t": [
+    0,
+    0,
+    0
+   ],
+   "r": [
+    0,
+    0,
+    0,
+    1
+   ],
+   "s": [
+    1,
+    1,
+    1
+   ]
+  }
+ ],
+ "has": {
+  "color0": true,
+  "joints": true,
+  "weights": true,
+  "normals": true,
+  "uv": true
+ }
+}

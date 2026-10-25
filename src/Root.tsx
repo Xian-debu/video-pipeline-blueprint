@@ -22,6 +22,7 @@ import { Hawk, HAWK_TOTAL, HAWK_FPS } from "./hawk/Hawk";
 import { Arc, ARC_TOTAL, ARC_FPS } from "./arc/Arc";
 import { Quickselect, QUICKSELECT_TOTAL, QUICKSELECT_FPS } from "./quickselect/Quickselect";
 import { Char, CHAR_TOTAL, CHAR_FPS } from "./char/Char";
+import { Probe as Char2Probe } from "./char2/Probe";
 import { LintFixtures } from "./qa/LintFixtures";
 
 /**
@@ -126,6 +127,15 @@ export const RemotionRoot: React.FC = () => {
         width={1920}
         height={1080}
         defaultProps={{ music: null, narration: null }}
+      />
+      <Composition
+        id="Char2Probe"
+        component={Char2Probe}
+        durationInFrames={60}
+        fps={30}
+        width={1920}
+        height={1080}
+        defaultProps={{ view: "front", clip: "idle", frame: 0, tint: "yellow", scale: 1, focus: "body", rig: "neutral", exposure: 1, light: 1.12, env: 0.12 }}
       />
       <Composition
         id="Multiplication"

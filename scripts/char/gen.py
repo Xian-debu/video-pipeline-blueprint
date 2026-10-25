@@ -46,6 +46,11 @@ RES = arg("--res", "1080p")
 SAMPLES = int(arg("--samples", "64"))
 JOBS = [j for j in arg("--jobs", "compare").split(",") if j]
 GLB = arg("--glb")
+# GLB 里要不要把修改器（subsurf）烘进去？要。早先 --glb 导出没带 export_apply，
+# 于是 three.js 拿到的是**未细分**的原始放样：顶点法线还在，但 C0 环接缝和头顶
+# 那圈 8 环穹顶全是硬折——画面上一眼就是"多面体帽子"。而 Blender 的 Cycles 静帧
+# 走的是细分后的网格，两边根本不是同一个模型（docs/46 K98）。
+GLB_SUBSURF = int(arg("--glb-subsurf", "1"))
 COLOR = arg("--color")
 PATCH_MODE = arg("--patch-mode", "mask")
 T0 = time.time()
@@ -105,7 +110,12 @@ def body_ab(t):
     sl, sr = interp(t, PSL, PSR)
     a = max((r - l) / 2, 0.003)
     b = max((sr - sl) / 2, 0.003)
-    cy = (sl + sr) / 2
+    # The side crop faces RIGHT (+x = the character's face), while in Blender the face is
+    # at -Y. Keeping the crop's sign here mirrored the whole depth profile: the reference
+    # leans BACK over the hips and this model leaned forward by the same amount (0.058h at
+    # 0.2h), which cost 8 points of side silhouette IoU and made the two profiles disagree
+    # exactly where the arm is not in the way. y_model = -x_crop.
+    cy = -(sl + sr) / 2
     ab = P.get("arm_band")
     if ab:
         k = max(0.0, 1.0 - abs(t - ab["t"]) / ab["w"])
@@ -276,11 +286,26 @@ def weight(ob, fn):
 # ---------------------------------------------------------------- build the character
 build_t0 = time.time()
 TB, TE, NR = P["body_top"], P["body_bottom"], P["body_rings"]
+# K99: the crown must not push the model past height 1.0. The reference frame puts the
+# sole at 0 and the crown at 1.0, so whatever the dome rises must be taken *out* of the
+# body's top: solve TB = DOME_H so the apex lands exactly on 1.0 (a fixed DOME_H made the
+# whole character 6% too tall, which by itself cost 5 points of silhouette IoU -- every
+# row sampled a lower slice of the profile than it should).
+for _ in range(30):
+    _a0, _b0, _ = body_ab(TB)
+    TB = 0.9 * max(_a0, _b0)
+P["body_top"] = TB
 body_rings = []
 # crown dome: the reference's top is a *rounded* plateau 0.054h wide, not a disc
 # with a sharp rim (the rim read as a tin can in the closeups).
 a0, b0, cy0 = body_ab(TB)
-DOME_H = 0.030
+# 穹顶高度必须跟顶部半径成比例。写死 0.030 的后果是：顶部半径只有 ~0.011，
+# 却拉出 0.03 高的锥子——渲染出来就是"尖帽"，而且整只人高了 3%（宽度占比被压低，
+# 三视图比对的宽高比随之差 4.5%，docs/46 K98b）。改成 0.9×半径后穹顶仍是圆的，
+# 但总高只多 0.7%。
+# apex = 1 - TB + DOME_H - subsurf_drop. Measured on real exports: DOME_H = 1.00*TB gives
+# apex 0.9851, DOME_H = 1.45*TB gives 1.0235 -> solve 1.175*TB for apex == 1.000.
+DOME_H = 1.175 * TB
 for k in range(7, -1, -1):   # k=8 would duplicate the body's top ring and leave a seam
     f = max(math.sin((k / 8.0) * math.pi / 2), 0.055)
     body_rings.append((1 - TB + DOME_H * (1 - f), cy0, a0 * f, b0 * f))
@@ -326,6 +351,9 @@ for sign, tag in ((1, "l"), (-1, "r")):
         f = (LC["top"] - v.co.z) / max(LC["top"] - LC["ankle"], 1e-4)
         f = min(max(f, 0.0), 1.0)
         v.co.x = float(v.co.x + sign * (LC["x"] + (LC["x_ankle"] - LC["x"]) * f))
+        # the legs hang BEHIND the torso centre (Blender +y = back); leaving them on y=0
+        # put the whole lower leg 0.02-0.03h in front of the reference profile
+        v.co.y = float(v.co.y + LC.get("dy", 0.0))
 
     def leg_w(co, tag=tag):
         z = co.z
@@ -378,19 +406,38 @@ def paw(name, sections, segs=40):
 for sign, tag in ((1, "l"), (-1, "r")):
     h, ln, wd = FC["h"], FC["len"], FC["w"]
     y0 = FC["y"]
+    # K99b: the mid-foot section is a full circle of radius h, so the paw dipped 0.0172h
+    # below the ground plane -- the whole character then measured 1.017h tall against a
+    # reference frame whose sole sits exactly at 0. Seat the sole on z = 0 instead.
+    fz = FC.get("z", 0.0)
     secs = [
-        (y0 + ln * 0.50, wd * 0.42, h * 0.52, h * 0.62),
-        (y0 + ln * 0.34, wd * 0.72, h * 0.80, h * 0.58),
-        (y0 + ln * 0.08, wd * 1.00, h * 1.00, h * 0.52),
-        (y0 - ln * 0.14, wd * 0.92, h * 0.86, h * 0.50),
-        (y0 - ln * 0.34, wd * 0.70, h * 0.60, h * 0.47),
-        (y0 - ln * 0.50, wd * 0.34, h * 0.34, h * 0.42),
+        (y0 + ln * 0.50, wd * 0.42, h * 0.52, h * 0.62 + fz),
+        (y0 + ln * 0.34, wd * 0.72, h * 0.80, h * 0.58 + fz),
+        (y0 + ln * 0.08, wd * 1.00, h * 1.00, h * 0.52 + fz),
+        (y0 - ln * 0.14, wd * 0.92, h * 0.86, h * 0.50 + fz),
+        (y0 - ln * 0.34, wd * 0.70, h * 0.60, h * 0.47 + fz),
+        (y0 - ln * 0.50, wd * 0.34, h * 0.34, h * 0.42 + fz),
     ]
     ob = paw("Foot" + tag, secs)
     weight(ob, lambda co, tag=tag: {"foot_" + tag: 1.0})
     ob.location = (sign * FC["x"], 0.0, 0.0)
     ob.rotation_euler = Euler((0, 0, math.radians(-sign * FC["yaw"])))
     subsurf(ob, 2)
+    if FC.get("sole_flat"):
+        # The reference's sole is FLAT on the ground: a chain of full ellipse sections
+        # leaves a rounded ball, so the bottom rows of the silhouette collapse to a 0.02h
+        # sliver instead of the reference's full-length footprint (worth a third of the
+        # side-profile RMSE). Clamping before subsurf does not survive Catmull-Clark, so
+        # bake the modifier, clamp the real vertices, then add one smoothing level back.
+        bpy.context.view_layer.objects.active = ob
+        for m in list(ob.modifiers):
+            bpy.ops.object.modifier_apply(modifier=m.name)
+        _z0 = min(v.co.z for v in ob.data.vertices)
+        for v in ob.data.vertices:
+            if v.co.z < _z0 + 0.020:
+                v.co.z = _z0
+        m2 = ob.modifiers.new("sub2", "SUBSURF")
+        m2.levels = m2.render_levels = 1
 
 AC = P["arm"]
 for sign, tag in ((1, "l"), (-1, "r")):
@@ -860,8 +907,20 @@ for job in JOBS:
 
 if GLB:
     os.makedirs(os.path.dirname(GLB) or ".", exist_ok=True)
+    # 只降细分级别，不删修改器：级别 1 已经足够把环接缝和头顶穹顶拉平，
+    # 三角数却从 128 万降到 32 万（渲染端还能跑实时）。
+    dumped = {}
+    for ob in bpy.data.objects:
+        if ob.type != "MESH":
+            continue
+        for m in ob.modifiers:
+            if m.type == "SUBSURF":
+                dumped[ob.name] = max(dumped.get(ob.name, 0), m.levels)
+                m.levels = min(m.levels, GLB_SUBSURF)
+                m.render_levels = m.levels
     bpy.ops.object.select_all(action="SELECT")
-    bpy.ops.export_scene.gltf(filepath=GLB, export_format="GLB", use_selection=False)
+    bpy.ops.export_scene.gltf(filepath=GLB, export_format="GLB", use_selection=False, export_apply=True)
+    REPORT["glb_subsurf"] = {"level": GLB_SUBSURF, "was": dumped}
     REPORT["glb"] = {"path": GLB, "bytes": os.path.getsize(GLB), "sha256": sha(GLB)}
     print("GLB", GLB, os.path.getsize(GLB), flush=True)
 
