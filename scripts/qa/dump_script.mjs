@@ -18,17 +18,18 @@ const outfile = join(dir, "script.mjs");
 
 try {
   await build({ entryPoints: [entry], bundle: true, format: "esm", platform: "node", outfile, logLevel: "error" });
-  const { SCENES, LINES, TOTAL_SEC, FPS } = await import(pathToFileURL(outfile).href);
+  const { SCENES, LINES, TOTAL_SEC, TOTAL, FPS } = await import(pathToFileURL(outfile).href);
+  const totalSec = TOTAL_SEC ?? (TOTAL && FPS ? TOTAL / FPS : null);
   const payload = {
     entry: entry.replace(resolve(".") + "/", ""),
     fps: FPS,
-    totalSec: TOTAL_SEC,
+    totalSec,
     scenes: SCENES.map((s) => ({ id: s.id, chapter: s.chapter, start: s.start, dur: s.dur })),
     lines: LINES.map((l) => ({ scene: l.scene, index: l.index, start: l.start, dur: l.dur, speech: l.speech })),
   };
   mkdirSync(dirname(out), { recursive: true });
   writeFileSync(out, JSON.stringify(payload, null, 1) + "\n", "utf8");
-  console.log("wrote " + out + " (" + payload.lines.length + " lines, " + TOTAL_SEC.toFixed(2) + " s)");
+  console.log("wrote " + out + " (" + payload.lines.length + " lines, " + (totalSec ?? 0).toFixed(2) + " s)");
 } finally {
   rmSync(dir, { recursive: true, force: true });
 }
