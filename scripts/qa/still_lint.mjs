@@ -5,7 +5,7 @@
  *
  *   node scripts/qa/still_lint.mjs                 # default targets
  *   node scripts/qa/still_lint.mjs --fixtures      # QA fixtures must be reported
- *   node scripts/qa/still_lint.mjs --compositions Lecture --frames 300,2500
+ *   node scripts/qa/still_lint.mjs --compositions <Composition> --frames 300,2500
  *
  * Rules (each is a failure, not a warning):
  *   canvas   an element's box leaves the frame

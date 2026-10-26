@@ -8,7 +8,7 @@
  * drift from the video).
  *
  * Usage: node scripts/export/publish.mjs [--out=out/export] [--cover-frame=180]
- *          [--composition=Lecture] [--script=src/lecture/script.ts] [--prefix=lecture]
+ *          [--composition=<Composition>] [--script=<entry.ts>] [--prefix=<slug>]
  * Outputs: <prefix>.srt, <prefix>.chapters.txt, <prefix>.chapters.ffmeta.txt,
  *          cover.png (1920x1080) — the cover is the frame of that composition.
  */
@@ -31,10 +31,18 @@ const argOf = (name, fallback) => {
 const OUT = path.resolve(argOf("out", "out/export"));
 const COVER_FRAME = Number(argOf("cover-frame", "180"));
 const FPS = 30;
-/** A film names itself: the same exporter serves every composition. */
-const COMPOSITION = argOf("composition", "Lecture");
-const SCRIPT = path.resolve(argOf("script", "src/lecture/script.ts"));
-const PREFIX = argOf("prefix", COMPOSITION === "Lecture" ? "lecture" : COMPOSITION.toLowerCase());
+/** A film names itself: the same exporter serves every composition, and no name is baked in. */
+const COMPOSITION = argOf("composition", null);
+if (!COMPOSITION) {
+  console.error("publish: --composition=<CompositionId> is required (the exporter keeps no film names)");
+  process.exit(2);
+}
+const SCRIPT = path.resolve(argOf("script", ""));
+if (!SCRIPT.endsWith(".ts") && !SCRIPT.endsWith(".tsx")) {
+  console.error("publish: --script=<entry.ts> is required");
+  process.exit(2);
+}
+const PREFIX = argOf("prefix", COMPOSITION.toLowerCase());
 
 /** Bundle the film script so this stays a plain Node program (no ts-node). */
 const loadScript = async () => {

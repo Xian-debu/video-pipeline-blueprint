@@ -61,9 +61,9 @@ Bootstrap finished.
 
   npm run studio      # live preview
   npm run verify      # end-to-end smoke test (render + audio + QA gates)
-  npm run render -- Lecture out/lecture.mp4
+  npm run render -- <Composition> out/<film>.mp4
 
 Long renders: run them under a supervisor that survives your shell, e.g.
-  systemd-run --unit=lecture --collect --property=StandardOutput=file:/tmp/lecture.log \
-    /path/to/repo/scripts/render_lecture.sh
+  systemd-run --unit=film --collect --property=StandardOutput=file:/tmp/film.log \
+    npx remotion render <Composition> out/<film>.mp4
 DONE

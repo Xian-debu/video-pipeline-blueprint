@@ -13,7 +13,7 @@
 // It deliberately does NOT cover scene timing: if a scene's duration changed, its frame count
 // changes, and a segment is only reused when the frame count matches exactly.
 //
-//   node scripts/render_scenes.mjs --composition=Multiplication --script=src/mult/script.ts \\
+//   node scripts/render_scenes.mjs --composition=<Composition> --script=src/<film>/script.ts \\
 //     --out=out/package/scenes --output=out/package/raw_video.mp4
 //   node scripts/render_scenes.mjs ... --only=magic      # smoke test: render one scene, no concat
 //   node scripts/render_scenes.mjs ... --force           # ignore the cache

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """How much of the picture is moving while the narration talks?
 
-    python3 scripts/qa/pacing.py out/package/Hawk.mp4 --lines data/hawk/lines.json
+    python3 scripts/qa/pacing.py out/package/<Film>.mp4 --lines data/<film>/lines.json
 
 An explainer can be correct and still be unwatchable: a card that stands still for ninety seconds
 while the voice keeps going reads as a slide, not a film. This measures that directly instead of
