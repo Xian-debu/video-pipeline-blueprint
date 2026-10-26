@@ -73,7 +73,7 @@ const checkImports = (root, owner, allowedSeries) => {
   if (!isDir(root)) return;
   for (const file of walk(root).filter((f) => /\.(ts|tsx)$/.test(f))) {
     const text = fs.readFileSync(file, "utf8");
-    for (const m of text.matchAll(/(?:from\s+|import\s*\(\s*)["']([^"']+)["']/g)) {
+    for (const m of text.matchAll(/(?:from\s+|import\s*\(\s*|import\s+)["']([^"']+)["']/g)) {
       const spec = m[1];
       if (!spec.startsWith(".")) continue;
       const abs = path.resolve(path.dirname(file), spec);
@@ -87,7 +87,10 @@ const checkImports = (root, owner, allowedSeries) => {
         continue;
       }
       const relSrc = path.relative(srcDir, abs);
-      if (relSrc.startsWith("..")) continue;
+      if (relSrc.startsWith("..")) {
+        fail("foreign", file, "import escapes src/: " + path.relative(ROOT, abs));
+        continue;
+      }
       const parts = relSrc.split(path.sep);
       if (parts[0] === owner || ENGINE.has(parts[0])) {
         if (parts[0] === "series" && allowedSeries && parts[1] !== allowedSeries) {
