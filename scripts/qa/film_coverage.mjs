@@ -1,49 +1,89 @@
-// The tree and the film map must agree, in both directions.
+// The mounted tree and the content manifest must agree, in both directions.
 //
 //   node scripts/qa/film_coverage.mjs
 //
-// A film exists as src/<dir>/script.ts. If such a file is not in scripts/film_registry.mjs then
-// every gate that iterates the map silently ignores that film — which is exactly how the Hawk
-// still lint passed over zero frames (K27). If the map names a script that does not exist, the
-// next gate crashes halfway through instead of saying what is wrong. Both are cheap to prove.
+// films.mjs check proves the bytes of every mount. This gate proves the structure around them:
+// a film's script, entry, data directory and generated register all exist, no unregistered film
+// directory is sitting in src/ or data/, and the generated register names every film. The old
+// failure mode (K27) was a silent skip: a film present on disk but absent from the map every gate
+// iterated. There is no map any more; the manifest is the map, and this is the gate that says so.
 import fs from "node:fs";
 import path from "node:path";
 
-import { FILMS } from "../film_registry.mjs";
+import { ROOT, loadManifest } from "../lib/content.mjs";
 
-const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), "../..");
-const onDisk = fs
-  .readdirSync(path.join(ROOT, "src"), { withFileTypes: true })
-  .filter((e) => e.isDirectory() && fs.existsSync(path.join(ROOT, "src", e.name, "script.ts")))
-  .map((e) => "src/" + e.name + "/script.ts");
-
-const registered = Object.entries(FILMS).map(([id, f]) => ({ id, script: f.script, prefix: f.prefix }));
+const ENGINE_SRC = new Set(["design", "storyboard", "qa", "showcase", "series"]);
+const SHARED_DATA = new Set(["design.spec.json", "type-exceptions.json"]);
+const manifest = loadManifest(ROOT);
 const problems = [];
+const films = manifest.films ?? [];
 
-for (const script of onDisk) {
-  if (!registered.some((r) => r.script === script)) {
-    problems.push(script + " has a film script but no entry in scripts/film_registry.mjs "
-      + "(gates that iterate the map will skip it)");
+if (!manifest.contentRoot) {
+  console.log("film coverage: engine-only mode (no content repo mounted)");
+  process.exit(0);
+}
+if (!films.length) {
+  console.log("film coverage: content repo mounted, 0 films (catalog has no packs)");
+  process.exit(0);
+}
+
+const srcDir = path.join(ROOT, "src");
+const dataDir = path.join(ROOT, "data");
+const dirs = (p) => fs.readdirSync(p, { withFileTypes: true })
+  .filter((e) => e.isDirectory() && !e.name.startsWith(".")).map((e) => e.name);
+
+for (const film of films) {
+  const script = path.join(srcDir, film.id, "script.ts");
+  const data = path.join(ROOT, film.dataDir);
+  const draft = film.status === "draft";
+  if (!fs.existsSync(script)) {
+    if (!draft) problems.push(film.id + ": missing mounted " + path.relative(ROOT, script));
+    else console.log("  note: " + film.id + " is draft; no script.ts yet");
+  }
+  if (!fs.existsSync(data)) problems.push(film.id + ": missing mounted " + path.relative(ROOT, data));
+  const entry = path.join(srcDir, film.id, path.basename(film.entry));
+  if (!fs.existsSync(entry)) problems.push(film.id + ": entry " + film.entry + " is not mounted as " + path.relative(ROOT, entry));
+  if (fs.existsSync(script)) {
+    const text = fs.readFileSync(script, "utf8");
+    const hasExport = (name) =>
+      new RegExp("export\\s+const\\s+" + name + "\\b").test(text) ||
+      new RegExp("export\\s+const\\s*\\{[^}]*\\b" + name + "\\b").test(text) ||
+      new RegExp("export\\s*\\{[^}]*\\b" + name + "\\b").test(text);
+    for (const need of ["SCENES", "FPS"]) {
+      if (!hasExport(need)) problems.push(film.id + ": script.ts does not export " + need);
+    }
+  }
+  for (const m of film.mounts ?? []) {
+    if (!fs.existsSync(path.join(ROOT, m.to))) problems.push(film.id + ": mount missing " + m.to);
   }
 }
-for (const r of registered) {
-  if (!fs.existsSync(path.join(ROOT, r.script))) problems.push("film_registry.mjs names " + r.id + " but " + r.script + " does not exist");
-  if (!r.prefix) problems.push("film_registry.mjs: " + r.id + " has no export prefix");
+
+const registry = fs.readFileSync(path.join(srcDir, "films.generated.tsx"), "utf8");
+const root = fs.readFileSync(path.join(srcDir, "Root.tsx"), "utf8");
+if (!root.includes("films.generated")) problems.push("src/Root.tsx does not import the generated film register");
+for (const film of films) {
+  if (!registry.includes(JSON.stringify(film.id))) problems.push(film.id + ": not in src/films.generated.tsx (run sync)");
 }
-const prefixes = registered.map((r) => r.prefix);
-for (const p of new Set(prefixes)) {
-  if (prefixes.filter((x) => x === p).length > 1) problems.push("two films share the export prefix \"" + p + "\"");
+
+const filmIds = new Set(films.map((f) => f.id));
+for (const d of dirs(srcDir)) {
+  if (!ENGINE_SRC.has(d) && !filmIds.has(d)) problems.push("src/" + d + "/ is not an engine directory and not a manifest film");
 }
-// A film registered but missing from src/Root.tsx renders nothing, and no other gate says so.
-const root = fs.readFileSync(path.join(ROOT, "src/Root.tsx"), "utf8");
-for (const r of registered) {
-  if (!root.includes('id="' + r.id + '"')) problems.push(r.id + " is in film_registry.mjs but src/Root.tsx registers no composition with that id");
+const dataTops = new Set(films.map((f) => f.dataDir.split("/").pop()));
+for (const d of dirs(dataDir)) {
+  if (d === "series") continue;
+  if (!dataTops.has(d)) problems.push("data/" + d + "/ is not a manifest film directory");
+}
+for (const f of fs.readdirSync(dataDir, { withFileTypes: true })) {
+  if (f.isFile() && f.name.endsWith(".json") && !SHARED_DATA.has(f.name)) {
+    problems.push("data/" + f.name + " is film data at data/ root");
+  }
 }
 
 if (problems.length) {
-  console.error("FAIL film map and tree disagree (" + problems.length + ")");
+  console.error("FAIL film coverage (" + problems.length + ")");
   for (const p of problems) console.error("  " + p);
   process.exit(1);
 }
-console.log("film coverage: " + onDisk.length + " film scripts on disk, all registered ("
-  + registered.map((r) => r.id).join(", ") + ")");
+console.log("film coverage: " + films.length + " film(s), mounts/entry/script/data registered ("
+  + films.map((f) => f.id).join(", ") + ")");

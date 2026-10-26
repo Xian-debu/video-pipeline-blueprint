@@ -1,31 +1,28 @@
 #!/usr/bin/env bash
-# End-to-end smoke test: typecheck -> design check -> still lint -> stills -> 30 s video with score
-# -> loudness -> flicker QA.
-# It does NOT need the local TTS model; narration is verified separately (docs/deployment.md step 4).
+# Engine end-to-end smoke test: mounts -> contract -> stills -> 3D props -> 30 s showreel ->
+# loudness -> flicker. It needs neither the local TTS model nor any film: the engine is usable,
+# and verifiable, with zero content mounted.
+#
+# A film's own gates live with its content pack and run through video_project/tools/verify.sh:
+# the engine owns the craft, the content repo owns the claims.
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 [ -x "$ROOT/.tools/node/bin/node" ] && export PATH="$ROOT/.tools/node/bin:$PATH"
 OUT="$ROOT/out/verify"
-PYTHON="${PYTHON:-python3}"
+PYTHON=python3
 mkdir -p "$OUT"
 
 step() { printf '\n== %s\n' "$*"; }
 
-# Derived numbers are not committed (see scripts/film_registry.mjs: gears and hawk each name the
-# generator that writes them). A clean clone only has the sources, so the generators must run before
-# anything imports their output. The map is also checked against the tree, because a film missing
-# from the map is a film every gate below silently skips (docs/known-issues.md K27).
-step "0.5/6 derived data (generators named in scripts/film_registry.mjs)"
+step "0.5/6 content mounts and derived data"
+if [ -f .films/index.json ]; then node scripts/films.mjs check; else echo "no content manifest: engine-only mode"; fi
 node scripts/qa/film_coverage.mjs
 node scripts/qa/derive_data.mjs --all
 node scripts/qa/derived_check.mjs
 
-step "0.6/6 claims ledger (every number has a paper quote)"
-if [ -f data/hawk/claims.json ]; then node scripts/qa/claims_check.mjs; fi
-
-step "0.7/6 docs anchors (counts and step names, not prose)"
+step "0.7/6 docs anchors (contract, step count, known issues, doc links)"
 node scripts/qa/docs_check.mjs
 
 step "1/6 typecheck"
@@ -45,11 +42,10 @@ npx remotion browser ensure --log=error || true
 
 step "2/6 still frames (layout / font / no overflow)"
 npx remotion still Storyboard "$OUT/still_storyboard.png" --frame=60 --log=error
-npx remotion still Lecture "$OUT/still_lecture_proof.png" --frame=2500 --log=error --props='{"music":null,"narration":null}'
 npx remotion still Typesetting "$OUT/still_typesetting.png" --frame=60 --log=error
 
-step "2.5/6 still lint (DOM boxes: off-frame, edge text, spill, overlap)"
-node scripts/qa/still_lint.mjs
+step "2.5/6 still lint (DOM boxes: off-frame, edge text, spill, overlap; engine demos only)"
+node scripts/qa/still_lint.mjs --engine-only
 
 step "2.6/6 3D asset lint (GLB structure, triangle budget, watertight)"
 node scripts/qa/model_lint.mjs "public/models/*.glb" --watertight --allow=no-normals
@@ -57,9 +53,6 @@ node scripts/qa/model_lint.mjs "public/models/*.glb" --watertight --allow=no-nor
 step "2.7/6 3D frames (coverage, not black, deterministic)"
 node scripts/qa/three_frame_lint.mjs --composition=ThreeStage --frames=150,450,750 --repeat
 
-# Offline plates are an optional branch (Blender is not a dependency of the daily
-# path). The gate is real whenever the plates exist, and says why it skipped when
-# they do not — a silent skip is how a stale plate set survives a release.
 if [ -d public/plates/showcase ]; then
   step "2.8/6 plate set (contiguous, byte-stable, matches the stage duration)"
   node scripts/qa/plate_lint.mjs
@@ -67,25 +60,8 @@ else
   step "2.8/6 plate set — skipped (public/plates/showcase not rendered; see docs/blender-plates.md)"
 fi
 
-# Generated props are produced by code, so the artifacts are in the repo and this gate is
-# unconditional: a prop that stopped being watertight is a broken file, not a stale cache.
 step "2.9/6 generated props (watertight, inside the triangle budget)"
 npm run --silent lint:props
-
-# The gears film computes its own geometry, so its gates are arithmetic ones: the
-# involute identity, the ratio, the Willis equation and the backlash angle must still
-# close, and two meshing profiles must not overlap anywhere over a tooth pitch.
-step "2.10/6 gear geometry (involute identity, ratio, Willis, backlash)"
-npm run --silent lint:geometry
-
-step "2.11/6 gear meshing (no profile crossings over a tooth pitch)"
-node scripts/qa/mesh_check.mjs
-
-step "2.12/6 3D scene budget (3D share floor, pure-2D ceiling)"
-npm run --silent lint:budget
-
-step "2.13/6 gear 3D frames (coverage, not black, deterministic)"
-node scripts/qa/three_frame_lint.mjs --composition=Gears --frames=20,900,4067,5490,6450,6915,7786,7980,9120 --repeat
 
 step "3/6 programmatic score (deterministic)"
 node scripts/audio/render_music.mjs --out=public/music/demo.wav --duration=32 --bpm=92 --seed=11 --energy=0.55
@@ -107,7 +83,7 @@ TP="$(printf '%s' "$measured" | grep -A4 'True peak' | grep 'Peak:' | head -1 | 
 echo "integrated loudness = $I LUFS, true peak = $TP dBFS"
 awk -v i="$I" -v tp="$TP" 'BEGIN { if (i < -16.5 || i > -13 || tp > -1.5) { print "FAIL loudness out of range (want I in [-16,-13], TP <= -1.5)"; exit 1 } print "PASS loudness" }'
 
-step "6/6 flicker QA on background region"
+step "6/6 flicker QA on the full frame"
 "$PYTHON" -c "import numpy" 2>/dev/null || { echo "FAIL python with numpy required for QA (set PYTHON=...)" >&2; exit 1; }
 "$PYTHON" scripts/qa/luma_blink.py "$OUT/showreel_norm.mp4" --thresh 12 --region full
 

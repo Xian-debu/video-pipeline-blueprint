@@ -28,6 +28,7 @@ import { spawnSync } from "node:child_process";
 import { build } from "esbuild";
 import { bundle } from "@remotion/bundler";
 import { renderMedia, selectComposition } from "@remotion/renderer";
+import { findFilm } from "./lib/content.mjs";
 
 const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), "..");
 
@@ -141,18 +142,26 @@ async function main() {
   const sum = ranges.reduce((a, r) => a + r.count, 0);
   if (sum !== TOTAL) throw new Error("scene boundaries cover " + sum + " frames, script says " + TOTAL);
 
+  const film = findFilm(ROOT, COMP);
   const filmDir = path.dirname(SCRIPT);
   const filmRel = path.relative(ROOT, filmDir).split(path.sep).join("/");
   const filmCode = dirHash(filmRel, "film", new Set([SCRIPT]));
-  const dataHash = dirHash("data/" + path.basename(filmDir), "data");
-  const sharedHash = [
+  const dataHash = dirHash(film ? film.dataDir : "data/" + path.basename(filmDir), "data");
+  const shared = [
     dirHash("src/design", "design"),
     dirHash("src/storyboard", "storyboard"),
     (() => {
       const spec = path.join(ROOT, "data/design.spec.json");
       return fs.existsSync(spec) ? hashFiles([spec], "spec") : "spec:absent";
     })(),
-  ].join("|");
+  ];
+  // An episode may import its series' shared components and data; changing either must invalidate
+  // every episode segment, not just the one whose own directory changed.
+  if (film?.series?.id) {
+    shared.push(dirHash("src/series/" + film.series.id, "series-src"));
+    shared.push(dirHash("data/series/" + film.series.id, "series-data"));
+  }
+  const sharedHash = shared.join("|");
 
   fs.mkdirSync(SEG_DIR, { recursive: true });
   const prev = fs.existsSync(MANIFEST) ? JSON.parse(fs.readFileSync(MANIFEST, "utf8")) : { scenes: {} };

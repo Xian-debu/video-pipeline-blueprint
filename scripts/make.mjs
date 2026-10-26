@@ -1,22 +1,26 @@
 // One command, one delivery package.
 //
-// Stages: contract -> probe -> score -> score gate -> picture-only render -> review stills -> DOM
-// lint -> mix -> mix gate -> mux -> loudnorm -> flicker -> delivery exports -> report.json. The
-// score is generated before the picture on purpose: a bed that cannot be heard never reaches a
-// render. Each stage is the same command the docs describe;
-// this script exists so the order and the gates cannot be skipped by hand, and so every number a
-// release claims is written down by the machine that measured it.
+// Stages: content check -> contract -> probe -> score -> score gate -> picture-only render ->
+// review stills -> DOM lint -> mix -> mix gate -> mux -> loudnorm -> flicker -> delivery exports ->
+// report.json. The score is generated before the picture on purpose: a bed that cannot be heard
+// never reaches a render. Each stage is the same command the docs describe; this script exists so
+// the order and the gates cannot be skipped by hand, and so every number a release claims is
+// written down by the machine that measured it.
 //
-//   node scripts/make.mjs --composition Lecture --out out/package
+//   node scripts/make.mjs --film hawk
+//   node scripts/make.mjs --composition Storyboard --out out/demo-package
 //
-// A stage that fails stops the pipeline and still writes out/package/report.json with what passed
-// and what did not, so the failure is inspectable rather than inferred from a truncated log.
+// Everything film-specific (script, data, exports, narration, delivery directory) comes from
+// .films/index.json, written by scripts/films.mjs from the content repo. A stage that fails stops
+// the pipeline and still writes <out>/report.json with what passed and what did not.
 import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
 import { spawnSync } from "node:child_process";
 
-import { FILMS } from "./film_registry.mjs";
+import {
+  ROOT, loadManifest, findFilm, filmScriptRel, filmScriptAbs, filmDataRel, filmDeliveryAbs, contentRevision,
+} from "./lib/content.mjs";
 import { treeHashName } from "./qa/tree_hash.mjs";
 
 const argv = process.argv.slice(2);
@@ -30,30 +34,48 @@ for (let i = 0; i < argv.length; i++) {
   else args[raw.slice(2)] = "true";
 }
 
-const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), "..");
-const COMP = args.composition ?? "Lecture";
-/** Which film backs a composition: script, export prefix, generators. One map, shared with the
- *  still gate — see scripts/film_registry.mjs and docs/known-issues.md K27. */
-const EXPORTS = FILMS;
-const OUT = path.resolve(ROOT, args.out ?? "out/package");
-const NARRATION = args.narration ?? "public/voice/narration.wav";
-// If a person asked for a narration, an absent file is an error, not a quieter film. The default
-// path may legitimately be absent in a fresh clone (verify.sh needs no narration), but an explicit
-// --narration that does not exist is a typo the pipeline must not swallow.
-const NARRATION_EXPLICIT = args.narration != null;
+const manifest = loadManifest();
+const requested = args.film ?? args.composition;
+const FILM = requested ? findFilm(ROOT, requested) : null;
+if (args.film && !FILM) {
+  console.error("make: FAIL — no film \"" + args.film + "\" in .films/index.json (run: node scripts/films.mjs sync)");
+  process.exit(2);
+}
+const COMP = FILM ? FILM.composition : (args.composition ?? "Storyboard");
+const OUT = args.out
+  ? path.resolve(ROOT, args.out)
+  : FILM
+    ? filmDeliveryAbs(FILM)
+    : path.resolve(ROOT, "out/package");
+const SCRIPT = FILM ? filmScriptAbs(FILM) : null;
+const SCRIPT_REL = FILM ? filmScriptRel(FILM) : null;
+const DATA_REL = FILM ? filmDataRel(FILM) : null;
 const STILL_FRAMES = (args["still-frames"] ?? "").split(",").filter(Boolean);
 const PYTHON = process.env.PYTHON ?? "python3";
 const SKIP_STATIC = args["skip-static"] != null && args["skip-static"] !== "false";
 
-// Fail in the first second, not after the render: a narration that was asked for and does not
-// exist is a typo, and the old behaviour delivered a silent film instead of reporting it.
-if (NARRATION_EXPLICIT && !fs.existsSync(path.resolve(ROOT, NARRATION))) {
-  console.error("make: FAIL — --narration " + NARRATION + " does not exist (cwd " + ROOT + ")");
+if (FILM && !fs.existsSync(SCRIPT)) {
+  console.error("make: FAIL — " + SCRIPT_REL + " is in the manifest but not mounted (run sync)");
   process.exit(2);
 }
 
-// Which tree is this run about to measure? A copy in another distro cannot see this disk, so the
-// expected hash is passed on the command line and checked before anything expensive starts.
+// Narration resolution: an explicit --narration is a promise; a film.json narration is a promise
+// too. Silence is only allowed for a film that never declared one.
+const NARRATION = args.narration
+  ? path.resolve(ROOT, args.narration)
+  : FILM?.narration?.abs ?? null;
+if (args.narration && !fs.existsSync(NARRATION)) {
+  console.error("make: FAIL — --narration " + args.narration + " does not exist");
+  process.exit(2);
+}
+if (!args.narration && FILM?.narration?.abs && !fs.existsSync(NARRATION)) {
+  console.error("make: FAIL — " + FILM.packRel + " declares narration " + FILM.narration.path
+    + " but the file is missing (commit it, or pass --narration)");
+  process.exit(2);
+}
+
+// Which tree is this run about to measure? The tree hash includes the content commit, so a copy
+// in another distro cannot silently render older film sources.
 const TREE = treeHashName(ROOT);
 const EXPECT_TREE = args["expect-tree"];
 if (EXPECT_TREE && EXPECT_TREE !== "true" && EXPECT_TREE !== TREE.tree) {
@@ -70,12 +92,10 @@ if (EXPECT_TREE && EXPECT_TREE !== "true" && EXPECT_TREE !== TREE.tree) {
 function resolveCutFrames(raw) {
   if (!raw || raw === "true") return null;
   if (raw !== "auto") return raw;
-  const lines = path.join(ROOT, "data", COMP.toLowerCase(), "lines.json");
+  if (!FILM) throw new Error("--cut-frames auto needs a film");
+  const lines = path.join(ROOT, DATA_REL, "lines.json");
   if (!fs.existsSync(lines)) {
-    throw new Error(
-      "--cut-frames auto needs " + path.relative(ROOT, lines) + ": run "
-      + "node scripts/qa/dump_script.mjs <script.ts> " + path.relative(ROOT, lines) + " first",
-    );
+    throw new Error("--cut-frames auto needs " + path.relative(ROOT, lines) + ": run dump_script.mjs first");
   }
   const layout = JSON.parse(fs.readFileSync(lines, "utf8"));
   const frames = layout.scenes.map((s) => Math.round(s.start * layout.fps)).filter((n) => n > 0);
@@ -87,6 +107,7 @@ fs.mkdirSync(path.join(OUT, "stills"), { recursive: true });
 const report = {
   generatedAt: new Date().toISOString(),
   composition: COMP,
+  film: FILM ? { id: FILM.id, pack: FILM.packRel, series: FILM.series?.id ?? null } : null,
   out: path.relative(ROOT, OUT),
   stages: [],
   numbers: { tree: TREE.tree },
@@ -94,6 +115,10 @@ const report = {
 };
 
 const log = (s) => process.stdout.write(s + "\n");
+
+function writeReport() {
+  fs.writeFileSync(path.join(OUT, "report.json"), JSON.stringify(report, null, 2));
+}
 
 function run(name, cmd, cmdArgs, opts = {}) {
   log("\n== " + name + "\n$ " + [cmd, ...cmdArgs].join(" "));
@@ -115,13 +140,8 @@ function run(name, cmd, cmdArgs, opts = {}) {
   return text;
 }
 
-function writeReport() {
-  fs.writeFileSync(path.join(OUT, "report.json"), JSON.stringify(report, null, 2));
-}
-
 // Which inputs produced this delivery. A stale working copy, or a film built from a different
-// commit than the one on disk, is otherwise indistinguishable from a clean run: the report says
-// what was measured, this says what it was measured on.
+// commit than the one on disk, is otherwise indistinguishable from a clean run.
 const fingerprint = (dir) => {
   const root = path.join(ROOT, dir);
   const files = [];
@@ -150,7 +170,6 @@ function pick(text, re, label) {
   return Number(m[1]);
 }
 
-// composition duration without rendering: the CLI prints one row per composition
 const probeComposition = (id) => {
   const t = run("probe composition", "npx", ["remotion", "compositions", "src/index.ts"]);
   const re = new RegExp("^" + id + "\\s+\\d+\\s+\\S+\\s+(\\d+) \\(([\\d.]+) sec\\)", "m");
@@ -159,7 +178,6 @@ const probeComposition = (id) => {
   return { frames: Number(m[1]), seconds: Number(m[2]) };
 };
 
-// For values that are bookkeeping rather than measurements: no stage row, no gate.
 const probeQuiet = (file) => {
   const res = spawnSync("ffprobe", ["-v", "error", "-show_entries", "format=duration",
     "-of", "default=noprint_wrappers=1:nokey=1", file], { encoding: "utf8" });
@@ -176,11 +194,17 @@ const ffprobeDuration = (file) => {
 };
 
 try {
-  // ---- 0. derived numbers come first: a clean clone has no data/hawk/gray.json, and every gate
-  //         below imports them. The map and the tree must also agree, or a gate iterates nothing.
+  // ---- 0. the manifest is the contract: mounts must be exactly what the content commit says,
+  //         and a film's derived numbers come from its own pack before any gate imports them.
+  if (FILM && !SKIP_STATIC) {
+    run("content check", "node", ["scripts/films.mjs", "check", "--strict"]);
+  }
   if (!SKIP_STATIC) {
     run("film coverage", "node", ["scripts/qa/film_coverage.mjs"]);
-    if (EXPORTS[COMP]) run("derive data", "node", ["scripts/qa/derive_data.mjs", "--composition=" + COMP]);
+    if (FILM?.derive?.length) {
+      run("derive data", "node", ["scripts/qa/derive_data.mjs", "--film=" + FILM.id]);
+      run("sync mounts", "node", ["scripts/films.mjs", "sync"]);
+    }
     run("derived check", "node", ["scripts/qa/derived_check.mjs"]);
   }
 
@@ -190,10 +214,8 @@ try {
     run("type ratchet", PYTHON, ["scripts/qa/type_ratchet.py"]);
     run("film isolation", "node", ["scripts/qa/film_isolation.mjs"]);
     run("typecheck", "npx", ["tsc", "--noEmit"]);
-    // only a paper film owns a claims ledger, and only a claims ledger can be checked against the
-    // paper it cites; a film without one skips this stage by design, not by accident
-    if (fs.existsSync(path.join(ROOT, "data", COMP.toLowerCase(), "claims.json"))) {
-      run("claims check", "node", ["scripts/qa/claims_check.mjs", "--film=" + COMP.toLowerCase()]);
+    if (FILM?.claims) {
+      run("claims check", "node", ["scripts/qa/claims_check.mjs", "--film=" + FILM.id]);
     }
     run("docs check", "node", ["scripts/qa/docs_check.mjs"]);
   }
@@ -205,10 +227,6 @@ try {
   report.numbers.seconds = Number(seconds.toFixed(3));
   log("duration " + report.numbers.seconds + " s (" + (probed.frames ?? "?") + " frames)");
 
-  // A 10-minute bed costs ~19 minutes to synthesize and does not depend on the picture, so a
-  // picture-only iteration must not rebuild it. Reuse is keyed on the generation parameters
-  // (in a sidecar), never on "a score.wav exists": the same seed and energy must produce the same
-  // bytes, and a bed shorter than the programme is not a bed.
   const score = path.join(OUT, "score.wav");
   const scoreMeta = path.join(OUT, "score.meta.json");
   const scoreParams = {
@@ -231,8 +249,6 @@ try {
   if (args.score) {
     fs.mkdirSync(path.dirname(score), { recursive: true });
     fs.copyFileSync(path.resolve(args.score), score);
-    // Record what the bed is worth knowing: its real length decides whether the next run may
-    // reuse it, and the generation parameters are the ones this run would have used.
     const bedSeconds = probeQuiet(score);
     fs.writeFileSync(scoreMeta, JSON.stringify({ ...scoreParams, durationSec: bedSeconds ?? 0, source: args.score }, null, 2));
     log("\n== score (reused " + args.score + ", " + (bedSeconds ?? "?") + " s)");
@@ -249,27 +265,19 @@ try {
   report.numbers.stem = JSON.parse(stemGate.trim().split("\n").filter((l) => l.startsWith("{")).pop());
 
   // ---- 3. picture only: the renderer must not own the audio, the mux does
-  // The demo compositions (Storyboard, Showreel) embed a score in the picture via
-  // public/music/demo.wav, which verify.sh generates and which is not committed. Generate the same
-  // bytes here instead of failing inside Chromium with a 404 for a staticFile.
   const demoBed = path.join(ROOT, "public/music/demo.wav");
-  if (COMP !== "Lecture" && !fs.existsSync(demoBed)) {
+  if (!fs.existsSync(demoBed)) {
     run("demo bed (public/music/demo.wav)", "node", ["scripts/audio/render_music.mjs",
       "--out=public/music/demo.wav", "--duration=32", "--bpm=92", "--seed=11", "--energy=0.55"]);
   }
 
   const rawMp4 = path.join(OUT, "raw_video.mp4");
   if (args.raw) {
-    // Same reason as --score: a gate that fails after the picture is final must not cost
-    // another 25-minute render. The duration check below still guards the reuse.
     fs.copyFileSync(path.resolve(args.raw), rawMp4);
     log("\n== render (reused " + args.raw + ")");
-  } else if (EXPORTS[COMP]) {
-    // A film made of scenes is rendered scene by scene: an edit to one paragraph re-renders that
-    // scene and concatenates the rest untouched (scripts/render_scenes.mjs). The duration check
-    // below still guards the result.
+  } else if (FILM) {
     const summary = run("render (picture only, scene segments)", "node", ["scripts/render_scenes.mjs",
-      "--composition=" + COMP, "--script=" + EXPORTS[COMP].script,
+      "--composition=" + COMP, "--script=" + SCRIPT_REL,
       "--out=" + path.join(OUT, "scenes"), "--output=" + rawMp4,
       ...(args["force-render"] ? ["--force"] : [])]);
     const m = summary.match(/RENDER reused=(\d+) rendered=(\d+) scenes=(\d+) frames=(\d+)/);
@@ -295,12 +303,13 @@ try {
       path.join(OUT, "stills", "frame_" + f + ".png"), "--frame=" + f,
       "--props={\"music\":null,\"narration\":null}", "--log=error"]);
   }
-  run("still lint", "node", ["scripts/qa/still_lint.mjs"]);
+  // Lint the exact review frames of this film. Full per-scene coverage is the content verify
+  // pass; make is about the frames a human is about to look at.
+  run("still lint", "node", ["scripts/qa/still_lint.mjs", "--compositions=" + COMP, "--frames=" + frames.join(",")]);
 
   // ---- 5. narration mix when the narration exists; otherwise the score is the programme audio
   let audio = score;
-  const narrationPath = path.resolve(ROOT, NARRATION);
-  if (fs.existsSync(narrationPath)) {
+  if (NARRATION && fs.existsSync(NARRATION)) {
     const mix = path.join(OUT, "mix.wav");
     const mixOut = run("mix", "node", ["scripts/audio/mix.mjs", "--narration", NARRATION,
       "--music", score, "--out", mix]);
@@ -309,14 +318,12 @@ try {
     report.numbers.mixGate = JSON.parse(mixGate.trim().split("\n").filter((l) => l.startsWith("{")).pop());
     audio = mix;
   } else {
-    log("\n! " + NARRATION + " not found: delivering the score alone (no --narration was requested)");
-    report.numbers.narration = "absent (no --narration given)";
+    log("\n! no narration for " + COMP + ": delivering the score alone");
+    report.numbers.narration = "absent (film declares none)";
   }
 
   // ---- 6. mux, normalise, gate the finished programme
   const mixed = path.join(OUT, "programme_unnorm.mp4");
-  // explicit maps: the picture's own audio stream (if its composition embeds one) is dropped, so
-  // the programme audio is exactly what the gate measured
   run("mux", "ffmpeg", ["-y", "-v", "error", "-i", rawMp4, "-i", audio, "-map", "0:v:0", "-map", "1:a:0",
     "-c:v", "copy", "-c:a", "aac", "-b:a", "192k", "-shortest", mixed]);
   const finalMp4 = path.join(OUT, COMP + ".mp4");
@@ -330,53 +337,42 @@ try {
   }
   log("PASS loudness: I=" + report.numbers.I + " LUFS, TP=" + report.numbers.TP + " dBFS");
 
-  // --cut-frames: a hard cut between scenes is intentional; the gate ignores those frames.
-  // Without it the gate is strict, which is right for the lecture (and for any film whose cuts
-  // are crossfades). Pass "auto" and the frames come from the film's own measured script layout
-  // (data/<film>/lines.json), so a line edit cannot leave a stale list of numbers behind.
   const cutArg = resolveCutFrames(args["cut-frames"]);
   const blinkArgs = ["scripts/qa/luma_blink.py", finalMp4, "--thresh", "12", "--region", "full"];
   if (cutArg) blinkArgs.push("--cut-frames", cutArg);
   const blink = run("flicker gate", PYTHON, blinkArgs);
-  // The gate prints two lines that both contain "max=": the frame-luma range, then the diff
-  // statistics. Read the diff line, or the report would quote a legitimate luma range as a flicker.
   const diffLine = blink.split("\n").find((l) => l.includes("mean|d|=")) || "";
   if (!diffLine) throw new Error("could not read the flicker statistics");
   report.numbers.flicker = {
     meanAbsDelta: pick(diffLine, /mean\|d\|=([\d.]+)/, "mean |delta|"),
     p99: pick(diffLine, /p99=([\d.]+)/, "p99"),
     max: Number((diffLine.match(/max=([\d.]+)/) || [])[1]),
-    // a cut is a jump the gate was told to ignore; recorded so a reader is not surprised by a raw
-    // max (e.g. 107.59) next to a PASS
     cutFrames: cutArg ? cutArg.split(",").map(Number) : null,
   };
 
-  // ---- 7. delivery exports, copied next to the film. The exporter is bound to the lecture
-  //         script (its cues and chapters are that script), so other compositions skip it unless
-  //         asked explicitly with --exports
-  const exp = EXPORTS[COMP];
-  const doExports = args.exports ? args.exports !== "false" : Boolean(exp);
+  // ---- 7. delivery exports: a film owes srt/chapters/cover; a demo owes none.
+  const doExports = args.exports ? args.exports !== "false" : Boolean(FILM);
   if (doExports) {
-    if (!exp) throw new Error("no export script known for " + COMP + " (add it to EXPORTS in make.mjs)");
+    if (!FILM) throw new Error("--exports needs a film");
     run("publish", "node", ["scripts/export/publish.mjs", "--composition=" + COMP,
-      "--script=" + exp.script, "--prefix=" + exp.prefix]);
+      "--script=" + SCRIPT_REL, "--prefix=" + FILM.prefix]);
     const exported = [];
-    for (const f of [exp.prefix + ".srt", exp.prefix + ".chapters.txt", exp.prefix + ".chapters.ffmeta.txt", "cover.png"]) {
+    for (const f of [FILM.prefix + ".srt", FILM.prefix + ".chapters.txt", FILM.prefix + ".chapters.ffmeta.txt", "cover.png"]) {
       const from = path.join(ROOT, "out/export", f);
       if (!fs.existsSync(from)) throw new Error("publish did not produce " + f);
       fs.copyFileSync(from, path.join(OUT, f));
       exported.push(f);
     }
     report.numbers.exports = exported;
-  } else if (EXPORTS[COMP]) {
-    // A film whose srt/chapters/cover are missing is not a delivery. This used to print a note and
-    // exit 0, which is how the first Hawk make "passed" without them (K27).
+  } else if (FILM) {
     throw new Error(COMP + " is a film, so it owes srt/chapters/cover, but args.exports=false");
   } else {
     log("\n== delivery exports: " + COMP + " is a design demo, no srt/chapters are owed");
     report.numbers.exports = "not applicable (design demo)";
   }
 
+  const rev = FILM ? contentRevision(FILM) : null;
+  report.numbers.content = FILM ? { id: FILM.id, pack: FILM.packRel, commit: rev.commit, dirty: rev.dirty } : null;
   report.numbers.inputs = { src: fingerprint("src"), data: fingerprint("data"), scripts: fingerprint("scripts") };
   report.pass = true;
   writeReport();

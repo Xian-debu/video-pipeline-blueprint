@@ -34,8 +34,22 @@ PATTERNS = {
 def scan() -> dict[str, dict[str, dict[str, int]]]:
     """file -> property -> literal -> uses."""
     found: dict[str, dict[str, dict[str, int]]] = {}
+    # Mounted content is not engine code: a pack's literals belong to that pack, and the
+    # engine has no business freezing them into its own design contract.
+    mounted = set()
+    manifest = ROOT / ".films" / "index.json"
+    if manifest.exists():
+        doc = json.loads(manifest.read_text(encoding="utf-8"))
+        for entry in doc.get("films", []) + doc.get("series", []):
+            for m in entry.get("mounts", []):
+                to = m.get("to", "")
+                if to.startswith("src/"):
+                    mounted.add(to.split("/")[1])
     for path in sorted(SRC.rglob("*")):
         if path.suffix not in {".ts", ".tsx"}:
+            continue
+        rel = path.relative_to(SRC)
+        if rel.parts and rel.parts[0] in mounted:
             continue
         text = path.read_text(encoding="utf-8")
         per: dict[str, dict[str, int]] = {}

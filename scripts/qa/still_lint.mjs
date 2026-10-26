@@ -23,7 +23,7 @@ import fs from "node:fs";
 import { build } from "esbuild";
 import { bundle } from "@remotion/bundler";
 import { renderStill, selectComposition } from "@remotion/renderer";
-import { FILMS } from "../film_registry.mjs";
+import { ROOT, loadManifest } from "../lib/content.mjs";
 
 const EDGE_PX = 24;
 const OVERLAP_RATIO = 0.25;
@@ -58,12 +58,14 @@ const DEFAULT_TARGETS = [
  * moved (and was clamped silently before that), so the list is computed from the source of truth.
  */
 const FILM_SCRIPTS = Object.fromEntries(
-  Object.entries(FILMS).map(([id, film]) => [id, film.script]),
+  (loadManifest(ROOT).films ?? []).map((film) => [film.id, path.join(ROOT, "src", film.id, "script.ts")]),
 );
 
 async function filmTargets() {
   const out = [];
   for (const [id, script] of Object.entries(FILM_SCRIPTS)) {
+    // Draft episodes have a film.json but no script yet; they are not lintable.
+    if (!fs.existsSync(script)) continue;
     const tmp = path.join(os.tmpdir(), "lint-frames-" + id + "-" + process.pid + ".mjs");
     await build({
       entryPoints: [path.resolve(script)],
@@ -95,15 +97,18 @@ async function filmTargets() {
 const args = process.argv.slice(2);
 const fixtures = args.includes("--fixtures");
 const argOf = (name) => {
+  const eq = args.find((a) => a.startsWith(name + "="));
+  if (eq) return eq.slice(name.length + 1);
   const i = args.indexOf(name);
   return i >= 0 ? args[i + 1] : null;
 };
 
+const engineOnly = args.includes("--engine-only");
 const targets = fixtures
   ? [{ id: "LintFixtures", frames: [0] }]
   : argOf("--compositions")
     ? [{ id: argOf("--compositions"), frames: (argOf("--frames") ?? "0").split(",").map(Number) }]
-    : [...DEFAULT_TARGETS, ...(await filmTargets())];
+    : [...DEFAULT_TARGETS, ...(engineOnly ? [] : await filmTargets())];
 
 const rect = (b) => ({ x: b.x, y: b.y, w: b.w, h: b.h });
 

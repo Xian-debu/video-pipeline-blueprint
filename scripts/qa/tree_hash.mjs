@@ -15,6 +15,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
+import { loadManifest } from "../lib/content.mjs";
 
 const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), "../..");
 const DIRS = ["src", "data", "scripts"];
@@ -54,8 +55,15 @@ export function treeHashName(root = ROOT) {
   const rootFiles = FILES.map((f) => path.join(root, f)).filter((f) => fs.existsSync(f));
   parts.root = sha(rootFiles).digest("hex").slice(0, 16);
   count += rootFiles.length;
+  // The mounted sources have the content commit baked into the manifest. A copy synced from an
+  // older content commit has different bytes in src/ data/ anyway; this makes the provenance
+  // explicit in the one number a render is allowed to trust.
+  const manifest = loadManifest(root);
+  parts.content = crypto.createHash("sha256")
+    .update(manifest.contentRoot ? (manifest.contentCommit ?? "none") + (manifest.contentDirty ? ":dirty" : "") : "none")
+    .digest("hex").slice(0, 16);
   const tree = crypto.createHash("sha256")
-    .update(["src", "data", "scripts", "root"].map((k) => parts[k]).join("\0"))
+    .update(["src", "data", "scripts", "root", "content"].map((k) => parts[k]).join("\0"))
     .digest("hex").slice(0, 16);
   return { tree, parts, files: count };
 }

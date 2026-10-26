@@ -16,6 +16,32 @@ integrated loudness -15.1 LUFS, true peak -1.8 dBTP, 41 narration lines.
 **Watch it first:** [the demo film](https://github.com/Xian-debu/video-pipeline-blueprint/releases/download/v1.0.0/quicksort_v3.mp4)
 (14.6 MB, release asset) - then read how it is guaranteed to render the same way every time.
 
+## 0. Engine and content are two repositories
+
+This repository is the **engine**: the design system, the storyboard template, the render/mix/publish
+tooling, the QA gates, and the demos that prove each capability works. It contains no film.
+Film sources, facts, assets and narration live in **`video_project`**, one directory per film, one
+directory per series. The split is enforced by `scripts/films.mjs`: it copies each pack's declared
+directories into gitignored mount points under `src/`, `data/` and `public/`, writes the manifest
+`.films/index.json` and the generated composition registry `src/films.generated.tsx`, and refuses to
+sync a pack whose mounts would collide or whose content checkout is behind the manifest.
+
+```bash
+node scripts/films.mjs status          # what is mounted, from which content commit
+node scripts/films.mjs sync            # copy packs in, rebuild .films/index.json + registry
+node scripts/films.mjs check --strict  # validate mounts before a render (make does this itself)
+npm run verify                         # engine-only gates; no content required
+```
+
+The engine never names a film. A composition is a property of a content pack; `npm run make -- --film hawk`
+resolves the pack, derives its data, syncs its mounts, renders, mixes, gates and publishes into the pack's
+`delivery/`. The content repo has its own `tools/check.mjs` and `tools/verify.sh` for the rules that
+belong to content (claims ledgers, paper quotes, tracked derived files).
+
+Sections 2-7 below describe the eight reference films that produced this engine. Their sources, data,
+assets and per-film docs now live in `video_project`; the measured results and post-mortems stay here
+as the field report, and build commands in those sections are the per-pack scripts rather than engine scripts.
+
 ## 中文速览
 
 这是一个**经过实测验证**的代码驱动视频管线部署包：分镜是数据（JSON/TS），画面是代码（Remotion/React），
@@ -23,10 +49,10 @@ integrated loudness -15.1 LUFS, true peak -1.8 dBTP, 41 narration lines.
 闪烁检测、静帧人工复核）。本仓库收录的是六部完整生产案例——305 秒快速排序教学片、588 秒「逐位乘法演进」科普片、
 333 秒齿轮 3D 解析片、757 秒「别人论文的解读片」（SenSys '24 的 Hawk）、611 秒 ARC 论文片、
 640 秒「快速选择」算法片——以及让它们跑起来所需的脚本、环境说明、失败模式和验收关卡。
-六部片子共用一套门禁，片单只有一处真源：`scripts/film_registry.mjs`。
+片子已从本仓库剥离，源文件、事实、素材、旁白都在 `video_project`（一片一目录、一系列一目录）；本仓库只保留引擎与门禁，挂载由 `scripts/films.mjs` 完成，引擎不再知道任何片名。
 
 不是库，不是 SaaS，不是一键安装器。目标是：克隆下来，`bash scripts/bootstrap.sh` +
-`npm run verify` 在参考机上约十分钟得到 PASS（25 道门，含 59 帧静帧渲染），然后照着 `docs/deployment.md` 换成你自己的内容。
+`npm run verify` 在参考机上得到 PASS（20 道门，引擎自足、零内容也能跑），然后照着 `docs/deployment.md` 接入自己的内容仓库。
 坑都在 `docs/known-issues.md`（K1–K34），没有一条是假设出来的。
 
 ## 1. What this is, and what it is not
@@ -299,7 +325,7 @@ Three independent layers, joined only by files:
 └─ THIRD_PARTY_NOTICES.md      licences: npm packages, system tools, TTS models, reference reading
 ```
 
-**Docs, all of them:** [3d](docs/3d.md) · [architecture](docs/architecture.md) · [blender-plates](docs/blender-plates.md) · [deployment](docs/deployment.md) · [design-language](docs/design-language.md) · [engineering-standards](docs/engineering-standards.md) · [environments](docs/environments.md) · [gears](docs/gears.md) · [arc](docs/arc.md) · [hawk](docs/hawk.md) · [known-issues](docs/known-issues.md) · [char](docs/char.md) · [multiplication](docs/multiplication.md) · [roadmap](docs/roadmap.md) · [sdf-assets](docs/sdf-assets.md) · [verify-report](docs/verify-report.md).
+**Docs, all of them:** [3d](docs/3d.md) · [architecture](docs/architecture.md) · [blender-plates](docs/blender-plates.md) · [deployment](docs/deployment.md) · [design-language](docs/design-language.md) · [engineering-standards](docs/engineering-standards.md) · [environments](docs/environments.md) · [known-issues](docs/known-issues.md) · [roadmap](docs/roadmap.md) · [sdf-assets](docs/sdf-assets.md) · [verify-report](docs/verify-report.md). Per-film docs moved with their packs to `video_project`.
 
 **Source data vs derived data.** Some JSON under `data/` is written by hand and is the only place a
 number exists (the design contract, each film's `params.json`/`eval.json`/`crops.json`, the measured
@@ -312,8 +338,9 @@ apart silently. `data/hawk/paper.txt` is the exception that proves the rule — 
 4.0, 125 KB) because `claims_check.mjs` has to be able to quote it; a ledger that cannot be checked
 is decoration.
 
-Compositions (18): the seven films `Lecture` (305 s), `Multiplication` (588 s), `Gears` (333 s),
-`Hawk` (757 s), `Arc` (611 s), `Quickselect` (640 s), `Char` (494 s); the template and the verify artefact `Storyboard` (20 s) and `Showreel` (30 s);
+Compositions (19): eight content films mounted from packs (`Lecture` 305 s, `Multiplication` 588 s, `Gears` 333 s,
+`Hawk` 757 s, `Arc` 611 s, `Quickselect` 640 s, `Char` 494 s, `Char2` 509 s) — a clean clone with no content has
+none of them — plus the engine's own template and verify artefact `Storyboard` (20 s) and `Showreel` (30 s);
 the single-capability samples `Transitions`, `Typesetting`, `ThreeCube`, `ManimOverlay`,
 `ThreeStage` (30 s: procedural geometry, an imported `.glb`, and a transparent 3D layer over 2D
 text), `PlateStage` (3 s: consumes a Blender-rendered plate sequence; needs `npm run plates` first,
@@ -467,35 +494,27 @@ Node — see `docs/known-issues.md` K2), and any cloud TTS.
 ## 8. Verification: what `npm run verify` actually proves
 
 ```
-0.5  derived data       film_coverage.mjs (every src/*/script.ts is registered) -> derive_data.mjs
-                        (run the generators a film names) -> derived_check.mjs (derived JSON is
-                        not tracked by git)
-0.6  claims ledger      claims_check.mjs: every number in data/hawk/claims.json has a quote that
-                        really occurs in data/hawk/paper.txt, and the value occurs in a ledger
-0.7  docs anchors       docs_check.mjs: the README's own counts (compositions, films, steps, K
-                        index, doc links) agree with the tree
+0.5  content mounts     if .films/index.json exists, films.mjs check validates every mount against
+                        its pack; then film_coverage.mjs, derive_data.mjs --all (run each pack's
+                        named generators) and derived_check.mjs (derived JSON is not tracked)
+0.7  docs anchors       docs_check.mjs: the README's own counts (steps, K index, doc links) and
+                        the engine/content contract agree with the tree
 1/6  typecheck          tsc --noEmit
-1.1  film isolation     film_isolation.mjs: a film may not read another film's data or source
+1.1  film isolation     film_isolation.mjs: a pack may read only its own mounts (plus its series'
+                        shared components) - never another film's data or source
 1.2  design contract    design_check.py: contrast ratios, type ladder + families, tracking
                         ratios, motion budgets
 1.3  type ratchet       type_ratchet.py: no new hard-coded fontSize/letterSpacing literals
 1.5  headless browser   remotion browser ensure (downloads once)
-2/6  still frames       Storyboard f60, Lecture f2500, Typesetting f60  -> human review
-2.5  still lint         still_lint.mjs: 71 frames measured from the DOM (12 Hawk + 12 Arc + 11 Gears +
-                        9 Lecture + 10 Mult + 17 showcase; one per scene) + fixtures that prove
-                        the rules still fire
+2/6  still frames       Storyboard f60, Typesetting f60  -> human review
+2.5  still lint         still_lint.mjs --engine-only: measured DOM boxes for the engine demos,
+                        plus fixtures that prove the rules still fire
 2.6  model lint         model_lint.mjs: GLB structure, triangle budget, extent, watertight
 2.7  3D frames          three_frame_lint.mjs: coverage floor/ceiling, not black, sha256 twice
 2.8  plate set          plate_lint.mjs: frames contiguous, every PNG byte/sha matches report.json,
                         report count == PlateStage duration (skipped with a reason when absent)
 2.9  generated props    lint:props: every prop_*.glb parses, stays under the triangle budget,
                         and is watertight (boundary edges = 0, non-manifold edges = 0)
-2.10 gear geometry      lint:geometry: 8 invariants of the gears film's own tooth profiles
-                        (centre distance, base circle, involute identity, contact ratio, Willis)
-2.11 gear meshing       mesh_check.mjs: no profile crossings over a tooth pitch, and a half-tooth
-                        phase error is still caught (the gate proves it can fail)
-2.12 3D budget          lint:budget: weighted 3D share >= 60%, pure-2D <= 40%, each scene 20-60 s
-2.13 gear 3D frames     three_frame_lint.mjs --composition=Gears: coverage, not black, sha256 twice
 3/6  score              deterministic wav from seed 11 (32 s)
 3.4  music self-test    music_gate.py --self-test: a sub-only bed must still be rejected
 3.5  music gate         music_gate.py: >= 50% of power in 250-4k Hz, <= 20% in 20-120 Hz
@@ -504,8 +523,10 @@ Node — see `docs/known-issues.md` K2), and any cloud TTS.
 6/6  flicker            per-frame luma jumps on the whole frame (threshold 12)
 ```
 
-That is 25 steps in `scripts/verify.sh` (a film added to the tree but missing from
-`film_registry.mjs` fails 0.5 rather than silently skipping every gate — that is K27).
+That is 20 steps in `scripts/verify.sh` (18 top-level; the plate branch adds two alternatives). A film's own gates (claims ledger, paper quotes, geometry,
+3D budget, per-film frames) live in its content pack and run there: **the engine proves the craft,
+the content repo proves the claims.** That is the whole point of the split - a missing film can no
+longer be silently skipped by an engine gate, because no engine gate knows films exist.
 
 The design-contract step is cheap and catches the class of defect that is cheapest to fix before a
 render: a role that fails contrast on one of its real backgrounds, a type size that is not on the

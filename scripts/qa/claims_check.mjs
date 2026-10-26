@@ -1,83 +1,58 @@
 // Every number on screen must have a quote in the paper behind it.
 //
-//   node scripts/qa/claims_check.mjs
+//   node scripts/qa/claims_check.mjs --film=hawk
 //
-// data/hawk/claims.json is the ledger: one row per number the film shows or says, each with the
+// A film's pack owns data/claims.json: one row per number the film shows or says, each with the
 // verbatim sentence from the paper that it comes from. This gate proves the cheap half of that
 // promise mechanically:
 //
-//   1. the quote really is in data/hawk/paper.txt (whitespace-normalised), so a made-up citation
+//   1. the quote really is in the pack's paper.txt (whitespace-normalised), so a made-up citation
 //      or a paraphrase passed off as a quote fails here rather than in a viewer's reply;
-//   2. the value is really in one of the committed ledgers (eval/gray/wave), so the film and the
-//      ledger cannot drift apart;
-//   3. the scene it is attributed to exists in src/hawk/script.ts.
+//   2. the value is really in one of the committed ledgers, so the film and the ledger cannot drift;
+//   3. the scene it is attributed to exists in the mounted script.
 //
-// What it CANNOT do: it cannot tell that 71.5× is the wrong direction, or that 2304 hours belongs
-// to a different dataset. Those are meaning, and they were caught by reading the paper next to the
-// screen (K25). A gate that pretends otherwise is worse than no gate.
+// What it CANNOT do: it cannot tell that 71.5x is the wrong direction. Those are meaning, and were
+// caught by reading the paper next to the screen (K25). A gate that pretends otherwise is worse
+// than no gate.
 import fs from "node:fs";
 import path from "node:path";
-import { execFileSync } from "node:child_process";
-import { FILMS } from "../film_registry.mjs";
 
-const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname), "../..");
-const read = (p) => fs.readFileSync(path.join(ROOT, p), "utf8");
+import { ROOT, findFilm, filmScriptAbs, filmDataAbs } from "../lib/content.mjs";
+
+const argv = process.argv.slice(2);
+const arg = (k) => {
+  const p = argv.find((a) => a.startsWith("--" + k + "="));
+  return p ? p.slice(k.length + 3) : null;
+};
+const film = findFilm(ROOT, arg("film") ?? "hawk");
+if (!film) {
+  console.error("claims check: unknown film " + (arg("film") ?? "hawk"));
+  process.exit(2);
+}
+if (!film.claims?.ledger || !film.claims?.paper) {
+  console.error("claims check [" + film.id + "]: film.json declares no claims ledger/paper");
+  process.exit(2);
+}
+const pack = path.join(film.contentRoot, film.packRel);
+const read = (p) => fs.readFileSync(path.isAbsolute(p) ? p : path.join(pack, p), "utf8");
 const normalize = (s) => s.replace(/\s+/g, " ").trim();
 
-// A fresh clone has no derived ledgers (they are gitignored by design: they are outputs, not
-// inputs). This gate needs them, so it regenerates them itself instead of failing with a message
-// that reads like a missing citation. Cheap (seconds) and idempotent — make.mjs has already run
-// the same step, in which case every glob matches and nothing happens.
-const globToRe = (p) => new RegExp("^" + p
-  .replace(/[.+^$(){}=!|\\]/g, "\\$&")
-  .replace(/\*\*\//g, "(?:.*/)?")
-  .replace(/\*\*/g, ".*")
-  .replace(/\*/g, "[^/]*")
-  .replace(/\?/g, "[^/]") + "$");
-
-function expand(glob) {
-  const parts = glob.split("/");
-  const base = parts.slice(0, -1).join("/");
-  const re = globToRe(parts[parts.length - 1]);
-  const dir = path.join(ROOT, base);
-  if (!fs.existsSync(dir)) return [];
-  return fs.readdirSync(dir).filter((f) => re.test(f)).map((f) => path.join(base, f));
-}
-
-function ensureDerived(film) {
-  const name = Object.keys(FILMS).find((k) => k.toLowerCase() === film);
-  if (!name) return;
-  const entry = FILMS[name];
-  const positive = (entry.derived ?? []).filter((g) => !g.startsWith("!"));
-  if (!positive.length) return;
-  if (positive.every((g) => expand(g).length > 0)) return;
-  console.log("claims check [" + film + "]: derived ledgers missing in this checkout — running " + entry.derive.join(", "));
-  for (const step of entry.derive ?? []) {
-    execFileSync("python3", [step], { cwd: ROOT, stdio: "inherit" });
-  }
-}
-
-// Film name selects the ledger directory and the script that owns the scenes. Default keeps the
-// original single-film invocation working; make.mjs passes --film=<composition lowercased>.
-const arg = (k) => (process.argv.find((a) => a.startsWith("--" + k + "=")) ?? "").split("=")[1];
-const FILM = arg("film") ?? "hawk";
-ensureDerived(FILM);
-const LEDGER_EXCLUDE = new Set(["claims.json", "clips.json", "crops.json", "voice.json", "lines.json"]);
-const ledgerFiles = fs.readdirSync(path.join(ROOT, "data", FILM))
-  .filter((f) => f.endsWith(".json") && !LEDGER_EXCLUDE.has(f))
+const ledger = JSON.parse(read(film.claims.ledger));
+const paper = normalize(read(film.claims.paper));
+const EXCLUDE = new Set(["claims.json", "clips.json", "crops.json", "voice.json", "lines.json"]);
+const dataDir = filmDataAbs(film);
+const ledgerFiles = fs.readdirSync(dataDir)
+  .filter((f) => f.endsWith(".json") && !EXCLUDE.has(f))
   .sort()
-  .map((f) => path.join("data", FILM, f));
-
-const ledger = JSON.parse(read(path.join("data", FILM, "claims.json")));
-const paper = normalize(read(path.join("data", FILM, "paper.txt")));
-const ledgers = ledgerFiles.map((p) => normalize(read(p)));
-const script = read(path.join("src", FILM, "script.ts"));
-const sceneIds = new Set([...script.matchAll(/id:\s*"([a-z]+)"/g)].map((m) => m[1]));
+  .map((f) => path.join(dataDir, f));
+const ledgers = ledgerFiles.map((p) => normalize(fs.readFileSync(p, "utf8")));
+const script = fs.readFileSync(filmScriptAbs(film), "utf8");
+const sceneIds = new Set([...script.matchAll(/id:\s*"([A-Za-z0-9_-]+)"/g)].map((m) => m[1]));
 
 const problems = [];
 const seen = new Set();
 const exceptions = [];
-for (const c of ledger.claims) {
+for (const c of ledger.claims ?? []) {
   const tag = c.id ?? "(no id)";
   for (const f of ["id", "scene", "onScreen", "value", "quote", "where"]) {
     if (!c[f]) problems.push(tag + ": missing " + f);
@@ -85,26 +60,22 @@ for (const c of ledger.claims) {
   if (seen.has(c.id)) problems.push(tag + ": duplicate id");
   seen.add(c.id);
   if (c.quote && !paper.includes(normalize(c.quote))) problems.push(tag + ": quote is not in paper.txt — " + c.quote.slice(0, 70));
-  // A value that no committed ledger carries is allowed only as an explicit, reviewed exception:
-  // it is said in the narration or derived in the film, and the row says so. Silence is a failure.
   if (c.value && !ledgers.some((l) => l.includes(String(c.value)))) {
     if ((c.note ?? "").includes("UNSOURCED IN LEDGERS")) exceptions.push(tag);
-    else problems.push(tag + ": value " + c.value + " is in none of " + ledgerFiles.join("/") + " and the row does not say why");
+    else problems.push(tag + ": value " + c.value + " is in none of " + ledgerFiles.map((p) => path.basename(p)).join("/") + " and the row does not say why");
   }
-  if (c.scene && !sceneIds.has(c.scene)) problems.push(tag + ": scene \"" + c.scene + "\" is not in src/" + FILM + "/script.ts");
+  if (c.scene && !sceneIds.has(c.scene)) problems.push(tag + ': scene "' + c.scene + '" is not in ' + path.relative(ROOT, filmScriptAbs(film)));
 }
 
 const byScene = {};
-for (const c of ledger.claims) byScene[c.scene] = (byScene[c.scene] ?? 0) + 1;
+for (const c of ledger.claims ?? []) byScene[c.scene] = (byScene[c.scene] ?? 0) + 1;
 const missingScenes = [...sceneIds].filter((s) => !byScene[s]);
-
 if (problems.length) {
   console.error("FAIL claims ledger is not self-consistent (" + problems.length + ")");
   for (const p of problems) console.error("  " + p);
   process.exit(1);
 }
-console.log("claims check [" + FILM + "]: " + ledger.claims.length + " claims quoted from paper.txt ("
-  + paper.length + " chars), values present in the ledgers, scenes "
-  + Object.keys(byScene).sort().join("/"));
+console.log("claims check [" + film.id + "]: " + (ledger.claims ?? []).length + " claims quoted from paper.txt ("
+  + paper.length + " chars), values present in the ledgers, scenes " + Object.keys(byScene).sort().join("/"));
 if (missingScenes.length) console.log("  note: no claim rows for scene(s) " + missingScenes.join(", "));
 if (exceptions.length) console.log("  note: " + exceptions.length + " value(s) have no ledger row and say so: " + exceptions.join(", "));
