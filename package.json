@@ -24,9 +24,9 @@
     "lint:plates": "node scripts/qa/plate_lint.mjs",
     "props": "node scripts/assets/sdf_props.mjs --prop=gear --res=112 --samples=120000 --out=public/models/prop_gear.glb && node scripts/assets/sdf_props.mjs --prop=chip --res=112 --samples=120000 --out=public/models/prop_chip.glb && node scripts/assets/sdf_props.mjs --prop=nut --res=112 --samples=120000 --out=public/models/prop_nut.glb",
     "lint:props": "node scripts/qa/model_lint.mjs \"public/models/prop_*.glb\" --watertight --allow=no-normals",
-    "gears:data": "python3 scripts/generate_gear_data.py",
-    "lint:geometry": "node scripts/qa/geometry_check.mjs",
-    "lint:budget": "node scripts/qa/scene_3d_budget.mjs src/gears/script.ts"
+    "films": "node scripts/films.mjs",
+    "sync": "node scripts/films.mjs sync",
+    "postinstall": "node scripts/films.mjs sync --allow-empty"
   },
   "dependencies": {
     "@react-three/fiber": "9.8.2",

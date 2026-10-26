@@ -4,8 +4,6 @@ import { StoryboardFilm } from "./storyboard/Film";
 import { DEMO_STORYBOARD } from "./storyboard/default";
 import { DEMO_FILM } from "./storyboard/demo";
 import { totalFrames } from "./schema";
-import { QuicksortLecture } from "./lecture/Lecture";
-import { TOTAL as LECTURE_FRAMES, FPS as LECTURE_FPS } from "./lecture/script";
 import { Transitions } from "./showcase/Transitions";
 import { Typesetting } from "./showcase/Typesetting";
 import { ThreeCube } from "./showcase/ThreeCube";
@@ -14,17 +12,9 @@ import { PlateStage, PLATE_STAGE_FRAMES } from "./showcase/PlateStage";
 import { PropStage, PROP_STAGE_FRAMES } from "./showcase/PropStage";
 import { ManimOverlay } from "./showcase/ManimOverlay";
 import { PresetGallery, PRESET_GALLERY_FRAMES } from "./showcase/PresetGallery";
-import { Multiplication } from "./mult/Multiplication";
-import { TOTAL as MULT_FRAMES, FPS as MULT_FPS } from "./mult/script";
 import { LintAudit } from "./design/lint";
-import { Gears, GEARS_TOTAL, GEARS_FPS } from "./gears/Gears";
-import { Hawk, HAWK_TOTAL, HAWK_FPS } from "./hawk/Hawk";
-import { Arc, ARC_TOTAL, ARC_FPS } from "./arc/Arc";
-import { Quickselect, QUICKSELECT_TOTAL, QUICKSELECT_FPS } from "./quickselect/Quickselect";
-import { Char, CHAR_TOTAL, CHAR_FPS } from "./char/Char";
-import { Probe as Char2Probe } from "./char2/Probe";
-import { Char2, CHAR2_TOTAL, CHAR2_FPS } from "./char2/Film";
 import { LintFixtures } from "./qa/LintFixtures";
+import { CONTENT_FILMS } from "./films.generated";
 
 /**
  * Every composition carries the still-lint probe. It renders nothing and does
@@ -42,17 +32,12 @@ const withLint = (C: React.ComponentType<any>): React.FC<any> => {
 };
 
 /**
- * 注册的 Composition 分三类：
- *   1) Storyboard / Showreel —— 通用分镜模板，输入 Storyboard JSON 即可出片
- *   2) Lecture               —— 本次验证过的 305 s 教学片（quicksort），数据来自真实执行
- *   3) Transitions / Typesetting / ThreeCube / ManimOverlay —— 单项能力的最小样张
- *   4) Presets               —— 同一份版式在 data/design.spec.json 的每个配色预设下各演一遍
- *   5) Multiplication        —— 逐位乘法演进片（n² → Karatsuba → Toom-3 → NTT → 魔法），
- *                              数据来自 scripts/generate_mult_data.py 的真实执行
+ * 注册的 Composition 分两类：
+ *   1) demo —— 引擎自带的分镜模板与能力样张（Storyboard/Showreel/Transitions/…/LintFixtures）；
+ *   2) 内容影片 —— 由内容仓 video_project 的 catalog + film.json 生成（见 scripts/films.mjs）。
+ *      引擎不静态 import 任何一部影片；没有内容仓时，生成的注册表为空，demo 仍可渲染。
  *
- * Lecture 的默认配乐指向 public/music/score.wav（由 scripts/audio/render_music.mjs 生成）。
- * 旁白默认关闭：先跑 scripts/tts/synthesize.py 产出 public/voice/narration.wav，
- * 再把 narration 传成 "voice/narration.wav"（见 docs/deployment.md 第 4 步）。
+ * 影片默认静音：配乐与旁白由 make.mjs 在成片阶段混入；studio 中可在 props 里手动指向文件。
  */
 export const RemotionRoot: React.FC = () => {
   return (
@@ -75,87 +60,18 @@ export const RemotionRoot: React.FC = () => {
         height={DEMO_FILM.height}
         defaultProps={{ storyboard: DEMO_FILM }}
       />
-      <Composition
-        id="Lecture"
-        component={withLint(QuicksortLecture)}
-        durationInFrames={LECTURE_FRAMES}
-        fps={LECTURE_FPS}
-        width={1920}
-        height={1080}
-        defaultProps={{ music: "music/score.wav", narration: null }}
-      />
-      <Composition
-        id="Gears"
-        component={withLint(Gears)}
-        durationInFrames={GEARS_TOTAL}
-        fps={GEARS_FPS}
-        width={1920}
-        height={1080}
-        defaultProps={{ music: null, narration: null }}
-      />
-      <Composition
-        id="Hawk"
-        component={withLint(Hawk)}
-        durationInFrames={HAWK_TOTAL}
-        fps={HAWK_FPS}
-        width={1920}
-        height={1080}
-        defaultProps={{ music: null, narration: null }}
-      />
-      <Composition
-        id="Arc"
-        component={withLint(Arc)}
-        durationInFrames={ARC_TOTAL}
-        fps={ARC_FPS}
-        width={1920}
-        height={1080}
-        defaultProps={{ music: null, narration: null }}
-      />
-      <Composition
-        id="Quickselect"
-        component={withLint(Quickselect)}
-        durationInFrames={QUICKSELECT_TOTAL}
-        fps={QUICKSELECT_FPS}
-        width={1920}
-        height={1080}
-        defaultProps={{ music: null, narration: null }}
-      />
-      <Composition
-        id="Char"
-        component={withLint(Char)}
-        durationInFrames={CHAR_TOTAL}
-        fps={CHAR_FPS}
-        width={1920}
-        height={1080}
-        defaultProps={{ music: null, narration: null }}
-      />
-      <Composition
-        id="Char2Probe"
-        component={Char2Probe}
-        durationInFrames={60}
-        fps={30}
-        width={1920}
-        height={1080}
-        defaultProps={{ view: "front", clip: "idle", frame: 0, tint: "yellow", scale: 1, focus: "body", rig: "neutral", exposure: 1, light: 1.12, env: 0.12 }}
-      />
-      <Composition
-        id="Char2"
-        component={withLint(Char2)}
-        durationInFrames={CHAR2_TOTAL}
-        fps={CHAR2_FPS}
-        width={1920}
-        height={1080}
-        defaultProps={{ music: null, narration: null }}
-      />
-      <Composition
-        id="Multiplication"
-        component={withLint(Multiplication)}
-        durationInFrames={MULT_FRAMES}
-        fps={MULT_FPS}
-        width={1920}
-        height={1080}
-        defaultProps={{ music: "music/score.wav", narration: null }}
-      />
+      {CONTENT_FILMS.map((film) => (
+        <Composition
+          key={film.id}
+          id={film.composition}
+          component={withLint(film.component)}
+          durationInFrames={film.total}
+          fps={film.fps}
+          width={film.width}
+          height={film.height}
+          defaultProps={{ music: null, narration: null }}
+        />
+      ))}
       <Composition id="Transitions" component={withLint(Transitions)} durationInFrames={178} fps={30} width={1920} height={1080} />
       <Composition id="Typesetting" component={withLint(Typesetting)} durationInFrames={240} fps={30} width={1920} height={1080} />
       <Composition id="ThreeCube" component={withLint(ThreeCube)} durationInFrames={120} fps={30} width={1280} height={720} />
