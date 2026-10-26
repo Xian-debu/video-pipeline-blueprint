@@ -337,7 +337,11 @@ try {
   }
   log("PASS loudness: I=" + report.numbers.I + " LUFS, TP=" + report.numbers.TP + " dBFS");
 
-  const cutArg = resolveCutFrames(args["cut-frames"]);
+  // Declare the script's own scene cuts by default. A hard cut is not a flicker, but the
+  // gate cannot tell them apart without the list — leaving it out turns every cut into a
+  // false failure on films that actually cut on scene boundaries (K-known-issues).
+  const cutDefault = FILM && fs.existsSync(path.join(ROOT, DATA_REL, "lines.json")) ? "auto" : null;
+  const cutArg = resolveCutFrames(args["cut-frames"] ?? cutDefault);
   const blinkArgs = ["scripts/qa/luma_blink.py", finalMp4, "--thresh", "12", "--region", "full"];
   if (cutArg) blinkArgs.push("--cut-frames", cutArg);
   const blink = run("flicker gate", PYTHON, blinkArgs);
