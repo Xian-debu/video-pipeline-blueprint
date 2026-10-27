@@ -95,7 +95,12 @@ function resolveCutFrames(raw) {
   if (!FILM) throw new Error("--cut-frames auto needs a film");
   const lines = path.join(ROOT, DATA_REL, "lines.json");
   if (!fs.existsSync(lines)) {
-    throw new Error("--cut-frames auto needs " + path.relative(ROOT, lines) + ": run dump_script.mjs first");
+    // films sync mirrors the pack and drops derived files (lines.json is gitignored), so a fresh
+    // make would otherwise always lose the measured layout by the time the flicker gate runs.
+    run("script dump", "node", ["scripts/qa/dump_script.mjs", SCRIPT_REL, path.relative(ROOT, lines)]);
+  }
+  if (!fs.existsSync(lines)) {
+    throw new Error("--cut-frames auto needs " + path.relative(ROOT, lines) + ": dump_script.mjs wrote nothing");
   }
   const layout = JSON.parse(fs.readFileSync(lines, "utf8"));
   const frames = layout.scenes.map((s) => Math.round(s.start * layout.fps)).filter((n) => n > 0);
@@ -343,7 +348,7 @@ try {
   // Declare the script's own scene cuts by default. A hard cut is not a flicker, but the
   // gate cannot tell them apart without the list — leaving it out turns every cut into a
   // false failure on films that actually cut on scene boundaries (K-known-issues).
-  const cutDefault = FILM && fs.existsSync(path.join(ROOT, DATA_REL, "lines.json")) ? "auto" : null;
+  const cutDefault = FILM ? "auto" : null;
   const cutArg = resolveCutFrames(args["cut-frames"] ?? cutDefault);
   const blinkArgs = ["scripts/qa/luma_blink.py", finalMp4, "--thresh", "12", "--region", "full"];
   if (cutArg) blinkArgs.push("--cut-frames", cutArg);

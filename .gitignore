@@ -3,6 +3,9 @@ out/
 .remotion/
 public/music/*.wav
 public/voice/narration.wav
+# TTS clip directories are reproducible (pack script + IndexTTS); never commit them
+public/voice/*/
+public/voice/*.wav
 public/manim/*.mov
 public/plates/
 *.log
