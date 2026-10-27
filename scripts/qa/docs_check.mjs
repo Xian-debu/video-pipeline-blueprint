@@ -30,7 +30,25 @@ const newest = Math.max(...ks);
 if (!readme.includes("K1–K" + newest)) problems.push("README: known-issues index does not reach K" + newest);
 if (newest !== ks.length) problems.push("known-issues.md: K numbering has gaps (" + ks.length + " entries, newest K" + newest + ")");
 
-// 4. every docs/*.md is reachable from README (an orphan doc is a doc nobody updates)
+// 4. every engine path the README names must exist. Docs drift most often by naming a file that
+// was moved or deleted (the film registry moved to the content repo, generators went with their
+// packs), and a reader who trusts the README then runs a command that cannot work.
+const pathRe = /(?<![A-Za-z0-9_./-])((?:scripts|src|docs)\/[A-Za-z0-9_./-]+\.(?:tsx|ts|mjs|sh|py|md|json))/g;
+const seenPaths = new Set();
+for (const m of readme.matchAll(pathRe)) {
+  const p = m[1].replace(/[.,;:)]+$/, "");
+  if (seenPaths.has(p)) continue;
+  seenPaths.add(p);
+  if (!fs.existsSync(path.join(ROOT, p))) problems.push("README: names " + p + ", which is not in this tree");
+}
+
+// 5. the make invocation shown to readers must be the current CLI (--film), not the pre-split one
+if (!readme.includes("--film")) problems.push("README: no --film example (make is film-based since the split)");
+if (/--composition Lecture|film_registry\.mjs/.test(readme)) {
+  problems.push("README: still shows the pre-split make invocation or the deleted film registry");
+}
+
+// 6. every docs/*.md is reachable from README (an orphan doc is a doc nobody updates)
 const docs = fs.readdirSync(path.join(ROOT, "docs")).filter((f) => f.endsWith(".md"));
 for (const f of docs) {
   if (!readme.includes("docs/" + f)) problems.push("README: docs/" + f + " is never linked");

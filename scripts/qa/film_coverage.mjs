@@ -58,6 +58,36 @@ for (const film of films) {
   }
 }
 
+// A material-based film must show the source itself: at least two declared source figures, each
+// referenced from its mounted script, each present as a file under the mounted public/plates. This
+// is the engine half of the contract (the content repo validates provenance and licence); the
+// engine checks what it can see after mounting.
+for (const film of films) {
+  if (film.material !== "required") continue;
+  const manifestPath = path.join(ROOT, film.dataDir, "source-figures.json");
+  let plates = [];
+  if (!fs.existsSync(manifestPath)) {
+    problems.push(film.id + ": material is required but " + film.dataDir + "/source-figures.json is not mounted");
+  } else {
+    try {
+      const doc = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+      plates = Array.isArray(doc.plates) ? doc.plates : [];
+    } catch (e) {
+      problems.push(film.id + ": source-figures.json is not valid JSON (" + e.message + ")");
+    }
+  }
+  if (plates.length < 2) problems.push(film.id + ": material is required but only " + plates.length + " source figure(s) declared");
+  const scriptPath = path.join(srcDir, film.id, "script.ts");
+  const scriptText = fs.existsSync(scriptPath) ? fs.readFileSync(scriptPath, "utf8") : "";
+  for (const p of plates) {
+    if (!p || !p.id) continue;
+    const relFile = String(p.file || "").replace(/^assets\/public\//, "");
+    const mounted = path.join(ROOT, "public", film.id, relFile);
+    if (!fs.existsSync(mounted)) problems.push(film.id + ": source figure " + p.id + " is not mounted (looked for " + path.relative(ROOT, mounted) + ")");
+    if (!scriptText.includes(p.id)) problems.push(film.id + ": source figure " + p.id + " is declared but not referenced in script.ts");
+  }
+}
+
 const registry = fs.readFileSync(path.join(srcDir, "films.generated.tsx"), "utf8");
 const root = fs.readFileSync(path.join(srcDir, "Root.tsx"), "utf8");
 if (!root.includes("films.generated")) problems.push("src/Root.tsx does not import the generated film register");

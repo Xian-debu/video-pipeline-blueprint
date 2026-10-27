@@ -295,9 +295,12 @@ try {
   }
 
   // ---- 4. stills for human eyes, then the machine version of the same question
+  // The opening frame is part of the review: an entry animation that never settles hides in the
+  // first second, and the old midpoint-only sample missed it. Dedupe for very short films.
   const frames = STILL_FRAMES.length
     ? STILL_FRAMES.map(Number)
-    : [Math.round(seconds * 0.1 * 30), Math.round(seconds * 0.45 * 30), Math.round(seconds * 0.8 * 30)];
+    : [...new Set([45, Math.round(seconds * 0.1 * 30), Math.round(seconds * 0.45 * 30), Math.round(seconds * 0.8 * 30)])]
+      .filter((f) => f > 0 && f < Math.round(seconds * 30));
   for (const f of frames) {
     run("still frame " + f, "npx", ["remotion", "still", COMP,
       path.join(OUT, "stills", "frame_" + f + ".png"), "--frame=" + f,

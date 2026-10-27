@@ -239,6 +239,7 @@ function makeEntries(contentRoot, parsed) {
       fps: f.film.fps,
       prefix: f.film.prefix,
       status: f.film.status,
+      material: f.film.material ?? null,
       assetsStatus: f.film.assetsStatus,
       paper: f.film.paper ?? null,
       claims: f.film.claims ?? null,
